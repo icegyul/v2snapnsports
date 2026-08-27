@@ -20,3 +20,21 @@ h1 { margin: 0; font-size: clamp(28px, 8vw, 42px); line-height: 1; }
 .bottom-navigation { position: fixed; inset: auto 0 0; min-height: 64px; display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--color-border-strong); background: var(--color-bg-surface); }
 .bottom-navigation a { display: grid; place-items: center; color: var(--color-text-secondary); font-size: 11px; text-decoration: none; }
 .bottom-navigation .nav-active { color: var(--color-text-primary); box-shadow: inset 0 3px 0 var(--color-accent-primary); }
+.auth-main { padding-top: clamp(56px, 18vh, 140px); }
+.role-grid { display: grid; gap: var(--space-md); }
+.role-card { min-height: 112px; padding: var(--space-lg); border: 1px solid var(--color-border-strong); border-radius: var(--radius-lg); background: var(--color-bg-surface); color: var(--color-text-primary); font: inherit; font-size: 18px; text-align: left; }
+.role-card:focus-visible, .surface-link:focus-visible, .bottom-navigation a:focus-visible { outline: 3px solid var(--color-accent-focus); outline-offset: 3px; }
+.guardian-note { margin: 0; color: var(--color-text-secondary); font-size: 14px; }
+.position-pitch { position: relative; min-height: 340px; overflow: hidden; border: 2px solid var(--color-accent-pitch); border-radius: var(--radius-lg); background: var(--color-bg-surface); }
+.position-pitch::before, .position-pitch::after { position: absolute; content: ""; pointer-events: none; }
+.position-pitch::before { inset: 8% 12%; border: 1px solid var(--color-border-strong); }
+.position-pitch::after { top: 50%; left: 12%; right: 12%; border-top: 1px solid var(--color-border-strong); }
+.player-marker, .teammate-marker { position: absolute; z-index: 1; display: grid; place-items: center; text-align: center; }
+.player-marker { top: 53%; left: 50%; width: 88px; height: 88px; transform: translate(-50%, -50%); border: 3px double var(--color-accent-focus); border-radius: 999px; background: var(--color-bg-floating); color: var(--color-text-primary); box-shadow: 0 0 0 7px rgba(98, 211, 109, 0.18); }
+.player-marker small { color: var(--color-text-secondary); font-size: 11px; }
+.teammate-marker { width: 52px; height: 52px; border: 1px solid var(--color-border-strong); border-radius: 999px; background: var(--color-bg-elevated); color: var(--color-text-secondary); font-size: 11px; line-height: 1.2; }
+.teammate-left { top: 30%; left: 22%; }
+.teammate-right { top: 25%; right: 22%; }
+.anchor-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); }
+.spatial-anchor { min-height: 92px; display: grid; place-items: center; border: 1px solid var(--color-border-default); border-radius: var(--radius-md); background: var(--color-bg-surface); color: var(--color-text-primary); }
+.spatial-anchor:first-child { grid-column: span 2; border-color: var(--color-accent-pitch); background: var(--color-bg-elevated); }

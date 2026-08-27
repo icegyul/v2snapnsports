@@ -17,7 +17,7 @@ trap cleanup EXIT
 
 if [[ "$project_root" == *'#'* ]]; then
   temporary_root=$(mktemp -d /private/tmp/snapn-v2-runtime.XXXXXX)
-  rsync -a --exclude '/.git' --exclude '/dist' --exclude '/.vite' "$project_root/" "$temporary_root/"
+  rsync -a --exclude '/.git' --exclude '/dist' --exclude '/.vite' --exclude '/update' "$project_root/" "$temporary_root/"
   runtime_root=$temporary_root
 fi
 
