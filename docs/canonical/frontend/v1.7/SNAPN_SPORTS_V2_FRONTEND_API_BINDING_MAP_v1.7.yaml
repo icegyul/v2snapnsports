@@ -1,0 +1,95 @@
+version: 1.7.0
+source: SNAPN_SPORTS_V2_OPENAPI_v1.4.yaml
+bindings:
+- screen: A03 Public Signup
+  ops:
+  - signup
+  notes: type PLAYER/MANAGER only
+- screen: A04/A05 Onboarding
+  ops:
+  - signup
+  - getMe
+  notes: existing auth provider fields bind after audit
+- screen: M02 Role Settings
+  ops:
+  - getMe
+  - updateRolePreferences
+  notes: preference is not authority
+- screen: M03 Credential Verification
+  ops:
+  - createRoleVerification
+  notes: show PENDING/VERIFIED/REJECTED/EXPIRED from server
+- screen: M04 Role Switcher
+  ops:
+  - switchManagerRole
+  - getMe
+  notes: verified grants only
+- screen: P03 Spatial Home
+  ops:
+  - getStadiumHome
+  - getFeatures
+  notes: primary player home; graceful static fallback
+- screen: P05 Team Formation
+  ops:
+  - getStadiumHome
+  - getSquad
+  notes: formation from server snapshot; no inferred players
+- screen: P07/P08 Training
+  ops:
+  - listEvents
+  notes: Earthus context may be nested/stale; core data remains usable
+- screen: P09 Community Feed
+  ops:
+  - getCommunityFeed
+  notes: Legacy parity ordering in V2.0
+- screen: P11 Composer
+  ops:
+  - createMediaUpload
+  - createCommunityPost
+  notes: direct upload then post commit
+- screen: P13 Career Passport
+  ops:
+  - getCareerPassport
+  notes: growth without sensor dependency
+- screen: P15 Stadium Builder
+  ops:
+  - getStadiumHome
+  - saveStadiumRecipe
+  notes: optimistic version conflict must preserve draft
+- screen: C01 Ground
+  ops:
+  - listEvents
+  - getSquad
+  - getStadiumHome
+  notes: EPTS/Camera cards hidden while disabled
+- screen: C04 Session
+  ops:
+  - createTrainingSession
+  - appendTrainingEvent
+  - syncBatch
+  notes: offline event log first
+- screen: R03 Match Center
+  ops:
+  - listMatches
+  - appendMatchEvent
+  - syncBatch
+  notes: large touch; offline sequence aware
+- screen: TM04 Communications
+  ops:
+  - createCommunicationThread
+  - sendCommunicationMessage
+  notes: safeguarding errors map to mediated contact UX
+- screen: AG04 Opportunities
+  ops:
+  - listOpportunities
+  - createOpportunity
+  notes: visibility/consent from server
+- screen: AN03 Search
+  ops:
+  - search
+  notes: permission-aware search only
+- screen: Global Shell
+  ops:
+  - getMe
+  - getFeatures
+  notes: session restore + feature visibility before routes

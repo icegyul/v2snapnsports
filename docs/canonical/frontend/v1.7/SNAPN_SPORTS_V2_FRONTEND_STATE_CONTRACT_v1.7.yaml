@@ -1,0 +1,62 @@
+version: 1.7.0
+principles:
+- Do not duplicate server authority in local state.
+- Server capabilities/RoleGrants are authoritative.
+- 3D scene state is ephemeral and never becomes business truth.
+- Offline mutations use local event IDs and sync/batch.
+domains:
+  session:
+    owner: app shell
+    persist: secure storage
+    examples:
+    - auth token/session hint
+    - active account id
+  capability:
+    owner: server state
+    persist: memory + short cache
+    source: GET /v2/me + GET /v2/features
+  navigation:
+    owner: router
+    persist: session only
+    examples:
+    - active shell
+    - last safe tab
+  server_query:
+    owner: query/cache layer
+    persist: implementation dependent
+    rule: invalidate by domain events/API mutation results
+  draft:
+    owner: feature form
+    persist: local optional
+    examples:
+    - community composer
+    - plan edit
+    - stadium builder draft
+  scene3d:
+    owner: 3d runtime
+    persist: none except user preference
+    examples:
+    - entry mode
+    - camera phase
+    - selected object
+    - device tier
+  offline:
+    owner: sync layer
+    persist: durable local storage
+    examples:
+    - client_id
+    - local_event_id
+    - pending mutations
+    - last sync cursor
+  media_upload:
+    owner: media feature
+    persist: durable until completion
+    examples:
+    - upload id
+    - local path
+    - checksum
+    - progress
+  feature_visibility:
+    owner: app shell
+    persist: short cache
+    rule: HARD_DISABLED means component not rendered; no placeholder.

@@ -1,0 +1,35 @@
+version: 1.7.0
+profiles:
+- id: standard_graphite
+  default: true
+  objective: premium_dark_ui_with_clear_neutral_layering
+  required_checks:
+  - primary_text_readable_at_low_brightness
+  - cards_visible_without_blue_hue_discrimination
+  - selected_state_has_shape_or_border_cue
+  - stadium_scene_does_not_reduce_nav_legibility
+- id: high_contrast_graphite
+  default: false
+  activation:
+  - in_app_accessibility_setting
+  - os_increased_contrast_signal_when_supported
+  objective: preserve_structure_on_older_or_low_contrast_displays
+  required_checks:
+  - no_information_removed
+  - stronger_surface_luminance_steps
+  - stronger_borders
+  - secondary_text_increased_luminance
+  - controls_have_non_color_selected_state
+selection_rules:
+- never infer display quality from device age alone
+- never hardcode model-name lists
+- user override wins
+- reduced motion is independent from display profile
+- feature visibility is independent from display profile
+manual_qa_matrix:
+- standard_graphite at 20_percent_brightness
+- standard_graphite at 50_percent_brightness
+- high_contrast_graphite at 20_percent_brightness
+- grayscale accessibility simulation
+- bright outdoor readability check for field-mode controls
+- dark stadium scene behind bottom navigation and bottom sheet

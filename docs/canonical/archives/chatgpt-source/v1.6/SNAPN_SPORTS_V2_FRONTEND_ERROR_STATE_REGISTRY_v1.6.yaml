@@ -1,0 +1,92 @@
+version: 1.6.0
+default_projection:
+  '401': session_reauth
+  '403': safe_forbidden
+  '404': not_found_or_hidden_feature
+  '409': conflict_resolution
+  '410': expired
+  '422': field_validation
+  '429': retry_after
+  5xx: retry_with_request_id
+codes:
+  AUTH_REQUIRED:
+    ui: login/session restore
+    cta: 로그인
+  AUTH_INVALID:
+    ui: login/session reset
+    cta: 다시 로그인
+  ACCOUNT_INACTIVE:
+    ui: account unavailable
+    cta: 지원/설정
+  ROLE_PREFERENCE_NOT_AUTHORITY:
+    ui: role preference saved; authority not granted
+    cta: 검증 보기
+  ROLE_GRANT_REQUIRED:
+    ui: verified role required
+    cta: 역할 검증
+  ROLE_VERIFICATION_PENDING:
+    ui: pending badge
+    cta: 상태 보기
+  TENANT_SCOPE_DENIED:
+    ui: generic forbidden; do not reveal tenant details
+    cta: none
+  TEAM_SCOPE_DENIED:
+    ui: generic forbidden
+    cta: none
+  SUBJECT_SCOPE_DENIED:
+    ui: generic forbidden
+    cta: none
+  CONSENT_REQUIRED:
+    ui: consent required flow
+    cta: 동의 확인
+  CONSENT_REVOKED:
+    ui: content hidden
+    cta: 권한 확인
+  MINOR_DIRECT_CONTACT_BLOCKED:
+    ui: direct messaging blocked; offer guardian/club mediated route when server returns one
+    cta: 안전한 연락 경로
+  FEATURE_DISABLED:
+    ui: route/component hidden; direct deep-link -> unavailable
+    cta: back
+  FEATURE_HARD_DISABLED:
+    ui: component must never render in normal user navigation
+    cta: back
+  RESOURCE_VERSION_CONFLICT:
+    ui: preserve local draft; show server changed state
+    cta: 새 버전 확인
+  IDEMPOTENCY_CONFLICT:
+    ui: do not retry blindly
+    cta: 새로고침
+  OFFLINE_SEQUENCE_CONFLICT:
+    ui: sync conflict sheet
+    cta: 동기화 확인
+  GUARDIAN_INVITE_EXPIRED:
+    ui: expired invite
+    cta: 새 초대 요청
+  LEGACY_WRITE_OWNER:
+    ui: route write to legacy-compatible path
+    cta: retry only after client adapter resolution
+  COMMUNITY_PARITY_NOT_CLEARED:
+    ui: do not switch to v2 writer
+    cta: none
+  MEDIA_ACCESS_DENIED:
+    ui: asset unavailable; no metadata leak
+    cta: back
+  VALIDATION_FAILED:
+    ui: inline field errors
+    cta: 수정
+  NOT_FOUND:
+    ui: not found
+    cta: back
+  RATE_LIMITED:
+    ui: temporary wait
+    cta: retry when allowed
+  EARTHUS_CONTEXT_UNAVAILABLE:
+    ui: hide environment context or stale badge
+    cta: none
+  DEPENDENCY_UNAVAILABLE:
+    ui: feature-specific fallback
+    cta: retry
+  INTERNAL_ERROR:
+    ui: safe generic error + request id
+    cta: retry

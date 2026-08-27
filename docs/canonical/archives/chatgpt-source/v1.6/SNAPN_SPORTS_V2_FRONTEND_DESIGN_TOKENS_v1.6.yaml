@@ -1,0 +1,76 @@
+version: 1.6.0
+status: semantic lock; exact brand refinement may change token values without changing token names
+color:
+  bg:
+    base: '#071016'
+    surface: '#0D1720'
+    elevated: '#14212B'
+    scrim: rgba(0,0,0,0.56)
+  text:
+    primary: '#F5F8FA'
+    secondary: '#A9B5BE'
+    muted: '#768692'
+    inverse: '#071016'
+  accent:
+    primary: '#31D17C'
+    pitch: '#3FCB70'
+    focus: '#7DE5AD'
+  status:
+    info: '#5FA8FF'
+    success: '#31D17C'
+    warning: '#F4B942'
+    danger: '#EF6461'
+    offline: '#8B98A3'
+  border:
+    default: rgba(255,255,255,0.10)
+    strong: rgba(255,255,255,0.18)
+typography:
+  family: Noto Sans / platform system fallback
+  display: 32
+  title_lg: 24
+  title_md: 20
+  title_sm: 17
+  body: 15
+  body_sm: 13
+  caption: 11
+  mono: platform mono
+spacing:
+  xs: 4
+  sm: 8
+  md: 12
+  lg: 16
+  xl: 24
+  2xl: 32
+  3xl: 48
+radius:
+  sm: 8
+  md: 12
+  lg: 18
+  xl: 24
+  pill: 999
+elevation:
+  sheet: 8
+  modal: 16
+  floating: 20
+touch:
+  minimum: 44
+  field_mode_recommended: 52
+  bottom_nav_height: 64
+motion:
+  micro_ms: 120
+  standard_ms: 220
+  sheet_ms: 280
+  cinematic_full_first_run_s: 4.5
+  fast_entry_target_s: 0.8-1.5
+  reduce_motion: disable camera spline; use dissolve/static transition
+layout:
+  phone_max_content: 720
+  tablet_breakpoint: 768
+  desktop_breakpoint: 1180
+  spatial_home_pitch_share_min: 70%
+  sheet_phone_max_height: 76vh
+accessibility:
+  min_contrast_target: WCAG AA equivalent
+  status_not_color_only: true
+  dynamic_type: true
+  screen_reader_labels: true

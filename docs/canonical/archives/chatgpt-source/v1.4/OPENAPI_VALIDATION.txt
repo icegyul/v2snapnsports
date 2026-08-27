@@ -1,0 +1,4 @@
+YAML parse: PASS
+OpenAPI: 3.1.0
+Operations: 30
+Unique operationIds: PASS

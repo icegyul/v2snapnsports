@@ -1,65 +1,63 @@
 # SnapN Sports V2 Canonical Source Index
 
-## Inventory boundary
+## Authority and scope
 
-- Inventory date: `2026-08-28 KST`
-- V2 repository branch: `chore/import-canonical-specs`
-- Copy policy: source files preserved; no move, delete, rename, content edit, or format conversion
-- Content policy: implementation/design/contract packages only; no runtime code, DB data, secrets, IR decks, manuals, or production artifacts
+- Canonical source added on `2026-08-28 KST`: `/Volumes/740GB/## APP/Snapnsports v2_DOC/chatgpt_canonical_import`
+- Source packages were copied byte-for-byte. `.DS_Store` was excluded; it is not a source document.
+- `CANONICAL_SOURCE_MANIFEST.tsv` records every one of the 266 source-package files with source path, copied destination, version, and status.
+- The earlier Mac-wide discovery remains preserved. Its external Earthus and independent TACTICS materials remain reference only.
 
 ## Status meanings
 
 | Status | Meaning |
 |---|---|
-| `ACTIVE_CANONICAL` | Current SnapN Sports V2 implementation authority in the discovered local set |
-| `SUPERSEDED` | Older document in the same lineage replaced by a newer discovered authority |
-| `ARCHIVE` | Preserved historical package, not active implementation authority |
-| `REFERENCE_ONLY` | Related independent product or external platform reference; cannot override SnapN Sports V2 |
+| `ACTIVE_CANONICAL` | Current authority for the stated V2 domain |
+| `SUPERSEDED` | Retained previous lock with a newer active lock |
+| `ARCHIVE` | Original baseline package retained without becoming the current authority |
+| `REFERENCE_ONLY` | Related source that cannot override SnapN Sports V2 contracts |
 
-## Active canonical sources
+## Active canonical set
 
-| File | Version | Domain | Source path | Destination path | Status | Supersedes | Notes |
-|---|---|---|---|---|---|---|---|
-| `SnapN_Sports_Codex_Master_Development_Package_v2.0.docx` | v2.0 | master | `/Volumes/740GB/## APP/Snapnsports v2_DOC/업데이트 1/SnapN_Sports_Codex_Master_Development_Package_v2.0.docx` | `docs/canonical/master/SnapN_Sports_Codex_Master_Development_Package_v2.0.docx` | `ACTIVE_CANONICAL` | Individual v1.0–v1.5 development guidelines, as declared inside the document | Integrated Phase 0–13 roadmap and Stadium/engine source package. SHA-256 `687cbf23479ecc36bfa79671b617f753d67c4e591e946e7a0921f7827d64a68d`. |
-| `SnapN_Sports_Player_First_Execution_Development_Directive_v1.0_20260825.docx` | v1.0 / 2026-08-25 | codex | `/Volumes/740GB/웹/스냅엔스포츠cafe24-deploy/docs/SnapN_Sports_Player_First_Execution_Development_Directive_v1.0_20260825.docx` | `docs/canonical/codex/SnapN_Sports_Player_First_Execution_Development_Directive_v1.0_20260825.docx` | `ACTIVE_CANONICAL` | None | Explicitly states it is the execution companion to Master v2.0 and does not replace it. SHA-256 `48ea31f3aa2cc5b814419b4e7654928211f00a8a7619e280975e334e6142a16e`. |
+| Domain | Version | Source package/file | Destination | Status | Supersedes | Notes |
+|---|---|---|---|---|---|---|
+| Product master | v2.0 | `SnapN_Sports_Codex_Master_Development_Package_v2.0.docx` | `docs/canonical/master/SnapN_Sports_Codex_Master_Development_Package_v2.0.docx` | `ACTIVE_CANONICAL` | earlier integrated development guidelines | Highest discovered product/program master. |
+| Physical implementation baseline | v1.4 | `snapn_v2_implementation_lock_v1_4` | `docs/canonical/master/v1.4/`, `api-db/v1.4/`, `community/v1.4/`, `migration/v1.4/`, `operations/v1.4/`, `testing/v1.4/`, `codex/v1.4/` | `ACTIVE_CANONICAL` | v1.3 physical contract gaps | Current discovered PostgreSQL/OpenAPI/UI/Community/migration/release baseline. |
+| Backend | v1.5 | `SNAPN_SPORTS_V2_BACKEND_IMPLEMENTATION_LOCK_v1.5` | `docs/canonical/backend/v1.5/` | `ACTIVE_CANONICAL` | v1.4 backend planning layer | Blueprint, acceptance gate, error/event/cache registries, reference scaffold, and immutable v1.4 baseline. |
+| Frontend/visual | v1.7 | `snapn_v2_frontend_visual_lock_v1_7` | `docs/canonical/frontend/v1.7/`, `visual/v1.7/`, `testing/v1.7/`, `codex/v1.7/` | `ACTIVE_CANONICAL` | v1.6 frontend lock | Graphite Stadium visual lock; v1.7 explicitly replaces dark navy as V2 default. |
+| Engine catalog | v1.3 | `SNAPN_SPORTS_V2_ENGINE_CATALOG_v1.3.*` | `docs/canonical/engines/v1.3/` | `ACTIVE_CANONICAL` | None discovered | Latest discovered SnapN engine catalog. |
+| Algorithm catalog | v1.3 | `SNAPN_SPORTS_V2_ALGORITHM_CATALOG_v1.3.*` | `docs/canonical/algorithms/v1.3/` | `ACTIVE_CANONICAL` | None discovered | Latest discovered SnapN algorithm catalog. |
+| Engine dependency map | v1.3 | `SNAPN_SPORTS_V2_ENGINE_DEPENDENCY_MAP_v1.3.*` | `docs/canonical/engines/v1.3/` | `ACTIVE_CANONICAL` | None discovered | Remains the named dependency-map authority. |
+| Football Life | v1.3 | `SNAPN_SPORTS_V2_FOOTBALL_LIFE_ARCHITECTURE_v1.3.*` | `docs/canonical/football-life/v1.3/` | `ACTIVE_CANONICAL` | None discovered | Latest discovered SnapN Football Life architecture. |
+| Earthus context | v1.3 | `SNAPN_SPORTS_V2_EARTHUS_CONTEXT_INTEGRATION_SPEC_v1.3.*` | `docs/canonical/earthus/v1.3/` | `ACTIVE_CANONICAL` | None discovered | SnapN integration specification; this replaces the prior unresolved status. |
+| Player-first execution | v1.0 | `SnapN_Sports_Player_First_Execution_Development_Directive_v1.0_20260825.docx` | `docs/canonical/codex/SnapN_Sports_Player_First_Execution_Development_Directive_v1.0_20260825.docx` | `ACTIVE_CANONICAL` | None | Execution companion; it cannot override v1.4/v1.5/v1.7 implementation locks. |
 
-## Reference-only sources
+## Archived and superseded package set
 
-| File | Version | Domain | Source path | Destination path | Status | Supersedes | Notes |
-|---|---|---|---|---|---|---|---|
-| `ENGINE_CATALOG_v0.2.md` | Earthus v0.2 | earthus | `/Volumes/740GB/## APP/EARTHUS v2_APP/docs/earthus-v2/ENGINE/ENGINE_CATALOG_v0.2.md` | `docs/canonical/earthus/ENGINE_CATALOG_v0.2.md` | `REFERENCE_ONLY` | None | Earthus 2.0 catalog, not the missing SnapN Sports V2 Engine Catalog. SHA-256 `48e899eb73e4bd55bee51d02b092e213f54473d56660c9e3fa03b1303dd1fcbc`. |
-| `ALGORITHM_CATALOG_v0.2.md` | Earthus v0.2 | earthus | `/Volumes/740GB/## APP/EARTHUS v2_APP/docs/earthus-v2/ALGORITHM/ALGORITHM_CATALOG_v0.2.md` | `docs/canonical/earthus/ALGORITHM_CATALOG_v0.2.md` | `REFERENCE_ONLY` | None | Earthus 2.0 catalog, not the missing SnapN Sports V2 Algorithm Catalog. SHA-256 `60f2e67a554dec48afc489d200c8522f14ea067d7c1f2db60715efecd47a68be`. |
-| `EARTHUS_2.0_FINAL_MASTER_DEVELOPMENT_DIRECTIVE_v3.2_PAID_UX_GLOBAL_3D_CLOUD_HYBRID_NAS_ARCHIVE.docx` | Earthus v3.2 | earthus/archive | `/Volumes/740GB/## APP/EARTHUS v2_APP/docs/earthus-v2/MASTER_SPEC/EARTHUS_2.0_FINAL_MASTER_DEVELOPMENT_DIRECTIVE_v3.2_PAID_UX_GLOBAL_3D_CLOUD_HYBRID_NAS_ARCHIVE.docx` | `docs/canonical/archives/earthus-reference/EARTHUS_2.0_FINAL_MASTER_DEVELOPMENT_DIRECTIVE_v3.2_PAID_UX_GLOBAL_3D_CLOUD_HYBRID_NAS_ARCHIVE.docx` | `REFERENCE_ONLY` | Earthus earlier master documents only | External platform reference. It does not prove or replace a SnapN Earthus integration contract. SHA-256 `dcc49c243c4f7416c5748f6578b850560b2fc70e21ef5e921fe4af7c62767e50`. |
-| `EARTHUS_2.0_ENGINE_FOUNDATION_v0.2_PRODUCTION_ARCHITECTURE_CORRECTION.zip` | Earthus v0.2 | earthus/archive | `/Volumes/740GB/## APP/EARTHUS v2_APP/docs/earthus-v2/FOUNDATION_PACKAGE/EARTHUS_2.0_ENGINE_FOUNDATION_v0.2_PRODUCTION_ARCHITECTURE_CORRECTION.zip` | `docs/canonical/archives/earthus-reference/EARTHUS_2.0_ENGINE_FOUNDATION_v0.2_PRODUCTION_ARCHITECTURE_CORRECTION.zip` | `REFERENCE_ONLY` | Earthus earlier foundation package only | Original ZIP preserved with extracted catalog references kept separately. SHA-256 `d87111dafc08cebdd4e4823bfd81e6982ac9575db97be13d1487fed9e4327e8b`. |
-| `SNAPNSPORTS_TACTICS_1.0_최종_전체_개발계획서_150p.docx` | TACTICS v1.0 / 2026-08-21 | tactics/archive | `/Users/fiftyfy14/Downloads/SNAPNSPORTS_TACTICS_1.0_최종_전체_개발계획서_150p.docx` | `docs/canonical/archives/tactics-reference/SNAPNSPORTS_TACTICS_1.0_최종_전체_개발계획서_150p.docx` | `REFERENCE_ONLY` | None | Independent TACTICS product plan; not a main V2 domain contract. SHA-256 `9703eeb03eae0a9c13fea01acc72ac5154207d077fa3ce8774914e383edf53dc`. |
-| `SNAPNSPORTS_TACTICS_1.0_TACTICAL_ENGINE_대규모_기술명세서.docx` | TACTICS v1.0 | tactics/archive | `/Users/fiftyfy14/Downloads/SNAPNSPORTS_TACTICS_1.0_TACTICAL_ENGINE_대규모_기술명세서.docx` | `docs/canonical/archives/tactics-reference/SNAPNSPORTS_TACTICS_1.0_TACTICAL_ENGINE_대규모_기술명세서.docx` | `REFERENCE_ONLY` | None | Independent deterministic tactical-engine specification. SHA-256 `2a8c5bef83c6dbb550960f1c28b87fd3e2fa7c444d7982de6116c2a12d6e80d9`. |
-| `SNAPNSPORTS_TACTICS_1.0_개발기준_1페이지.docx` | TACTICS v1.0 | tactics/archive | `/Users/fiftyfy14/Downloads/SNAPNSPORTS_TACTICS_1.0_개발기준_1페이지.docx` | `docs/canonical/archives/tactics-reference/SNAPNSPORTS_TACTICS_1.0_개발기준_1페이지.docx` | `REFERENCE_ONLY` | None | Independent TACTICS product summary. SHA-256 `009a60d4196b18efb9310387fdff713e2a41ff6a703933c65f957a3d3b1f8cdd`. |
-| `SNAPNSPORTS_TACTICS_2단계_개발지시서_실제웹앱_UI예시_최종.docx` | TACTICS Phase 2 / 2026-08-23 | tactics/archive | `/Users/fiftyfy14/Downloads/SNAPNSPORTS_TACTICS_2단계_개발지시서_실제웹앱_UI예시_최종.docx` | `docs/canonical/archives/tactics-reference/SNAPNSPORTS_TACTICS_2단계_개발지시서_실제웹앱_UI예시_최종.docx` | `REFERENCE_ONLY` | Extends TACTICS v1.0 | Independent TACTICS data-layer directive. SHA-256 `46383dcb335a19a02ee15c5d7e1e376a468d5af992a25958c37d4089d3d326a6`. |
-
-## Duplicate source copies
-
-Only one byte-identical copy is stored in `docs/canonical/`. Every duplicate source remains untouched.
-
-| Logical file | Primary source | Duplicate source path(s) | Hash result |
+| Source package | Destination | Status | Reason |
 |---|---|---|---|
-| SnapN Master v2.0 | `/Volumes/740GB/## APP/Snapnsports v2_DOC/업데이트 1/...` | `/Volumes/740GB/웹/스냅엔스포츠 개발계획 822/...`; `/Volumes/740GB/웹/개발/...` | 3/3 identical: `687cbf…a68d` |
-| Earthus Engine Catalog v0.2 | `/Volumes/740GB/## APP/EARTHUS v2_APP/docs/earthus-v2/ENGINE/...` | `FOUNDATION_PACKAGE/DOCUMENTATION/...`; `/Volumes/740GB/웹/Earthus V2.0/기획/826/...` | 3/3 identical: `48e899…fcbc` |
-| Earthus Algorithm Catalog v0.2 | `/Volumes/740GB/## APP/EARTHUS v2_APP/docs/earthus-v2/ALGORITHM/...` | `FOUNDATION_PACKAGE/DOCUMENTATION/...`; `/Volumes/740GB/웹/Earthus V2.0/기획/826/...` | 3/3 identical: `60f2e6…8be` |
-| Earthus Master v3.2 | `/Volumes/740GB/## APP/EARTHUS v2_APP/docs/earthus-v2/MASTER_SPEC/...` | `/Volumes/740GB/웹/Earthus V2.0/기획/826/...` | 2/2 identical: `dcc49c…e50` |
-| Earthus Foundation ZIP v0.2 | `/Volumes/740GB/## APP/EARTHUS v2_APP/docs/earthus-v2/FOUNDATION_PACKAGE/...` | `/Volumes/740GB/웹/Earthus V2.0/기획/826/...` | 2/2 identical: `d87111…e8b` |
+| `SNAPN_SPORTS_V2_DEVELOPMENT_PACKAGE_v1.3` | `docs/canonical/archives/chatgpt-source/v1.3/` | `ARCHIVE` | Original v1.3 package retained. Domain documents with no later named successor are also copied into their active domain folders. |
+| `snapn_v2_implementation_lock_v1_4` | `docs/canonical/archives/chatgpt-source/v1.4/` | `ARCHIVE` | Original physical-lock package retained; its current baseline contracts are also copied by domain. |
+| `snapn_v2_frontend_lock_v1_6` | `docs/canonical/archives/chatgpt-source/v1.6/` | `SUPERSEDED` | v1.7 states that visual/frontend lock is current and preserves v1.6 product/route/feature rules. |
+| `SNAPN_SPORTS_V2_BACKEND_IMPLEMENTATION_LOCK_v1.5/00_BASELINE_V1.4` | `docs/canonical/backend/v1.5/00_BASELINE_V1.4/` | `ARCHIVE` | Immutable v1.4 dependency retained inside current backend package. |
+| `snapn_v2_frontend_visual_lock_v1_7/00_BASELINE_CONTRACTS` | `docs/canonical/frontend/v1.7/00_BASELINE_CONTRACTS/` | `ARCHIVE` | v1.3/v1.4/v1.5 baseline contracts retained inside current frontend package. |
 
-## Precedence rules
+## Reference-only preservation
 
-1. Master v2.0 is the highest discovered SnapN Sports V2 product/development authority.
-2. Player-first v1.0 is an active execution companion and cannot override Master v2.0.
-3. TACTICS documents remain an independent product reference and do not define main V2 IDs, DB, API, roles, or deployment.
-4. Earthus files remain external platform references. They cannot be treated as a discovered `SNAPN_SPORTS_V2_EARTHUS_CONTEXT_INTEGRATION_SPEC`.
-5. None of the missing v1.4–v1.7 files may be reconstructed, renamed, or inferred from these references.
+| Source | Destination | Status | Notes |
+|---|---|---|---|
+| Earthus v0.2 Engine/Algorithm catalogs and foundation package | `docs/canonical/earthus/` and `archives/earthus-reference/` | `REFERENCE_ONLY` | External platform reference. It cannot override `EARTHUS_CONTEXT_INTEGRATION_SPEC_v1.3`. |
+| Independent SNAPNSPORTS TACTICS documents | `docs/canonical/archives/tactics-reference/` | `REFERENCE_ONLY` | Independent product boundary; it cannot define main V2 IDs, DB, API, or deployment. |
 
-## Excluded candidate classes
+## Duplicate handling
 
-- IR/business decks and app/training manuals: product communication, not implementation authority.
-- Patent packages: legal/IP material, not runtime contract.
-- V1 source, production artifacts, `.deploy_backup`, runtime media, and configs: prohibited by task scope.
-- Memory/rollout summaries: secondary records, not original canonical sources.
-- Current V2 audit documents: remain under `docs/audit*`; they are evidence/gates, not imported canonical packages.
+- The preexisting Master v2.0 has three byte-identical source copies; one selected copy remains active.
+- Earthus v0.2 reference documents also had byte-identical duplicate copies; one selected copy remains reference-only.
+- v1.3/v1.4 documents intentionally appear both in their preserved package archive and, where still authoritative, in their active domain directory. This is provenance duplication, not a version conflict.
+
+## Read order
+
+1. Master v2.0 product/program direction.
+2. v1.4 implementation baseline for API, DB, migration, Community, operations, and test/release.
+3. v1.5 backend implementation lock.
+4. v1.7 frontend visual/implementation lock.
+5. v1.3 engine, algorithm, dependency, Football Life, and Earthus integration documents where no later named successor exists.

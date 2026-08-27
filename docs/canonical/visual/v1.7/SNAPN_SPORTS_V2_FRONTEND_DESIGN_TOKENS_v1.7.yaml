@@ -1,0 +1,132 @@
+version: 1.7.0
+status: visual lock - Graphite Stadium UI
+visual_identity:
+  name: Graphite Stadium UI
+  principle: stadium_and_pitch_are_the_visual_hero
+  prohibited_primary_theme:
+  - dark_navy
+  - near_black_blue_surfaces
+  notes:
+  - use neutral graphite surfaces to reduce black-crush and blue-channel loss on older LCD devices
+  - distinguish layers with luminance steps plus borders, not hue alone
+  - never depend on color alone for status or hierarchy
+color:
+  bg:
+    base: '#121416'
+    surface: '#1C2023'
+    elevated: '#282D31'
+    floating: '#353C41'
+    scrim: rgba(0,0,0,0.58)
+  text:
+    primary: '#F7F8F8'
+    secondary: '#C5CBD0'
+    muted: '#9AA4AA'
+    inverse: '#0D160F'
+  accent:
+    primary: '#72DD7A'
+    pitch: '#62D36D'
+    focus: '#A0F0A6'
+    pressed: '#55C85F'
+  status:
+    info: '#79B8FF'
+    success: '#72DD7A'
+    warning: '#FFC857'
+    danger: '#FF7470'
+    offline: '#A7B0B6'
+  border:
+    default: rgba(255,255,255,0.18)
+    strong: rgba(255,255,255,0.30)
+    focus: '#A0F0A6'
+  overlay:
+    selected: rgba(114,221,122,0.14)
+    pressed: rgba(255,255,255,0.08)
+    disabled: rgba(255,255,255,0.05)
+display_profiles:
+  standard_graphite:
+    bg_base: '#121416'
+    surface: '#1C2023'
+    elevated: '#282D31'
+    floating: '#353C41'
+    border_default_alpha: 0.18
+    border_strong_alpha: 0.30
+  high_contrast_graphite:
+    activation:
+    - user_setting
+    - os_increased_contrast_when_available
+    bg_base: '#181B1E'
+    surface: '#292E32'
+    elevated: '#3A4146'
+    floating: '#4B5359'
+    text_primary: '#FFFFFF'
+    text_secondary: '#D7DCE0'
+    text_muted: '#B3BBC0'
+    border_default_alpha: 0.28
+    border_strong_alpha: 0.42
+    notes:
+    - do_not_auto_select_by_phone_model_name
+    - no_feature_or_information_loss_vs_standard
+  light_future:
+    release: not_in_v2_initial_release
+    token_ready_only: true
+typography:
+  family: Noto Sans / platform system fallback
+  display: 32
+  title_lg: 24
+  title_md: 20
+  title_sm: 17
+  body: 15
+  body_sm: 13
+  caption: 11
+  mono: platform mono
+  minimum_regular_weight: 400
+  recommended_small_text_weight: 500
+spacing:
+  xs: 4
+  sm: 8
+  md: 12
+  lg: 16
+  xl: 24
+  2xl: 32
+  3xl: 48
+radius:
+  sm: 8
+  md: 12
+  lg: 18
+  xl: 24
+  pill: 999
+elevation:
+  sheet: 8
+  modal: 16
+  floating: 20
+touch:
+  minimum: 44
+  field_mode_recommended: 52
+  bottom_nav_height: 64
+motion:
+  micro_ms: 120
+  standard_ms: 220
+  sheet_ms: 280
+  cinematic_full_first_run_s: 4.5
+  fast_entry_target_s: 0.8-1.5
+  reduce_motion: disable camera spline; use dissolve/static transition
+layout:
+  phone_max_content: 720
+  tablet_breakpoint: 768
+  desktop_breakpoint: 1180
+  spatial_home_pitch_share_min: 70%
+  sheet_phone_max_height: 76vh
+surface_rules:
+  minimum_layer_cues:
+  - luminance_step
+  - border_or_shadow_when_adjacent_dark_surfaces
+  forbidden:
+  - navy_on_navy_card_hierarchy
+  - text_below_muted_token_for_core_information
+  - transparent_card_without_visible_edge_over_dark_stadium_scene
+accessibility:
+  min_contrast_target: WCAG AA equivalent for text and controls
+  status_not_color_only: true
+  dynamic_type: true
+  screen_reader_labels: true
+  increased_contrast_profile: high_contrast_graphite
+  low_brightness_manual_qa: true

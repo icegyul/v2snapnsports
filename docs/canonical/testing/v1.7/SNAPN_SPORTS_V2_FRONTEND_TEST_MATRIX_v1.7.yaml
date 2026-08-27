@@ -1,0 +1,81 @@
+version: 1.7.0
+release_blockers:
+- public_signup_only_player_manager
+- role_preference_never_grants_authority
+- community_parity
+- hard_disabled_future_features_hidden
+- graphite_display_legibility
+- 3d_core_fallback
+- minor_safeguarding
+- offline_session_and_match_recovery
+suites:
+- id: FE-UNIT
+  scope: component/state reducers/view-models
+  must:
+  - state projection
+  - route guards
+  - feature visibility
+  - formatters
+- id: FE-CONTRACT
+  scope: OpenAPI/error/feature contracts
+  must:
+  - request shapes
+  - response projection
+  - all backend error codes mapped
+- id: FE-VISUAL
+  scope: golden screens
+  must:
+  - phone small/large
+  - tablet
+  - standard_graphite
+  - high_contrast_graphite
+  - low_brightness_20_percent
+  - grayscale
+  - dynamic type
+  - reduce motion
+- id: FE-ROLE
+  scope: role matrix
+  must:
+  - player
+  - guardian invite
+  - coach
+  - team manager
+  - club director
+  - referee
+  - agent
+  - analyst
+- id: FE-SEC
+  scope: client privacy
+  must:
+  - forbidden deep links
+  - minor contact blocked
+  - media URL no leak
+  - hidden future modules
+- id: FE-OFFLINE
+  scope: field recovery
+  must:
+  - coach session
+  - referee match
+  - community draft
+  - media upload resume
+- id: FE-3D
+  scope: stadium runtime
+  must:
+  - FULL/FAST/LIGHT/STATIC
+  - asset corruption fallback
+  - formation parity 3D vs 2D
+  - thermal downgrade
+- id: FE-E2E
+  scope: golden acceptance journeys
+  must:
+  - signup->home
+  - manager role verification
+  - community parity
+  - stadium builder
+  - career passport
+- id: FE-PERF
+  scope: performance
+  must:
+  - shell p75<=2.5s
+  - 3d first frame p75<=4.0s
+  - no long main-thread block on entry

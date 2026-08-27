@@ -1,0 +1,42 @@
+version: 1.5.0
+keys:
+- pattern: auth:role_grants:{user_id}
+  ttl_seconds: 60
+  invalidate_on:
+  - role.grant.activated
+  - role.grant.revoked
+  security: revoke invalidation high priority
+- pattern: feature:{scope_type}:{scope_id}:{key}
+  ttl_seconds: 30
+  invalidate_on:
+  - feature.flag.changed
+  security: HARD_DISABLED evaluated from canonical policy; cache cannot override
+- pattern: stadium:home:{user_id}
+  ttl_seconds: 60
+  invalidate_on:
+  - stadium.recipe.saved
+  - stadium.state.changed
+  - team.membership.changed
+  - tactic.version.published
+- pattern: formation:{team_id}:{version}
+  ttl_seconds: 300
+  invalidate_on:
+  - formation publish/version change
+- pattern: schedule:{subject_id}:{window_hash}
+  ttl_seconds: 120
+  invalidate_on:
+  - schedule.event.created
+  - schedule.event.updated
+  - schedule.event.cancelled
+  - match.state_changed
+- pattern: earthus:{venue_id}:{time_bucket}
+  ttl_seconds: valid_until-derived
+  invalidate_on:
+  - earthus.context.refreshed
+  fallback: stale with observed_at/valid_until
+- pattern: search:{actor_scope_hash}:{query_hash}:{cursor}
+  ttl_seconds: 30
+  security: permission-aware cache key and/or post-filter required
+- pattern: community:legacy:{legacy_key}
+  ttl_seconds: legacy-defined
+  security: do not alter ranking/order before parity cutover

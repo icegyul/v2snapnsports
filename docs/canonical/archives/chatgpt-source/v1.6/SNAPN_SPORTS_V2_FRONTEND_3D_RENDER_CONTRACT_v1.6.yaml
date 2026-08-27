@@ -1,0 +1,60 @@
+version: 1.6.0
+modes:
+  FULL:
+    when: first run or explicit replay; device MID/HIGH; reduce-motion off
+    target: signature stadium future experience
+    audio: optional Full/Silent user choice
+  FAST:
+    when: normal entry
+    target_s: 0.8-1.5
+    must_show_by_3s:
+    - My Position
+    - Next Event
+  LIGHT:
+    when: LOW tier / thermal / low-power / asset pressure
+    behavior: simplified 3D, same business bindings
+  STATIC:
+    when: 3D unsupported/failure/reduce-motion preference
+    behavior: static stadium/pitch + 2D formation + identical core routes
+pipeline:
+- session restore
+- capability/feature fetch
+- asset manifest resolve
+- preload minimum stadium bundle
+- entry transition
+- pitch bind
+- formation bind
+- scoreboard bind
+- interactive spatial home
+performance:
+  app_shell_usable_p75_s: 2.5
+  3d_first_frame_p75_s: 4.0
+  idle_fps_target: 30
+  panel_open_fps_cap: 10
+  visible_tri_budget:
+    LOW: 350000
+    MID: 700000
+    HIGH: 1200000
+  seat_render: GPU instancing
+  external_environment: low-poly/prerender when pitch-focused
+asset_states:
+- UNRESOLVED
+- MANIFEST_READY
+- DOWNLOADING
+- VERIFYING
+- READY
+- DEGRADED
+- FAILED
+bridge_objects:
+  my_player: /player/me
+  pitch: /training
+  scoreboard: event deep-link
+  team_player: team/squad sheet
+  legacy_wall: /player/me/career
+  clubhouse: role-appropriate club/team route
+  camera: /video only; Camera AI controls hidden until approved
+failure_rules:
+- Never block core navigation for asset failure.
+- Show progress only for meaningful asset download; do not cover usable 2D shell.
+- Checksum/manifest mismatch -> discard bundle and fallback.
+- No fake player ratings or sensor values while loading.

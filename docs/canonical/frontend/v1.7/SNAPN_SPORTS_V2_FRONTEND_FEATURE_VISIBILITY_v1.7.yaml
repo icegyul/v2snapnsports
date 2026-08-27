@@ -1,0 +1,28 @@
+version: 1.7.0
+rules:
+  EPTS:
+    default: HARD_DISABLED
+    user_ui: NOT_RENDERED
+    internal_beta: only after release approval + server capability
+  CAMERA_AI:
+    default: HARD_DISABLED
+    user_ui: NOT_RENDERED
+  SPORTS_AI:
+    default: HARD_DISABLED
+    user_ui: NOT_RENDERED
+  COMMUNITY_FEED_INTELLIGENCE:
+    default: 'OFF'
+    behavior: use legacy parity ordering
+  EARTHUS_CONTEXT:
+    default: SOFT_DEPENDENCY
+    failure: hide badge or show stale timestamp; do not fail event screen
+  STADIUM_3D:
+    default: ON_IF_CAPABLE
+    failure: LIGHT/STATIC fallback
+evaluation_order:
+- hard_disabled_build_guard
+- server features
+- account entitlement
+- role capability
+- device capability
+- user preference

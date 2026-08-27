@@ -1,0 +1,582 @@
+version: 1.5.0
+events:
+- name: identity.user.created
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: guardian.link.activated
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: guardian.link.revoked
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: role.verification.requested
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: role.verification.approved
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: role.verification.rejected
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: role.grant.activated
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: role.grant.revoked
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: team.membership.changed
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: schedule.event.created
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: schedule.event.updated
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: schedule.event.cancelled
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: training.session.created
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: training.session.state_changed
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: training.event.appended
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: training.plan.revised
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: match.created
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: match.state_changed
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: match.event.appended
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: match.report.finalized
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: tactic.version.published
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: stadium.recipe.saved
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: stadium.state.changed
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: community.post.created
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: community.post.updated
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: community.post.deleted
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: community.content.reported
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: communication.message.sent
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: communication.member.changed
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: career.event.created
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: opportunity.created
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: opportunity.actioned
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: safeguarding.incident.created
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: safeguarding.incident.escalated
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: media.asset.created
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: media.share_granted
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: notification.requested
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: notification.delivered
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: privacy.request.created
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: privacy.request.processed
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: feature.flag.changed
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: earthus.context.refreshed
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: earthus.context.stale
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: sync.event.accepted
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: sync.event.conflict
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: admin.case.created
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: admin.case.closed
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+- name: analytics.event.recorded
+  schema_version: 1
+  envelope:
+  - event_id
+  - event_name
+  - schema_version
+  - occurred_at
+  - tenant_id?
+  - actor_id?
+  - resource
+  - payload
+jobs:
+- name: outbox_dispatcher
+  source: platform.outbox_events
+  idempotency_key: event_id
+  dlq: true
+- name: notification_fanout
+  source: notification.requested
+  idempotency_key: event_id+recipient_id
+  dlq: true
+- name: media_processing
+  source: media.asset.uploaded
+  idempotency_key: asset_id+version
+  dlq: true
+- name: privacy_cascade
+  source: privacy.request.approved
+  idempotency_key: privacy_request_item_id
+  dlq: true
+- name: search_index
+  source: indexable domain events
+  idempotency_key: resource_id+version
+  dlq: true
+- name: earthus_refresh
+  source: cache miss/refresh schedule
+  idempotency_key: venue_id+time_bucket
+  dlq: false
+  fallback: stale cache
+- name: cache_invalidation
+  source: domain events
+  idempotency_key: event_id
+  dlq: false
+  fallback: TTL
+- name: analytics_ingest
+  source: product/domain events
+  idempotency_key: event_id
+  dlq: false
+  privacy: drop/minimize PII
+- name: migration_verification
+  source: ops.migration_checkpoint
+  idempotency_key: checkpoint_id
+  dlq: true
+- name: role_verification_expiry
+  source: scheduler
+  idempotency_key: verification_id+expiry
+  dlq: false
+- name: guardian_invite_expiry
+  source: scheduler
+  idempotency_key: invite_id+expiry
+  dlq: false
+- name: opportunity_expiry
+  source: scheduler
+  idempotency_key: opportunity_id+expiry
+  dlq: false

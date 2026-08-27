@@ -1,0 +1,152 @@
+version: 1.6.0
+rule: Only verified grants create privileged manager routes. Public signup exposes only PLAYER/MANAGER.
+shells:
+  public:
+    routes:
+    - /splash
+    - /login
+    - /signup
+    - /signup/player
+    - /signup/manager
+    - /guardian/invite/:token
+  player:
+    bottom_nav:
+    - HOME
+    - TRAINING
+    - COMMUNITY
+    - VIDEO
+    - MORE
+    routes:
+    - /home
+    - /training
+    - /training/:event_id
+    - /community
+    - /community/post/:post_id
+    - /community/compose
+    - /video
+    - /player/me
+    - /player/me/career
+    - /stadium
+    - /stadium/builder
+    - /more
+  guardian_invite_only:
+    bottom_nav:
+    - HOME
+    - SCHEDULE
+    - GROWTH
+    - VIDEO
+    - MORE
+    routes:
+    - /guardian/home
+    - /guardian/schedule
+    - /guardian/growth/:athlete_id
+    - /guardian/video/:athlete_id
+    - /guardian/more
+  manager_common:
+    routes:
+    - /manager
+    - /manager/roles
+    - /manager/roles/verify
+    - /manager/settings
+  coach:
+    requires:
+    - ROLE_GRANT:COACH
+    bottom_nav:
+    - GROUND
+    - PLAN
+    - SESSION
+    - REVIEW
+    - MORE
+    routes:
+    - /coach/ground
+    - /coach/plan
+    - /coach/tactics
+    - /coach/session/:session_id
+    - /coach/review/:session_id
+    - /manager/settings
+  team_manager:
+    requires:
+    - ROLE_GRANT:TEAM_MANAGER
+    bottom_nav:
+    - HOME
+    - SCHEDULE
+    - SQUAD
+    - COMMS
+    - MORE
+    routes:
+    - /team-manager/home
+    - /team-manager/schedule
+    - /team-manager/squad
+    - /team-manager/comms
+    - /manager/settings
+  club_director:
+    requires:
+    - ROLE_GRANT:CLUB_DIRECTOR
+    bottom_nav:
+    - CLUB
+    - TEAMS
+    - PEOPLE
+    - BUSINESS
+    - MORE
+    routes:
+    - /club/home
+    - /club/teams
+    - /club/people
+    - /club/business
+    - /club/stadium
+    - /manager/settings
+  referee:
+    requires:
+    - ROLE_GRANT:REFEREE
+    bottom_nav:
+    - HOME
+    - MATCHES
+    - MATCH
+    - REPORTS
+    - MORE
+    routes:
+    - /referee/home
+    - /referee/matches
+    - /referee/match/:match_id
+    - /referee/report/:match_id
+    - /manager/settings
+  agent:
+    requires:
+    - ROLE_GRANT:AGENT
+    bottom_nav:
+    - HOME
+    - PLAYERS
+    - OPPORTUNITIES
+    - SCHEDULE
+    - MORE
+    routes:
+    - /agent/home
+    - /agent/players
+    - /agent/player/:athlete_id/portfolio
+    - /agent/opportunities
+    - /agent/schedule
+    - /manager/settings
+  analyst:
+    requires:
+    - ROLE_GRANT:ANALYST
+    bottom_nav:
+    - REVIEW
+    - REPORTS
+    - SEARCH
+    - TEAMS
+    - MORE
+    routes:
+    - /analyst/review
+    - /analyst/reports
+    - /analyst/search
+    - /analyst/teams
+    - /manager/settings
+guards_order:
+- session_restore
+- account_state
+- feature_visibility
+- verified_role_grant
+- tenant_scope
+- subject_scope
+- consent_and_safeguarding
+- route_load

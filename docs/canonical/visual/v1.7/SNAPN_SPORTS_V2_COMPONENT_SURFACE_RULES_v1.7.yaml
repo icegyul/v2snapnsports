@@ -1,0 +1,62 @@
+version: 1.7.0
+components:
+  app_background:
+    token: color.bg.base
+  standard_card:
+    token: color.bg.surface
+    edge: color.border.default
+    min_padding: spacing.lg
+  emphasized_card:
+    token: color.bg.elevated
+    edge: color.border.strong
+  bottom_sheet:
+    token: color.bg.elevated
+    edge: color.border.strong
+    drag_handle: color.text.muted
+  modal:
+    token: color.bg.floating
+    edge: color.border.strong
+  bottom_navigation:
+    token: color.bg.surface
+    top_edge: color.border.strong
+    active:
+      icon: color.accent.primary
+      text: color.text.primary
+      extra_cue: active_indicator_shape
+    inactive:
+      icon: color.text.muted
+      text: color.text.secondary
+  primary_button:
+    background: color.accent.primary
+    text: color.text.inverse
+    selected_state_not_color_only: true
+  secondary_button:
+    background: color.bg.elevated
+    edge: color.border.strong
+    text: color.text.primary
+  player_card:
+    default_background: color.bg.elevated
+    my_player:
+      edge: color.accent.focus
+      halo: color.overlay.selected
+      requires_label: true
+  scoreboard:
+    background: color.bg.surface
+    text: color.text.primary
+    accent: color.accent.primary
+    no_neon_overuse: true
+  community_card:
+    background: color.bg.surface
+    edge: color.border.default
+    body_text: color.text.primary
+    metadata_text: color.text.secondary
+  field_mode_action:
+    background: color.bg.elevated
+    edge: color.border.strong
+    minimum_touch: 52
+    outdoor_priority: true
+hard_rules:
+- no_component_may_use_dark_navy_as_primary_surface
+- no_core_text_uses_opacity_below_muted_semantic_token
+- no_status_is_expressed_by_color_alone
+- no_bottom_nav_transparency_that_causes_pitch_or_crowd_visual_noise_to_reduce_legibility
