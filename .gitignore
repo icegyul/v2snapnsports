@@ -1,0 +1,57 @@
+# Secrets and environment values
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+secrets.*
+credentials.*
+
+# Dependencies and caches
+node_modules/
+.pnpm-store/
+.yarn/
+.npm/
+.cache/
+.turbo/
+
+# Build and test output
+dist/
+build/
+coverage/
+.vite/
+*.tsbuildinfo
+
+# Runtime and local artifacts
+logs/
+tmp/
+temp/
+uploads/
+files/
+backups/
+*.log
+*.pid
+
+# OS and IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Production evidence and data exports
+*.dump
+*.dump.gz
+*.sql.gz
+*.bak
+production-data/
+private-exports/
+*.zip
+
+# Never vendor V1 snapshots or generated Cafe24 staging trees
+legacy/
+v1/
+cafe24-deploy/
+app/assets/
