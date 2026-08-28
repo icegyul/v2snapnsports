@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { MyTeamFormationPage, SpatialHomePage, StadiumExteriorPage } from "../features/stadium/PlayerStadiumPages";
@@ -21,8 +21,9 @@ describe("Player Stadium product flow", () => {
 
   it("shows five spatial anchors and next team state outside dashboard cards", async () => {
     render(<MemoryRouter><SpatialHomePage /></MemoryRouter>);
-    expect(await screen.findByLabelText("나의 팀 공간 바로가기")).toHaveTextContent("나");
+    const spatialMap = await screen.findByLabelText("나의 팀 공간 바로가기");
+    expect(spatialMap).toHaveTextContent("나");
     expect(screen.getAllByTestId("spatial-anchor")).toHaveLength(5);
-    expect(screen.getByText("다음 경기 · 데모 일정")).toBeInTheDocument();
+    expect(within(spatialMap.parentElement!).getByText("다음 경기 · 데모 일정")).toBeInTheDocument();
   });
 });
