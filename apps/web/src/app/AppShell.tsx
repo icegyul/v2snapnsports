@@ -4,6 +4,7 @@ import { MyPositionPage, MyTeamFormationPage, PitchEntryPage, SpatialHomePage, S
 import { CommunityPage, VideoPage } from "../features/product/RemainingProductPages";
 import { Pack02CareerPassportPage, Pack02CareerSeasonPage, Pack02OpportunityPage, Pack02PortfolioPage, Pack02TeamCommunicationPage } from "../features/pack02/Pack02Pages";
 import { AgentWorkspacePage, AnalystWorkspacePage, ClubDirectorWorkspacePage, CoachWorkspacePage, ManagerHomePage, RefereeWorkspacePage, TeamManagerWorkspacePage } from "../features/pack03/ManagerWorkspacePages";
+import { AdminOverviewPage, AuditAdminPage, EarthusHealthAdminPage, JobsMediaAdminPage, MigrationAdminPage, ModerationAdminPage, PrivacyAdminPage, RoleVerificationAdminPage, SafeguardingAdminPage } from "../features/pack04/AdminOpsPages";
 import { CommunityComposerPage, CommunityDetailPage } from "../features/community/CommunityInteractionPages";
 import { VideoDetailPage } from "../features/product/ProductDetailPages";
 import { playerNavigation } from "../routes/routePolicy";
@@ -65,6 +66,15 @@ function AppRoutes() {
     <Route path="/manager/referee" element={<RefereeWorkspacePage />} />
     <Route path="/manager/agent" element={<AgentWorkspacePage />} />
     <Route path="/manager/analyst" element={<AnalystWorkspacePage />} />
+    <Route path="/admin" element={<AdminOverviewPage />} />
+    <Route path="/admin/role-verification" element={<RoleVerificationAdminPage />} />
+    <Route path="/admin/moderation" element={<ModerationAdminPage />} />
+    <Route path="/admin/safeguarding" element={<SafeguardingAdminPage />} />
+    <Route path="/admin/privacy" element={<PrivacyAdminPage />} />
+    <Route path="/admin/migration" element={<MigrationAdminPage />} />
+    <Route path="/admin/jobs-media" element={<JobsMediaAdminPage />} />
+    <Route path="/admin/audit" element={<AuditAdminPage />} />
+    <Route path="/admin/earthus-health" element={<EarthusHealthAdminPage />} />
     <Route path="/communication" element={<Pack02TeamCommunicationPage />} />
     <Route path="/opportunities" element={<Pack02OpportunityPage />} />
     <Route path="/player/me/portfolio" element={<Pack02PortfolioPage />} />
