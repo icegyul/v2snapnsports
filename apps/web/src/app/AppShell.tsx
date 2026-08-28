@@ -1,9 +1,10 @@
 import { Link, MemoryRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { RouteStatePanel } from "../components/RouteStatePanel";
 import { MyPositionPage, MyTeamFormationPage, PitchEntryPage, SpatialHomePage, StadiumApproachPage, StadiumExteriorPage } from "../features/stadium/PlayerStadiumPages";
-import { CareerPassportPage, CommunityPage, VideoPage } from "../features/product/RemainingProductPages";
+import { CommunityPage, VideoPage } from "../features/product/RemainingProductPages";
+import { Pack02CareerPassportPage, Pack02CareerSeasonPage, Pack02OpportunityPage, Pack02PortfolioPage, Pack02TeamCommunicationPage } from "../features/pack02/Pack02Pages";
 import { CommunityComposerPage, CommunityDetailPage } from "../features/community/CommunityInteractionPages";
-import { CareerSeasonPage, VideoDetailPage } from "../features/product/ProductDetailPages";
+import { VideoDetailPage } from "../features/product/ProductDetailPages";
 import { playerNavigation } from "../routes/routePolicy";
 import { Pack01MatchCenterPage, Pack01MatchPage, Pack01PlaybackPage, Pack01TacticPage, Pack01TrainingDetailPage, Pack01TrainingPage } from "../features/pack01/Pack01Pages";
 
@@ -56,10 +57,13 @@ function AppRoutes() {
     <Route path="/video" element={<VideoPage />} />
     <Route path="/video/:videoId" element={<VideoDetailPage />} />
     <Route path="/more" element={<GenericShell title="더보기" />} />
+    <Route path="/communication" element={<Pack02TeamCommunicationPage />} />
+    <Route path="/opportunities" element={<Pack02OpportunityPage />} />
+    <Route path="/player/me/portfolio" element={<Pack02PortfolioPage />} />
     <Route path="/player/career" element={<Navigate replace to="/player/me/career" />} />
-    <Route path="/player/me" element={<CareerPassportPage />} />
-    <Route path="/player/me/career" element={<CareerPassportPage />} />
-    <Route path="/player/me/career/season/:seasonId" element={<CareerSeasonPage />} />
+    <Route path="/player/me" element={<Pack02CareerPassportPage />} />
+    <Route path="/player/me/career" element={<Pack02CareerPassportPage />} />
+    <Route path="/player/me/career/season/:seasonId" element={<Pack02CareerSeasonPage />} />
     <Route path="*" element={<GenericShell title="찾을 수 없는 화면" />} />
   </Routes>{!isPublic && <BottomNavigation />}</div>;
 }
