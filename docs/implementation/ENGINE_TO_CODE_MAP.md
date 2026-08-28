@@ -28,7 +28,7 @@ Source: `docs/canonical/engines/v1.3/SNAPN_SPORTS_V2_ENGINE_CATALOG_v1.3.md` and
 | E22 | EPTS | none | none | hard false | hard-disable test | HARD_DISABLED |
 | E23 | Camera/Vision | none | none | hard false | hard-disable test | HARD_DISABLED |
 | E24 | Evidence Sports AI | none | none | hard false | hard-disable test | HARD_DISABLED |
-| E25 | Audit/Observability | `backend/src/shared/observability` | error boundary | request-id model | error normalization | PARTIAL |
+| E25 | Audit/Observability | `backend/src/shared/audit/index.ts` | local PACK 01 mutation seam | safe audit event | pack01 gap-closure tests | IMPLEMENTED (LOCAL_DEV) |
 | E26 | Role Verification | `role` | role state | VerifiedRoleGrant | preference deny | PARTIAL |
 | E27 | Match & Competition | `match` | `packages/pack01/domain.ts`, `features/pack01/Pack01Pages.tsx` | local match/roster/lineup/events/report seam | pack01 domain/lifecycle/browser tests | IMPLEMENTED (LOCAL_DEV) |
 | E28 | Agent Portfolio | `scouting`, `career` | none | ScoutingConsent | denied default | PARTIAL |
