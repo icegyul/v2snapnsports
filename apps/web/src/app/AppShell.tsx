@@ -1,10 +1,11 @@
 import { Link, MemoryRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { RouteStatePanel } from "../components/RouteStatePanel";
 import { MyPositionPage, MyTeamFormationPage, PitchEntryPage, SpatialHomePage, StadiumApproachPage, StadiumExteriorPage } from "../features/stadium/PlayerStadiumPages";
-import { CareerPassportPage, CommunityPage, TrainingPage, VideoPage } from "../features/product/RemainingProductPages";
+import { CareerPassportPage, CommunityPage, VideoPage } from "../features/product/RemainingProductPages";
 import { CommunityComposerPage, CommunityDetailPage } from "../features/community/CommunityInteractionPages";
-import { CareerSeasonPage, TrainingDetailPage, VideoDetailPage } from "../features/product/ProductDetailPages";
+import { CareerSeasonPage, VideoDetailPage } from "../features/product/ProductDetailPages";
 import { playerNavigation } from "../routes/routePolicy";
+import { Pack01MatchCenterPage, Pack01MatchPage, Pack01PlaybackPage, Pack01TacticPage, Pack01TrainingDetailPage, Pack01TrainingPage } from "../features/pack01/Pack01Pages";
 
 function BottomNavigation() {
   const location = useLocation();
@@ -43,8 +44,12 @@ function AppRoutes() {
     <Route path="/signup/role" element={<RoleSelect />} />
     <Route path="/login" element={<GenericShell title="로그인" />} />
     <Route path="/invite/guardian/:inviteId" element={<GenericShell title="보호자 초대" />} />
-    <Route path="/training" element={<TrainingPage />} />
-    <Route path="/training/:eventId" element={<TrainingDetailPage />} />
+    <Route path="/training" element={<Pack01TrainingPage />} />
+    <Route path="/training/:eventId" element={<Pack01TrainingDetailPage />} />
+    <Route path="/matches" element={<Pack01MatchPage />} />
+    <Route path="/matches/:matchId" element={<Pack01MatchCenterPage />} />
+    <Route path="/tactics/:tacticId" element={<Pack01TacticPage />} />
+    <Route path="/tactics/:tacticId/playback" element={<Pack01PlaybackPage />} />
     <Route path="/community" element={<CommunityPage />} />
     <Route path="/community/post/:postId" element={<CommunityDetailPage />} />
     <Route path="/community/compose" element={<CommunityComposerPage />} />
