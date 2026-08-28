@@ -1,0 +1,4 @@
+import { createPack01Domain } from "../pack01/domain";
+import { createPack02FootballLifeDomain } from "../pack02/domain";
+import type { AuthorizationContext } from "../shared-security/authorization";
+export function projectTrainingAttendanceToCareer(input: { training: ReturnType<typeof createPack01Domain>; career: ReturnType<typeof createPack02FootballLifeDomain>; coach: AuthorizationContext; player: AuthorizationContext; sessionId: string; athleteId: string; seasonId: string }) { const session=input.training.getTrainingSession(input.sessionId); if (session.attendance.get(input.athleteId)!=="PRESENT") throw new Error("ATTENDANCE_NOT_FINAL"); return input.career.addCareerEvent(input.player,{athleteId:input.athleteId,seasonId:input.seasonId,type:"TRAINING_MILESTONE",occurredAt:session.startAt,title:session.objective,source:{type:"TRAINING_ATTENDANCE",id:session.id,version:session.version,verifiedState:"VERIFIED"}}); }
