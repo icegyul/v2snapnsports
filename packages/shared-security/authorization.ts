@@ -1,7 +1,7 @@
 export type AccountType = "PLAYER" | "GUARDIAN" | "MANAGER" | "ADMIN";
 export type Role = "COACH" | "TEAM_MANAGER" | "CLUB_DIRECTOR" | "REFEREE" | "AGENT" | "ANALYST";
 export type Feature = "CORE" | "EPTS" | "CAMERA_AI" | "SPORTS_AI";
-export type Operation = "player:self-read" | "team:read" | "team:manage" | "athlete:private-read" | "career:write" | "consent:manage" | "portfolio:share" | "scouting:eligibility" | "scouting:opportunity" | "minor:direct-contact" | "communication:private" | "role:switch" | "role:self-grant";
+export type Operation = "player:self-read" | "team:read" | "team:manage" | "athlete:private-read" | "career:write" | "consent:manage" | "portfolio:share" | "scouting:eligibility" | "scouting:opportunity" | "minor:direct-contact" | "communication:private" | "role:switch" | "admin:operate" | "role:self-grant";
 export type DenyReason = "UNAUTHENTICATED" | "ACCOUNT_SUSPENDED" | "ROLE_NOT_VERIFIED" | "TENANT_MISMATCH" | "TEAM_SCOPE_MISMATCH" | "RESOURCE_SCOPE_MISMATCH" | "GUARDIAN_RELATION_REQUIRED" | "CONSENT_REQUIRED" | "CONSENT_REVOKED" | "SAFEGUARDING_BLOCK" | "FEATURE_DISABLED" | "CLUB_SCOPE_MISMATCH";
 
 export interface VerifiedRoleGrant { role: Role; tenantId: string; teamIds?: readonly string[]; status: "VERIFIED" | "REVOKED" | "EXPIRED"; clubId?: string; }
@@ -35,7 +35,7 @@ const hardDisabled = new Set<Feature>(["EPTS", "CAMERA_AI", "SPORTS_AI"]);
 const privileged: Readonly<Record<Operation, Role[]>> = {
   "player:self-read": [], "team:read": [], "team:manage": ["COACH", "TEAM_MANAGER", "CLUB_DIRECTOR"],
   "athlete:private-read": [], "career:write": [], "consent:manage": [], "portfolio:share": [], "scouting:eligibility": [], "scouting:opportunity": ["AGENT", "CLUB_DIRECTOR"], "minor:direct-contact": ["AGENT", "REFEREE", "COACH", "TEAM_MANAGER", "CLUB_DIRECTOR", "ANALYST"],
-  "communication:private": [], "role:switch": [], "role:self-grant": ["COACH", "TEAM_MANAGER", "CLUB_DIRECTOR", "REFEREE", "AGENT", "ANALYST"]
+  "communication:private": [], "role:switch": [], "admin:operate": [], "role:self-grant": ["COACH", "TEAM_MANAGER", "CLUB_DIRECTOR", "REFEREE", "AGENT", "ANALYST"]
 };
 const consentByOperation: Partial<Record<Operation, Consent["purpose"]>> = { "portfolio:share": "PORTFOLIO_SHARE", "scouting:eligibility": "SCOUTING", "scouting:opportunity": "SCOUTING" };
 export const protectedOperationPolicies = Object.freeze({
