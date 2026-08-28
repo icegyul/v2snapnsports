@@ -22,7 +22,7 @@ Source: `docs/canonical/algorithms/v1.3/SNAPN_SPORTS_V2_ALGORITHM_CATALOG_v1.3.m
 | A16 | Training Session State Machine | `packages/pack01/domain.ts` | IMPLEMENTED (LOCAL_DEV) |
 | A17 | Community Legacy Parity Resolver | `features/community/communityModel.ts` | IMPLEMENTED (FIXTURE_LOCAL) |
 | A18 | Community Visibility Decision | `features/community/communityModel.ts` | IMPLEMENTED (FIXTURE_LOCAL) |
-| A19 | Growth/Career Timeline Aggregation | `features/product/RemainingProductPages.tsx` | IMPLEMENTED (FIXTURE_LOCAL) |
+| A19 | Growth/Career Timeline Aggregation | `packages/pack02/domain.ts` | IMPLEMENTED (LOCAL_DEV) |
 | A20 | Notification Thread/Dedupe | none | NOT_IMPLEMENTED |
 | A21 | Media Access Decision | `features/product/RemainingProductPages.tsx` | IMPLEMENTED (FIXTURE_LOCAL) |
 | A22 | Feature Flag Resolution | `lib/featureFlags.ts` | IMPLEMENTED |
@@ -41,13 +41,13 @@ Source: `docs/canonical/algorithms/v1.3/SNAPN_SPORTS_V2_ALGORITHM_CATALOG_v1.3.m
 | A35 | 3D Asset Bundle Selection/Cache | `three/renderMode.ts` | PARTIAL |
 | A36 | Earthus Context Fetch/Fallback | `adapters/EarthusContextAdapter.ts` | PARTIAL |
 | A37 | Earthus Context Projection | `api/contracts.ts` | PARTIAL |
-| A38 | Career Passport Event Normalization | `api/contracts.ts` | PARTIAL |
-| A39 | Career Chapter/Milestone Assembly | career fixture types | PARTIAL |
-| A40 | Scouting Visibility/Consent Eligibility | `lib/authorization.ts` | PARTIAL |
-| A41 | Opportunity Eligibility Matching | none | NOT_IMPLEMENTED |
+| A38 | Career Passport Event Normalization | `packages/pack02/domain.ts` | IMPLEMENTED (LOCAL_DEV) |
+| A39 | Career Chapter/Milestone Assembly | `packages/pack02/domain.ts` | IMPLEMENTED (LOCAL_DEV) |
+| A40 | Scouting Visibility/Consent Eligibility | `packages/shared-security/authorization.ts`, `packages/pack02/domain.ts` | IMPLEMENTED (LOCAL_DEV) |
+| A41 | Opportunity Eligibility Matching | `packages/pack02/domain.ts` | IMPLEMENTED (LOCAL_DEV) |
 | A42 | Communication Recipient Resolution | `lib/authorization.ts` | PARTIAL |
-| A43 | Communication Delivery/Thread Dedupe | none | NOT_IMPLEMENTED |
-| A44 | Safeguarding Interaction Gate | `lib/authorization.ts` | PARTIAL |
+| A43 | Communication Delivery/Thread Dedupe | `packages/pack02/domain.ts` | IMPLEMENTED (LOCAL_DEV) |
+| A44 | Safeguarding Interaction Gate | `packages/shared-security/authorization.ts`, `packages/pack02/domain.ts` | IMPLEMENTED (LOCAL_DEV) |
 | A45 | Safety Incident Triage/Escalation | none | NOT_IMPLEMENTED |
 
 Algorithms marked `RESERVED`, `NOT_IMPLEMENTED`, or `HARD_DISABLED` have no user-visible substitute or fabricated output.
