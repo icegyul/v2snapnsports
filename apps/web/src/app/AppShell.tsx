@@ -2,6 +2,8 @@ import { Link, MemoryRouter, Navigate, Route, Routes, useLocation } from "react-
 import { RouteStatePanel } from "../components/RouteStatePanel";
 import { MyPositionPage, MyTeamFormationPage, PitchEntryPage, SpatialHomePage, StadiumApproachPage, StadiumExteriorPage } from "../features/stadium/PlayerStadiumPages";
 import { CareerPassportPage, CommunityPage, TrainingPage, VideoPage } from "../features/product/RemainingProductPages";
+import { CommunityComposerPage, CommunityDetailPage } from "../features/community/CommunityInteractionPages";
+import { CareerSeasonPage, TrainingDetailPage, VideoDetailPage } from "../features/product/ProductDetailPages";
 import { playerNavigation } from "../routes/routePolicy";
 
 function BottomNavigation() {
@@ -42,16 +44,17 @@ function AppRoutes() {
     <Route path="/login" element={<GenericShell title="로그인" />} />
     <Route path="/invite/guardian/:inviteId" element={<GenericShell title="보호자 초대" />} />
     <Route path="/training" element={<TrainingPage />} />
-    <Route path="/training/:eventId" element={<TrainingPage />} />
+    <Route path="/training/:eventId" element={<TrainingDetailPage />} />
     <Route path="/community" element={<CommunityPage />} />
-    <Route path="/community/post/:postId" element={<CommunityPage />} />
-    <Route path="/community/compose" element={<CommunityPage />} />
+    <Route path="/community/post/:postId" element={<CommunityDetailPage />} />
+    <Route path="/community/compose" element={<CommunityComposerPage />} />
     <Route path="/video" element={<VideoPage />} />
-    <Route path="/video/:videoId" element={<VideoPage />} />
+    <Route path="/video/:videoId" element={<VideoDetailPage />} />
     <Route path="/more" element={<GenericShell title="더보기" />} />
     <Route path="/player/career" element={<Navigate replace to="/player/me/career" />} />
     <Route path="/player/me" element={<CareerPassportPage />} />
     <Route path="/player/me/career" element={<CareerPassportPage />} />
+    <Route path="/player/me/career/season/:seasonId" element={<CareerSeasonPage />} />
     <Route path="*" element={<GenericShell title="찾을 수 없는 화면" />} />
   </Routes>{!isPublic && <BottomNavigation />}</div>;
 }
