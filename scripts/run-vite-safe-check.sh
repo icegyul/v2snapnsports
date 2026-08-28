@@ -7,6 +7,7 @@ script_dir=$(cd "$(dirname "$0")" && pwd -P)
 project_root=$(cd "$script_dir/.." && pwd -P)
 runtime_root=$project_root
 temporary_root=''
+runtime_temp_parent=${SNAPN_V2_RUNTIME_TMP_ROOT:-/private/tmp}
 
 cleanup() {
   if [[ -n "$temporary_root" ]]; then
@@ -16,7 +17,7 @@ cleanup() {
 trap cleanup EXIT
 
 if [[ "$project_root" == *'#'* ]]; then
-  temporary_root=$(mktemp -d /private/tmp/snapn-v2-runtime.XXXXXX)
+  temporary_root=$(mktemp -d "$runtime_temp_parent/snapn-v2-runtime.XXXXXX")
   rsync -a --exclude '/.git' --exclude '/dist' --exclude '/.vite' --exclude '/update' "$project_root/" "$temporary_root/"
   runtime_root=$temporary_root
 fi

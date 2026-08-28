@@ -38,3 +38,9 @@ h1 { margin: 0; font-size: clamp(28px, 8vw, 42px); line-height: 1; }
 .anchor-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); }
 .spatial-anchor { min-height: 92px; display: grid; place-items: center; border: 1px solid var(--color-border-default); border-radius: var(--radius-md); background: var(--color-bg-surface); color: var(--color-text-primary); }
 .spatial-anchor:first-child { grid-column: span 2; border-color: var(--color-accent-pitch); background: var(--color-bg-elevated); }
+.spatial-map { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); min-height: 320px; padding: var(--space-lg); border: 1px solid var(--color-border-strong); border-radius: var(--radius-lg); background: var(--color-bg-surface); }
+.spatial-map .spatial-anchor { min-height: 88px; display: grid; gap: var(--space-xs); place-content: center; padding: var(--space-md); text-decoration: none; text-align: center; }
+.spatial-map .spatial-anchor span { color: var(--color-text-secondary); font-size: 12px; }
+.team-state-line { display: grid; gap: var(--space-sm); padding-left: var(--space-md); border-left: 2px solid var(--color-accent-pitch); color: var(--color-text-secondary); font-size: 14px; }
+@media (min-width: 768px) { .shell-main { padding-top: 40px; } .stadium-surface, .position-pitch { min-height: 420px; } .spatial-map { grid-template-columns: repeat(3, minmax(0, 1fr)); } .spatial-map .spatial-anchor:first-child { grid-column: 2; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }

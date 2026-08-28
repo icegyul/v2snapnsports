@@ -15,12 +15,11 @@ describe("design-independent player shell", () => {
     expect(screen.queryByRole("button", { name: /게시|작성|좋아요|댓글/ })).not.toBeInTheDocument();
   });
 
-  it("starts Player Home at 나의 경기장 and offers the canonical spatial entry routes", () => {
+  it("starts Player Home at 나의 경기장 and enters the canonical stadium sequence", async () => {
     render(<AppShell initialPath="/home" />);
 
-    expect(screen.getByRole("heading", { name: "나의 경기장" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "피치로 들어가기" })).toHaveAttribute("href", "/home/enter");
-    expect(screen.getByRole("link", { name: "커리어 패스포트" })).toHaveAttribute("href", "/player/career");
+    expect(await screen.findByRole("heading", { name: "나의 경기장" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "경기장으로 들어가기" })).toHaveAttribute("href", "/home/approach");
   });
 
   it("shows only player and manager on the public role selection route", () => {
@@ -33,10 +32,10 @@ describe("design-independent player shell", () => {
     expect(screen.getByText("보호자는 선수 초대 링크로 시작합니다.")).toBeInTheDocument();
   });
 
-  it("keeps teammate identity private while making the player marker distinct", () => {
+  it("keeps teammate identity private while making the player marker distinct", async () => {
     render(<AppShell initialPath="/home/position" />);
 
-    expect(screen.getByLabelText("나의 포지션 CM, 등번호 8")).toBeInTheDocument();
+    expect(await screen.findByLabelText("나의 포지션 CM, 등번호 8")).toBeInTheDocument();
     expect(screen.getByLabelText("동료 등번호 4, DF")).toBeInTheDocument();
     expect(screen.queryByText("Fixture Player 08")).not.toBeInTheDocument();
   });

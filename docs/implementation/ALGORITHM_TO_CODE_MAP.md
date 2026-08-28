@@ -8,23 +8,23 @@ Source: `docs/canonical/algorithms/v1.3/SNAPN_SPORTS_V2_ALGORITHM_CATALOG_v1.3.m
 | A02 | Manager Role Resolution | `lib/authorization.ts` | PARTIAL |
 | A03 | Authorization/Data Scope Decision | `lib/authorization.ts` | PARTIAL |
 | A04 | Guardian Invite & Consent Binding | `lib/authorization.ts` | PARTIAL |
-| A05 | Formation Slot Mapping | `features/formation/formation.ts` | PARTIAL |
-| A06 | My Player Visual Priority | future visual renderer | RESERVED |
-| A07 | Stadium Entry Mode Selection | `three/renderMode.ts` | PARTIAL |
+| A05 | Formation Slot Mapping | `features/stadium/PlayerStadiumPages.tsx` | IMPLEMENTED (FIXTURE_LOCAL) |
+| A06 | My Player Visual Priority | `features/stadium/PlayerStadiumPages.tsx` | IMPLEMENTED (FIXTURE_LOCAL) |
+| A07 | Stadium Entry Mode Selection | `three/renderMode.ts`, `three/stadiumScene.ts` | IMPLEMENTED (SCAFFOLD_ONLY) |
 | A08 | Home State Priority | `features/home/homeState.ts` | PARTIAL |
-| A09 | Spatial Object Routing | `three/stadiumState.ts` | PARTIAL |
+| A09 | Spatial Object Routing | `routes/coreRoutePolicy.ts`, `features/stadium/PlayerStadiumPages.tsx` | IMPLEMENTED (FIXTURE_LOCAL) |
 | A10 | Stadium Recipe TotalScore | composition contract seam | RESERVED |
 | A11 | Structural Compatibility Gate | composition contract seam | RESERVED |
 | A12 | Stadium Auto Generate | none | NOT_IMPLEMENTED |
 | A13 | Surprise Me Preference | none | NOT_IMPLEMENTED |
-| A14 | Adaptive 3D Performance Budget | `three/renderMode.ts` | PARTIAL |
+| A14 | Adaptive 3D Performance Budget | `three/renderMode.ts`, `features/core/coreUiState.ts` | IMPLEMENTED (SCAFFOLD_ONLY) |
 | A15 | Tactical 2D→3D Playback | none | RESERVED |
-| A16 | Training Session State Machine | schedule fixture state only | PARTIAL |
-| A17 | Community Legacy Parity Resolver | community boundary | PARTIAL |
-| A18 | Community Visibility Decision | authorization boundary | PARTIAL |
-| A19 | Growth/Career Timeline Aggregation | career fixture types | PARTIAL |
+| A16 | Training Session State Machine | `features/product/RemainingProductPages.tsx` | IMPLEMENTED (FIXTURE_LOCAL) |
+| A17 | Community Legacy Parity Resolver | `features/community/communityModel.ts` | IMPLEMENTED (FIXTURE_LOCAL) |
+| A18 | Community Visibility Decision | `features/community/communityModel.ts` | IMPLEMENTED (FIXTURE_LOCAL) |
+| A19 | Growth/Career Timeline Aggregation | `features/product/RemainingProductPages.tsx` | IMPLEMENTED (FIXTURE_LOCAL) |
 | A20 | Notification Thread/Dedupe | none | NOT_IMPLEMENTED |
-| A21 | Media Access Decision | authorization boundary | PARTIAL |
+| A21 | Media Access Decision | `features/product/RemainingProductPages.tsx` | IMPLEMENTED (FIXTURE_LOCAL) |
 | A22 | Feature Flag Resolution | `lib/featureFlags.ts` | IMPLEMENTED |
 | A23 | Legacy Write Ownership/Idempotency | adapter disabled stub | PARTIAL |
 | A24 | Stadium Audio Fit | none | RESERVED |

@@ -11,17 +11,17 @@ Source: `docs/canonical/engines/v1.3/SNAPN_SPORTS_V2_ENGINE_CATALOG_v1.3.md` and
 | E05 | Organization/Team/Season | `organization`, `team` | team projection | TenantScope/TeamScope | scope contract | PARTIAL |
 | E06 | Legacy Adapter & Migration | `backend/src/modules/legacy` | `adapters` | disabled production seam | fixture adapter | PARTIAL |
 | E07 | Feature Flag & Release Control | `feature_flags` | `lib/featureFlags` | FeatureFlagSet | hard-disable test | IMPLEMENTED |
-| E08 | My Football World | `stadium` | `features/stadium` | StadiumExperienceState | fallback/state-machine | PARTIAL |
-| E09 | Formation & Position | `team`, `player` | `features/formation` | FormationSnapshot | slot mapping | PARTIAL |
+| E08 | My Football World | `stadium` | `features/stadium/PlayerStadiumPages.tsx` | fixture stadium projection | player flow/static tests | IMPLEMENTED (FIXTURE_LOCAL) |
+| E09 | Formation & Position | `team`, `player` | `features/stadium/PlayerStadiumPages.tsx` | privacy-safe fixture formation | formation/position tests | IMPLEMENTED (FIXTURE_LOCAL) |
 | E10 | Home State & Primary Action | `schedule` | `features/home` | HomeState | priority state | PARTIAL |
 | E11 | Stadium Style Composition | `stadium` | `three` | recipe contract only | no final renderer | PARTIAL |
-| E12 | Spatial Navigation | `stadium` | `routes`, `three` | route descriptor | state transition | PARTIAL |
-| E13 | Training/Schedule/Attendance | `training`, `schedule` | `features/training` | ScheduleItem | fixture schedule | PARTIAL |
+| E12 | Spatial Navigation | `stadium` | `routes`, `features/stadium` | route descriptor | player-flow tests | IMPLEMENTED (FIXTURE_LOCAL) |
+| E13 | Training/Schedule/Attendance | `training`, `schedule` | `features/product/RemainingProductPages.tsx` | fixture schedule projection | product-page tests | IMPLEMENTED (FIXTURE_LOCAL) |
 | E14 | Tactical Board | `tactics` | reserved feature boundary | none active | mapping integrity | RESERVED |
-| E15 | Community Compatibility | `community` | Community boundary | Legacy write owner | no-write route | PARTIAL |
-| E16 | Community Safety | `safeguarding`, `community` | unavailable boundary | policy types | forbidden state | PARTIAL |
-| E17 | Media & Video | `media` | `features/video` | disabled media seam | no media migration | NOT_IMPLEMENTED |
-| E18 | Growth / Career | `career` | My Player route | CareerEvent DTO | provenance fixture | PARTIAL |
+| E15 | Community Compatibility | `community` | `features/community/communityModel.ts` | fixture-local Legacy-order seam | community safety tests | IMPLEMENTED (FIXTURE_LOCAL) |
+| E16 | Community Safety | `safeguarding`, `community` | `features/community/communityModel.ts` | sanitize/hide/block seam | community safety tests | IMPLEMENTED (FIXTURE_LOCAL) |
+| E17 | Media & Video | `media` | `features/product/RemainingProductPages.tsx` | unavailable fixture media projection | product-page tests | IMPLEMENTED (FIXTURE_LOCAL) |
+| E18 | Growth / Career | `career` | `features/product/RemainingProductPages.tsx` | provenance-backed fixture event | product-page tests | IMPLEMENTED (FIXTURE_LOCAL) |
 | E19 | Notification | `notification` | app state seam | Notification DTO | not implemented | NOT_IMPLEMENTED |
 | E20 | Subscription/Entitlement | `feature_flags` | none | feature evaluation seam | hard-disabled coverage | RESERVED |
 | E21 | Stadium Audio | `stadium` | none | capability descriptor | no render | RESERVED |
@@ -32,12 +32,12 @@ Source: `docs/canonical/engines/v1.3/SNAPN_SPORTS_V2_ENGINE_CATALOG_v1.3.md` and
 | E26 | Role Verification | `role` | role state | VerifiedRoleGrant | preference deny | PARTIAL |
 | E27 | Match & Competition | `match` | schedule projection | Match DTO | fixture match | PARTIAL |
 | E28 | Agent Portfolio | `scouting`, `career` | none | ScoutingConsent | denied default | PARTIAL |
-| E29 | Offline Sync | `sync` | offline banner | SyncState | offline/retry | PARTIAL |
+| E29 | Offline Sync | `sync` | fixture-local draft seam | local draft state | community model tests | IMPLEMENTED (FIXTURE_LOCAL) |
 | E30 | Data Lifecycle/Privacy | `privacy` | no UI surface | Consent state | revoked deny | PARTIAL |
 | E31 | Product Analytics | `analytics` | none | event seam only | not activated | NOT_IMPLEMENTED |
 | E32 | Permission-aware Search | `search` | none | AuthorizationDecision | cross-team deny | PARTIAL |
 | E33 | Community Feed Intelligence | none | none | hard false | not rendered | HARD_DISABLED |
-| E34 | 3D Asset Delivery/Cache | `stadium` | `three` | asset state | FULL/FAST/LIGHT/STATIC | PARTIAL |
+| E34 | 3D Asset Delivery/Cache | `stadium` | `three/stadiumScene.ts` | asset state | FULL/FAST/LIGHT/STATIC tests | IMPLEMENTED (SCAFFOLD_ONLY) |
 | E35 | Earthus Context Adapter | `earthus` | schedule context | no-op adapter | soft failure | PARTIAL |
 | E36 | Career Passport | `career` | My Player boundary | CareerPassport DTO | sourced-only fixture | PARTIAL |
 | E37 | Scouting Consent | `scouting`, `guardian` | none | consent eligibility | guardian/agent deny | PARTIAL |

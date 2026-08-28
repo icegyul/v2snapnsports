@@ -42,12 +42,15 @@ export function decideAuthorization(input: AuthorizationInput): AuthorizationDec
 
   if (!requiresGrant(input.action)) return { allowed: false, code: "ROLE_GRANT_REQUIRED" };
 
-  const verifiedTenantGrants = input.actor.grants.filter((grant) => grant.verified && grant.tenantId === input.tenantId);
-  if (verifiedTenantGrants.length === 0) {
+  const verifiedGrants = input.actor.grants.filter((grant) => grant.verified);
+  if (verifiedGrants.length === 0) {
     return input.actor.rolePreference === "PLAYER" || input.actor.rolePreference === "MANAGER"
       ? { allowed: false, code: "ROLE_GRANT_REQUIRED" }
       : { allowed: false, code: "ROLE_PREFERENCE_NOT_AUTHORITY" };
   }
+
+  const verifiedTenantGrants = verifiedGrants.filter((grant) => grant.tenantId === input.tenantId);
+  if (verifiedTenantGrants.length === 0) return { allowed: false, code: "TENANT_SCOPE_DENIED" };
 
   if (input.teamId && !verifiedTenantGrants.some((grant) => grant.teamId === undefined || grant.teamId === input.teamId)) {
     return { allowed: false, code: "TEAM_SCOPE_DENIED" };
