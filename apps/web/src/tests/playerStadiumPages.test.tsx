@@ -4,9 +4,12 @@ import { describe, expect, it } from "vitest";
 import { MyTeamFormationPage, SpatialHomePage, StadiumExteriorPage } from "../features/stadium/PlayerStadiumPages";
 
 describe("Player Stadium product flow", () => {
-  it("renders a labeled STATIC exterior with the approach route", async () => {
+  it("renders the completed 3D stadium hero, state layer and player identity", async () => {
     render(<MemoryRouter><StadiumExteriorPage /></MemoryRouter>);
     expect(await screen.findByRole("heading", { name: "나의 경기장" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "경기장을 눌러 입장하세요" })).toHaveAttribute("data-requested-mode", "FULL");
+    expect(screen.getByText("나의 공간 · #8 중앙 미드필더")).toBeInTheDocument();
+    expect(screen.getByText("다음 경기 · 데모 일정")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "경기장으로 들어가기" })).toHaveAttribute("href", "/home/approach");
   });
 

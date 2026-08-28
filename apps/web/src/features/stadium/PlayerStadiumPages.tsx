@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import type { CoreFormation, CoreSpatialHome } from "../../api/coreProductContracts";
+import { Link, useNavigate } from "react-router-dom";
+import type { CoreFormation, CoreSpatialHome, CoreStadiumHome } from "../../api/coreProductContracts";
 import { FixtureCoreProductAdapter } from "../../adapters/fixtureCoreProductAdapter";
 import { CoreStateBoundary } from "../../components/CoreStateBoundary";
+import { Stadium3DScene } from "./Stadium3DScene";
+import "./stadium.css";
 
 const adapter = new FixtureCoreProductAdapter();
 const loadStadiumHome = () => adapter.getStadiumHome();
@@ -19,9 +21,54 @@ function StaticScene({ label }: { label: string }) {
   return <section className="stadium-surface" aria-label={`${label} STATIC 2D 대체 보기`}><div className="stadium-axis" /><div className="pitch-outline"><span>STATIC · 2D</span></div></section>;
 }
 
+function StadiumExteriorContent({ home }: { home: CoreStadiumHome }) {
+  const navigate = useNavigate();
+  const schedule = home.nextMatch.availability === "AVAILABLE"
+    ? home.nextMatch
+    : home.nextTraining.availability === "AVAILABLE"
+      ? home.nextTraining
+      : null;
+
+  return <main className="shell-main stadium-home-page">
+    <header className="stadium-home-header">
+      <div>
+        <p className="stadium-home-kicker">SNAPN SPORTS · 선수 공간</p>
+        <h1>나의 경기장</h1>
+        <p className="stadium-home-team">{home.team.displayName}</p>
+      </div>
+      {home.source === "SYNTHETIC_FIXTURE" && <span className="stadium-demo-badge">데모 데이터</span>}
+    </header>
+
+    <section className="stadium-hero" aria-label="나의 경기장 3D 보기">
+      <div className="stadium-state-layer" aria-label="팀 상태">
+        <span className="stadium-state-label">팀 상태</span>
+        <strong>{schedule?.label ?? "오늘 예정된 일정이 없습니다"}</strong>
+        <span>{home.scoreboardLabel}</span>
+      </div>
+
+      <Stadium3DScene mode={home.visualMode} onEnter={() => navigate("/home/approach")} />
+
+      <div className="stadium-identity-indicator">
+        <span className="stadium-identity-number" aria-hidden="true">{home.player.shirtNumber}</span>
+        <span>나의 공간 · #{home.player.shirtNumber} {home.player.primaryPosition}</span>
+      </div>
+
+      <div className="stadium-enter-cue" aria-hidden="true">
+        <span className="stadium-enter-arrow">↑</span>
+        <span>경기장을 눌러 입장하세요</span>
+      </div>
+    </section>
+
+    <footer className="stadium-home-footer">
+      <p>좌우로 둘러보고 두 손가락으로 확대할 수 있습니다. 위로 밀어도 입장합니다.</p>
+      <Link className="surface-link stadium-enter-link" to="/home/approach">경기장으로 들어가기</Link>
+    </footer>
+  </main>;
+}
+
 export function StadiumExteriorPage() {
   const home = useFixture(loadStadiumHome);
-  return <CoreStateBoundary state={home ? "READY" : "LOADING"}><main className="shell-main"><p className="eyebrow">STADIUM EXTERIOR · DEVELOPMENT PREVIEW</p><h1>나의 경기장</h1><StaticScene label="나의 경기장" /><p className="meta">{home?.scoreboardLabel}</p><Link className="surface-link" to="/home/approach">경기장으로 들어가기</Link></main></CoreStateBoundary>;
+  return <CoreStateBoundary state={home ? "READY" : "LOADING"}>{home ? <StadiumExteriorContent home={home} /> : null}</CoreStateBoundary>;
 }
 
 export function StadiumApproachPage() { return <main className="shell-main"><p className="eyebrow">STADIUM EXPERIENCE · ZOOM</p><h1>경기장으로 다가가기</h1><StaticScene label="경기장 접근" /><Link className="surface-link" to="/home/enter">피치로 들어가기</Link></main>; }

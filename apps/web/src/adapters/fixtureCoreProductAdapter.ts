@@ -10,7 +10,7 @@ const nextMatch = { kind: "MATCH" as const, label: "다음 경기 · 데모 일�
 
 export class FixtureCoreProductAdapter {
   async getStadiumHome(): Promise<CoreStadiumHome> {
-    return { source, updatedAt, player, team, visualMode: "STATIC", nextTraining, nextMatch, scoreboardLabel: "데모 팀 상태 · 일정 확인 필요" };
+    return { source, updatedAt, player, team, visualMode: "FULL", nextTraining, nextMatch, scoreboardLabel: "데모 팀 상태 · 일정 확인 필요" };
   }
 
   async getFormation(): Promise<CoreFormation> {
