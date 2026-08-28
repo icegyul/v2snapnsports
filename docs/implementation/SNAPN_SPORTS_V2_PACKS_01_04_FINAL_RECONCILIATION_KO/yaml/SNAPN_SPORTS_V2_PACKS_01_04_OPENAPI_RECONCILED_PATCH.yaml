@@ -1,0 +1,1726 @@
+openapi: 3.1.0
+info:
+  title: SNAPN Sports V2 PACKS 01-04 Reconciled OpenAPI Patch
+  version: 1.4.0-packs01-04-reconciled
+  description: Additive physical promotion/extension patch. Canonical v1.4 physical paths win on conflicts. No production
+    deployment or migration is implied.
+security:
+- bearerAuth: []
+paths:
+  /v2/training-sessions/{session_id}:
+    get:
+      tags:
+      - Training
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: getTrainingSession
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-001
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/training-sessions/{session_id}/attendance:
+    post:
+      tags:
+      - Attendance
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: updateTrainingAttendance
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-002
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/training-plans/{plan_id}:
+    get:
+      tags:
+      - Plan
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: getTrainingPlan
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-003
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      parameters:
+      - name: plan_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+    put:
+      tags:
+      - Plan
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: updateTrainingPlan
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-004
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      parameters:
+      - name: plan_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/tactics:
+    post:
+      tags:
+      - Tactics
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: createTactic
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-005
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/tactics/{tactic_id}:
+    put:
+      tags:
+      - Tactics
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: updateTactic
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-006
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      parameters:
+      - name: tactic_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/tactics/{tactic_id}/render:
+    get:
+      tags:
+      - Tactics
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: getTacticRender
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-007
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      parameters:
+      - name: tactic_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/competitions:
+    get:
+      tags:
+      - Competition
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: listCompetitions
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-008
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/matches/{match_id}:
+    get:
+      tags:
+      - Match
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: getMatch
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-009
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      parameters:
+      - name: match_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/matches/{match_id}/roster:
+    put:
+      tags:
+      - Roster
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: updateMatchRoster
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-010
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      parameters:
+      - name: match_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/matches/{match_id}/lineup:
+    put:
+      tags:
+      - Lineup
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: updateMatchLineup
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-011
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      parameters:
+      - name: match_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/matches/{match_id}/state-transitions:
+    post:
+      tags:
+      - Match
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: transitionMatchState
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-012
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      parameters:
+      - name: match_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/matches/{match_id}/reports:
+    post:
+      tags:
+      - Match Report
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: createMatchReport
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-013
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      parameters:
+      - name: match_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/matches/{match_id}/corrections:
+    post:
+      tags:
+      - Match Correction
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: createMatchCorrection
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-014
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      parameters:
+      - name: match_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/notifications:
+    get:
+      tags:
+      - Notification
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: listNotifications
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-015
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/notifications/{notification_id}/read:
+    post:
+      tags:
+      - Notification
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: markNotificationRead
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-016
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      parameters:
+      - name: notification_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/threads/{thread_id}/response:
+    post:
+      tags:
+      - Notification
+      summary: 새 제품 API가 아니라 이미 존재하는 logical contract를 physical OpenAPI로 승격
+      operationId: respondThread
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: OPG-017
+      x-pack: PACK 01
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant + tenant/team/resource + consent/safeguarding as applicable
+      x-audit: Sensitive mutation + deny/conflict audit
+      parameters:
+      - name: thread_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/athletes/{athlete_id}/career/events:
+    get:
+      tags:
+      - Career
+      summary: 기존 logical operation을 유지하되 physical v1.4 naming/aggregate root에 맞춰 승격
+      operationId: getCareerEvents
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P2-OPG-001
+      x-pack: PACK 02
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant/athlete ownership + consent + safeguarding + visibility
+      x-audit: Consent/share/message mutation audit; read access decision observable
+      parameters:
+      - name: athlete_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/athletes/{athlete_id}/career/highlights:
+    get:
+      tags:
+      - Career
+      summary: 기존 logical operation을 유지하되 physical v1.4 naming/aggregate root에 맞춰 승격
+      operationId: getCareerHighlights
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P2-OPG-002
+      x-pack: PACK 02
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant/athlete ownership + consent + safeguarding + visibility
+      x-audit: Consent/share/message mutation audit; read access decision observable
+      parameters:
+      - name: athlete_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+    post:
+      tags:
+      - Career
+      summary: 기존 logical operation을 유지하되 physical v1.4 naming/aggregate root에 맞춰 승격
+      operationId: setCareerHighlights
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P2-OPG-003
+      x-pack: PACK 02
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant/athlete ownership + consent + safeguarding + visibility
+      x-audit: Consent/share/message mutation audit; read access decision observable
+      parameters:
+      - name: athlete_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/athletes/{athlete_id}/career/visibility:
+    patch:
+      tags:
+      - Career
+      summary: 기존 logical operation을 유지하되 physical v1.4 naming/aggregate root에 맞춰 승격
+      operationId: updateCareerVisibility
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P2-OPG-004
+      x-pack: PACK 02
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant/athlete ownership + consent + safeguarding + visibility
+      x-audit: Consent/share/message mutation audit; read access decision observable
+      parameters:
+      - name: athlete_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/scouting/preferences:
+    get:
+      tags:
+      - Scouting
+      summary: 기존 logical operation을 유지하되 physical v1.4 naming/aggregate root에 맞춰 승격
+      operationId: getScoutingPreferences
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P2-OPG-005
+      x-pack: PACK 02
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant/athlete ownership + consent + safeguarding + visibility
+      x-audit: Consent/share/message mutation audit; read access decision observable
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+    patch:
+      tags:
+      - Scouting
+      summary: 기존 logical operation을 유지하되 physical v1.4 naming/aggregate root에 맞춰 승격
+      operationId: updateScoutingPreferences
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P2-OPG-006
+      x-pack: PACK 02
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant/athlete ownership + consent + safeguarding + visibility
+      x-audit: Consent/share/message mutation audit; read access decision observable
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/opportunities/{opportunity_id}/actions:
+    post:
+      tags:
+      - Opportunity
+      summary: 기존 logical operation을 유지하되 physical v1.4 naming/aggregate root에 맞춰 승격
+      operationId: createOpportunityAction
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P2-OPG-007
+      x-pack: PACK 02
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant/athlete ownership + consent + safeguarding + visibility
+      x-audit: Consent/share/message mutation audit; read access decision observable
+      parameters:
+      - name: opportunity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/communication/threads:
+    get:
+      tags:
+      - Communication
+      summary: 기존 logical operation을 유지하되 physical v1.4 naming/aggregate root에 맞춰 승격
+      operationId: listCommunicationThreads
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P2-OPG-008
+      x-pack: PACK 02
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant/athlete ownership + consent + safeguarding + visibility
+      x-audit: Consent/share/message mutation audit; read access decision observable
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/communication/threads/{thread_id}/messages:
+    get:
+      tags:
+      - Communication
+      summary: 기존 logical operation을 유지하되 physical v1.4 naming/aggregate root에 맞춰 승격
+      operationId: listCommunicationMessages
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P2-OPG-009
+      x-pack: PACK 02
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant/athlete ownership + consent + safeguarding + visibility
+      x-audit: Consent/share/message mutation audit; read access decision observable
+      parameters:
+      - name: thread_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/athletes/{athlete_id}/portfolio:
+    get:
+      tags:
+      - Portfolio
+      summary: 기존 logical operation을 유지하되 physical v1.4 naming/aggregate root에 맞춰 승격
+      operationId: getAthletePortfolio
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P2-OPG-010
+      x-pack: PACK 02
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant/athlete ownership + consent + safeguarding + visibility
+      x-audit: Consent/share/message mutation audit; read access decision observable
+      parameters:
+      - name: athlete_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/consents:
+    get:
+      tags:
+      - Consent
+      summary: 기존 logical operation을 유지하되 physical v1.4 naming/aggregate root에 맞춰 승격
+      operationId: listConsents
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P2-OPG-011
+      x-pack: PACK 02
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant/athlete ownership + consent + safeguarding + visibility
+      x-audit: Consent/share/message mutation audit; read access decision observable
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+    post:
+      tags:
+      - Consent
+      summary: 기존 logical operation을 유지하되 physical v1.4 naming/aggregate root에 맞춰 승격
+      operationId: createConsent
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P2-OPG-012
+      x-pack: PACK 02
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant/athlete ownership + consent + safeguarding + visibility
+      x-audit: Consent/share/message mutation audit; read access decision observable
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/consents/{consent_id}/revoke:
+    post:
+      tags:
+      - Consent
+      summary: 기존 logical operation을 유지하되 physical v1.4 naming/aggregate root에 맞춰 승격
+      operationId: revokeConsent
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P2-OPG-013
+      x-pack: PACK 02
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant/athlete ownership + consent + safeguarding + visibility
+      x-audit: Consent/share/message mutation audit; read access decision observable
+      parameters:
+      - name: consent_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/videos/{video_id}/share:
+    post:
+      tags:
+      - Media
+      summary: 기존 logical operation을 유지하되 physical v1.4 naming/aggregate root에 맞춰 승격
+      operationId: shareVideo
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P2-OPG-014
+      x-pack: PACK 02
+      x-decision: OPENAPI_PROMOTION
+      x-permission: RoleGrant/athlete ownership + consent + safeguarding + visibility
+      x-audit: Consent/share/message mutation audit; read access decision observable
+      parameters:
+      - name: video_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/athletes/{athlete_id}/portfolio/share-grants:
+    post:
+      tags:
+      - Portfolio
+      summary: portfolio는 단일 media asset보다 넓어 media.share_grants만으로 비미디어 career projection grant를 표현할 수 없음
+      operationId: createPortfolioShareGrant
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: PAE-01
+      x-pack: PACK 02
+      x-decision: REAL_API_EXTENSION
+      x-permission: Athlete/guardian/grant owner or thread member + safeguarding
+      x-audit: Immutable audit for grant create/revoke; read cursor audit sampled
+      parameters:
+      - name: athlete_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/athletes/{athlete_id}/portfolio/share-grants/{grant_id}/revoke:
+    post:
+      tags:
+      - Portfolio
+      summary: portfolio grant의 명시적 즉시 철회가 필요하며 audit/consent cascade와 결합
+      operationId: revokePortfolioShareGrant
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: PAE-02
+      x-pack: PACK 02
+      x-decision: REAL_API_EXTENSION
+      x-permission: Athlete/guardian/grant owner or thread member + safeguarding
+      x-audit: Immutable audit for grant create/revoke; read cursor audit sampled
+      parameters:
+      - name: athlete_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: grant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/communication/threads/{thread_id}/read:
+    post:
+      tags:
+      - Communication
+      summary: 메시지 unread/read high-water mark는 notification read와 다른 domain truth이며 durable per-member state가 필요
+      operationId: markCommunicationThreadRead
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: PAE-03
+      x-pack: PACK 02
+      x-decision: REAL_API_EXTENSION
+      x-permission: Athlete/guardian/grant owner or thread member + safeguarding
+      x-audit: Immutable audit for grant create/revoke; read cursor audit sampled
+      parameters:
+      - name: thread_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/role-verifications/{verification_id}:
+    get:
+      tags:
+      - Verification
+      summary: ordinary logical role-verification detail을 permission-scoped operator read로 승격; 별도 /admin duplicate
+        path 불필요
+      operationId: getRoleVerification
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P4-API-07
+      x-pack: PACK 04
+      x-decision: OPENAPI_PROMOTION
+      x-permission: Dedicated operator capability + explicit scope; SystemAdmin is not universal bypass
+      x-audit: All admin mutations mandatory; read access sampled for sensitive records
+      parameters:
+      - name: verification_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/admin/role-verifications/{verification_id}/decision:
+    post:
+      tags:
+      - Verification
+      summary: APPROVE/REJECT를 하나의 audited decision command로 통합; self-approval deny
+      operationId: adminDecideRoleVerification
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P4-API-09
+      x-pack: PACK 04
+      x-decision: REAL_API_EXTENSION
+      x-permission: Dedicated operator capability + explicit scope; SystemAdmin is not universal bypass
+      x-audit: All admin mutations mandatory; read access sampled for sensitive records
+      parameters:
+      - name: verification_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/admin/role-grants/{grant_id}/state-transitions:
+    post:
+      tags:
+      - Verification
+      summary: SUSPEND/REVOKE를 하나의 audited state-transition command로 통합
+      operationId: adminTransitionRoleGrantState
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P4-API-11
+      x-pack: PACK 04
+      x-decision: REAL_API_EXTENSION
+      x-permission: Dedicated operator capability + explicit scope; SystemAdmin is not universal bypass
+      x-audit: All admin mutations mandatory; read access sampled for sensitive records
+      parameters:
+      - name: grant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/safety/reports:
+    post:
+      tags:
+      - Safeguarding
+      summary: logical safety intake를 physical로 승격
+      operationId: createSafetyReport
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P4-API-21
+      x-pack: PACK 04
+      x-decision: OPENAPI_PROMOTION
+      x-permission: Dedicated operator capability + explicit scope; SystemAdmin is not universal bypass
+      x-audit: All admin mutations mandatory; read access sampled for sensitive records
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/safety/incidents/{incident_id}:
+    get:
+      tags:
+      - Safeguarding
+      summary: logical safety incident detail을 승격
+      operationId: getSafetyIncident
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P4-API-22
+      x-pack: PACK 04
+      x-decision: OPENAPI_PROMOTION
+      x-permission: Dedicated operator capability + explicit scope; SystemAdmin is not universal bypass
+      x-audit: All admin mutations mandatory; read access sampled for sensitive records
+      parameters:
+      - name: incident_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/safety/incidents/{incident_id}/actions:
+    post:
+      tags:
+      - Safeguarding
+      summary: logical audited action endpoint를 승격
+      operationId: createSafetyIncidentAction
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P4-API-24
+      x-pack: PACK 04
+      x-decision: OPENAPI_PROMOTION
+      x-permission: Dedicated operator capability + explicit scope; SystemAdmin is not universal bypass
+      x-audit: All admin mutations mandatory; read access sampled for sensitive records
+      parameters:
+      - name: incident_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/privacy/requests/{request_id}:
+    get:
+      tags:
+      - Privacy
+      summary: logical privacy request detail을 승격
+      operationId: getPrivacyRequest
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P4-API-27
+      x-pack: PACK 04
+      x-decision: OPENAPI_PROMOTION
+      x-permission: Dedicated operator capability + explicit scope; SystemAdmin is not universal bypass
+      x-audit: All admin mutations mandatory; read access sampled for sensitive records
+      parameters:
+      - name: request_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+  /v2/privacy/exports:
+    post:
+      tags:
+      - Privacy
+      summary: Create privacy export request
+      operationId: createPrivacyExportRequest
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P4-API-26
+      x-pack: PACK 04
+      x-decision: PATH_RECONCILIATION+OPENAPI_PROMOTION
+      x-permission: PrivacyOperator or authorized subject/guardian intake; server subject authority check
+      x-audit: Mandatory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+  /v2/privacy/deletions:
+    post:
+      tags:
+      - Privacy
+      summary: Create privacy deletion request
+      operationId: createPrivacyDeletionRequest
+      security:
+      - bearerAuth: []
+      x-reconciliation-id: P4-API-26
+      x-pack: PACK 04
+      x-decision: PATH_RECONCILIATION+OPENAPI_PROMOTION
+      x-permission: PrivacyOperator or authorized subject/guardian intake; server subject authority check
+      x-audit: Mandatory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request / state transition
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission, consent, safeguarding, or hard feature gate denied
+        '409':
+          description: Version, idempotency, or state conflict
+        '201':
+          description: Created when the operation creates a resource
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+x-reconciliation:
+  base: SNAPN_SPORTS_V2_OPENAPI_v1.4.yaml
+  candidate_rows: 101
+  promoted_or_added_operations: 43
+  real_api_extensions: 5
+  production_cutover: 'NO'
