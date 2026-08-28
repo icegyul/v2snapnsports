@@ -18,8 +18,8 @@ Source: `docs/canonical/algorithms/v1.3/SNAPN_SPORTS_V2_ALGORITHM_CATALOG_v1.3.m
 | A12 | Stadium Auto Generate | none | NOT_IMPLEMENTED |
 | A13 | Surprise Me Preference | none | NOT_IMPLEMENTED |
 | A14 | Adaptive 3D Performance Budget | `three/renderMode.ts`, `features/core/coreUiState.ts` | IMPLEMENTED (SCAFFOLD_ONLY) |
-| A15 | Tactical 2D→3D Playback | none | RESERVED |
-| A16 | Training Session State Machine | `features/product/RemainingProductPages.tsx` | IMPLEMENTED (FIXTURE_LOCAL) |
+| A15 | Tactical 2D→3D Playback | `packages/pack01/domain.ts`, `features/pack01/Pack01Pages.tsx` | IMPLEMENTED (LOCAL_DEV STATIC) |
+| A16 | Training Session State Machine | `packages/pack01/domain.ts` | IMPLEMENTED (LOCAL_DEV) |
 | A17 | Community Legacy Parity Resolver | `features/community/communityModel.ts` | IMPLEMENTED (FIXTURE_LOCAL) |
 | A18 | Community Visibility Decision | `features/community/communityModel.ts` | IMPLEMENTED (FIXTURE_LOCAL) |
 | A19 | Growth/Career Timeline Aggregation | `features/product/RemainingProductPages.tsx` | IMPLEMENTED (FIXTURE_LOCAL) |
@@ -31,9 +31,9 @@ Source: `docs/canonical/algorithms/v1.3/SNAPN_SPORTS_V2_ALGORITHM_CATALOG_v1.3.m
 | A25 | EPTS Future Sync Pipeline | none | HARD_DISABLED |
 | A26 | Evidence AI Confidence/Abstain | none | HARD_DISABLED |
 | A27 | Role Credential Verification | `lib/authorization.ts` | PARTIAL |
-| A28 | Match State Machine | fixture match state | PARTIAL |
-| A29 | Match Event Integrity/Ordering | idempotency seam type | PARTIAL |
-| A30 | Offline Sync/Conflict Resolution | `app/AppState.tsx` | PARTIAL |
+| A28 | Match State Machine | `packages/pack01/domain.ts` | IMPLEMENTED (LOCAL_DEV) |
+| A29 | Match Event Integrity/Ordering | `packages/pack01/domain.ts` | IMPLEMENTED (LOCAL_DEV) |
+| A30 | Offline Sync/Conflict Resolution | `packages/pack01/domain.ts` | IMPLEMENTED (LOCAL_DEV) |
 | A31 | Consent Revocation/Lifecycle Cascade | `lib/authorization.ts` | PARTIAL |
 | A32 | Product Analytics Attribution | none | NOT_IMPLEMENTED |
 | A33 | Permission-aware Search Filtering | `lib/authorization.ts` | PARTIAL |

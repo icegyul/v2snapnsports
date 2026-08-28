@@ -16,8 +16,8 @@ Source: `docs/canonical/engines/v1.3/SNAPN_SPORTS_V2_ENGINE_CATALOG_v1.3.md` and
 | E10 | Home State & Primary Action | `schedule` | `features/home` | HomeState | priority state | PARTIAL |
 | E11 | Stadium Style Composition | `stadium` | `three` | recipe contract only | no final renderer | PARTIAL |
 | E12 | Spatial Navigation | `stadium` | `routes`, `features/stadium` | route descriptor | player-flow tests | IMPLEMENTED (FIXTURE_LOCAL) |
-| E13 | Training/Schedule/Attendance | `training`, `schedule` | `features/product/RemainingProductPages.tsx` | fixture schedule projection | product-page tests | IMPLEMENTED (FIXTURE_LOCAL) |
-| E14 | Tactical Board | `tactics` | reserved feature boundary | none active | mapping integrity | RESERVED |
+| E13 | Training/Schedule/Attendance | `training`, `schedule` | `packages/pack01/domain.ts`, `features/pack01/Pack01Pages.tsx` | local session/plan/participation/attendance | pack01 domain/lifecycle/browser tests | IMPLEMENTED (LOCAL_DEV) |
+| E14 | Tactical Board | `tactics` | `packages/pack01/domain.ts`, `features/pack01/Pack01Pages.tsx` | local tactic versions/static playback | pack01 domain/lifecycle/browser tests | IMPLEMENTED (LOCAL_DEV) |
 | E15 | Community Compatibility | `community` | `features/community/communityModel.ts` | fixture-local Legacy-order seam | community safety tests | IMPLEMENTED (FIXTURE_LOCAL) |
 | E16 | Community Safety | `safeguarding`, `community` | `features/community/communityModel.ts` | sanitize/hide/block seam | community safety tests | IMPLEMENTED (FIXTURE_LOCAL) |
 | E17 | Media & Video | `media` | `features/product/RemainingProductPages.tsx` | unavailable fixture media projection | product-page tests | IMPLEMENTED (FIXTURE_LOCAL) |
@@ -30,7 +30,7 @@ Source: `docs/canonical/engines/v1.3/SNAPN_SPORTS_V2_ENGINE_CATALOG_v1.3.md` and
 | E24 | Evidence Sports AI | none | none | hard false | hard-disable test | HARD_DISABLED |
 | E25 | Audit/Observability | `backend/src/shared/observability` | error boundary | request-id model | error normalization | PARTIAL |
 | E26 | Role Verification | `role` | role state | VerifiedRoleGrant | preference deny | PARTIAL |
-| E27 | Match & Competition | `match` | schedule projection | Match DTO | fixture match | PARTIAL |
+| E27 | Match & Competition | `match` | `packages/pack01/domain.ts`, `features/pack01/Pack01Pages.tsx` | local match/roster/lineup/events/report seam | pack01 domain/lifecycle/browser tests | IMPLEMENTED (LOCAL_DEV) |
 | E28 | Agent Portfolio | `scouting`, `career` | none | ScoutingConsent | denied default | PARTIAL |
 | E29 | Offline Sync | `sync` | fixture-local draft seam | local draft state | community model tests | IMPLEMENTED (FIXTURE_LOCAL) |
 | E30 | Data Lifecycle/Privacy | `privacy` | no UI surface | Consent state | revoked deny | PARTIAL |
