@@ -3,6 +3,7 @@ import { RouteStatePanel } from "../components/RouteStatePanel";
 import { MyPositionPage, MyTeamFormationPage, PitchEntryPage, SpatialHomePage, StadiumApproachPage, StadiumExteriorPage } from "../features/stadium/PlayerStadiumPages";
 import { CommunityPage, VideoPage } from "../features/product/RemainingProductPages";
 import { Pack02CareerPassportPage, Pack02CareerSeasonPage, Pack02OpportunityPage, Pack02PortfolioPage, Pack02TeamCommunicationPage } from "../features/pack02/Pack02Pages";
+import { AgentWorkspacePage, AnalystWorkspacePage, ClubDirectorWorkspacePage, CoachWorkspacePage, ManagerHomePage, RefereeWorkspacePage, TeamManagerWorkspacePage } from "../features/pack03/ManagerWorkspacePages";
 import { CommunityComposerPage, CommunityDetailPage } from "../features/community/CommunityInteractionPages";
 import { VideoDetailPage } from "../features/product/ProductDetailPages";
 import { playerNavigation } from "../routes/routePolicy";
@@ -57,6 +58,13 @@ function AppRoutes() {
     <Route path="/video" element={<VideoPage />} />
     <Route path="/video/:videoId" element={<VideoDetailPage />} />
     <Route path="/more" element={<GenericShell title="더보기" />} />
+    <Route path="/manager" element={<ManagerHomePage />} />
+    <Route path="/manager/coach" element={<CoachWorkspacePage />} />
+    <Route path="/manager/team" element={<TeamManagerWorkspacePage />} />
+    <Route path="/manager/club" element={<ClubDirectorWorkspacePage />} />
+    <Route path="/manager/referee" element={<RefereeWorkspacePage />} />
+    <Route path="/manager/agent" element={<AgentWorkspacePage />} />
+    <Route path="/manager/analyst" element={<AnalystWorkspacePage />} />
     <Route path="/communication" element={<Pack02TeamCommunicationPage />} />
     <Route path="/opportunities" element={<Pack02OpportunityPage />} />
     <Route path="/player/me/portfolio" element={<Pack02PortfolioPage />} />
