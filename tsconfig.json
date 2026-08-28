@@ -17,5 +17,5 @@
     "jsx": "react-jsx",
     "types": ["vitest/globals"]
   },
-  "include": ["apps/web/src", "vite.config.ts", "vitest.config.ts", "eslint.config.js"]
+  "include": ["apps/web/src", "packages/shared-security", "vite.config.ts", "vitest.config.ts", "eslint.config.js"]
 }
