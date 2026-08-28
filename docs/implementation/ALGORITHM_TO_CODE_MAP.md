@@ -5,8 +5,8 @@ Source: `docs/canonical/algorithms/v1.3/SNAPN_SPORTS_V2_ALGORITHM_CATALOG_v1.3.m
 | ID | Algorithm | F0 code target | Status |
 |---|---|---|---|
 | A01 | Public Signup Routing | `routes/routePolicy.ts` | PARTIAL |
-| A02 | Manager Role Resolution | `lib/authorization.ts` | PARTIAL |
-| A03 | Authorization/Data Scope Decision | `lib/authorization.ts` | PARTIAL |
+| A02 | Manager Role Resolution | `packages/pack03/workspaces.ts` | IMPLEMENTED (LOCAL_DEV) |
+| A03 | Authorization/Data Scope Decision | `packages/shared-security/authorization.ts`, `packages/pack03/workspaces.ts` | IMPLEMENTED (LOCAL_DEV) |
 | A04 | Guardian Invite & Consent Binding | `lib/authorization.ts` | PARTIAL |
 | A05 | Formation Slot Mapping | `features/stadium/PlayerStadiumPages.tsx` | IMPLEMENTED (FIXTURE_LOCAL) |
 | A06 | My Player Visual Priority | `features/stadium/PlayerStadiumPages.tsx` | IMPLEMENTED (FIXTURE_LOCAL) |
@@ -30,7 +30,7 @@ Source: `docs/canonical/algorithms/v1.3/SNAPN_SPORTS_V2_ALGORITHM_CATALOG_v1.3.m
 | A24 | Stadium Audio Fit | none | RESERVED |
 | A25 | EPTS Future Sync Pipeline | none | HARD_DISABLED |
 | A26 | Evidence AI Confidence/Abstain | none | HARD_DISABLED |
-| A27 | Role Credential Verification | `lib/authorization.ts` | PARTIAL |
+| A27 | Role Credential Verification | `packages/pack03/workspaces.ts` | IMPLEMENTED (LOCAL_DEV) |
 | A28 | Match State Machine | `packages/pack01/domain.ts` | IMPLEMENTED (LOCAL_DEV) |
 | A29 | Match Event Integrity/Ordering | `packages/pack01/domain.ts` | IMPLEMENTED (LOCAL_DEV) |
 | A30 | Offline Sync/Conflict Resolution | `packages/pack01/domain.ts` | IMPLEMENTED (LOCAL_DEV) |

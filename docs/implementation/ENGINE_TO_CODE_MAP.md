@@ -5,10 +5,10 @@ Source: `docs/canonical/engines/v1.3/SNAPN_SPORTS_V2_ENGINE_CATALOG_v1.3.md` and
 | ID | Engine | Backend module | Frontend feature | API/DB/Event | Tests | Status |
 |---|---|---|---|---|---|---|
 | E01 | Identity & Primary Experience | `backend/src/modules/identity` | `features/auth` | `/v2/me` seam | fixture identity | PARTIAL |
-| E02 | Manager Role Experience | `role` | `features/role` | role preference DTO | role visibility | PARTIAL |
-| E03 | Authorization & Data Scope | `role`, `organization` | route guard | AuthorizationDecision | escalation/cross-team | PARTIAL |
+| E02 | Manager Role Experience | `packages/pack03/workspaces.ts` | `features/pack03/ManagerWorkspacePages.tsx` | active VerifiedRoleGrant local store | pack03 role/page/browser tests | IMPLEMENTED (LOCAL_DEV) |
+| E03 | Authorization & Data Scope | `packages/shared-security/authorization.ts`, `packages/pack03/workspaces.ts` | manager route projection | tenant/team/club decision | pack03 scope/stale-role tests | IMPLEMENTED (LOCAL_DEV) |
 | E04 | Guardian & Consent | `guardian`, `privacy` | guardian state | GuardianRelationship | guardian isolation | PARTIAL |
-| E05 | Organization/Team/Season | `organization`, `team` | team projection | TenantScope/TeamScope | scope contract | PARTIAL |
+| E05 | Organization/Team/Season | `packages/pack03/workspaces.ts` | manager team/club projections | tenant/team/club scope | pack03 scope tests | IMPLEMENTED (LOCAL_DEV) |
 | E06 | Legacy Adapter & Migration | `backend/src/modules/legacy` | `adapters` | disabled production seam | fixture adapter | PARTIAL |
 | E07 | Feature Flag & Release Control | `feature_flags` | `lib/featureFlags` | FeatureFlagSet | hard-disable test | IMPLEMENTED |
 | E08 | My Football World | `stadium` | `features/stadium/PlayerStadiumPages.tsx` | fixture stadium projection | player flow/static tests | IMPLEMENTED (FIXTURE_LOCAL) |
@@ -29,7 +29,7 @@ Source: `docs/canonical/engines/v1.3/SNAPN_SPORTS_V2_ENGINE_CATALOG_v1.3.md` and
 | E23 | Camera/Vision | none | none | hard false | hard-disable test | HARD_DISABLED |
 | E24 | Evidence Sports AI | none | none | hard false | hard-disable test | HARD_DISABLED |
 | E25 | Audit/Observability | `backend/src/shared/audit/index.ts` | local PACK 01 mutation seam | safe audit event | pack01 gap-closure tests | IMPLEMENTED (LOCAL_DEV) |
-| E26 | Role Verification | `role` | role state | VerifiedRoleGrant | preference deny | PARTIAL |
+| E26 | Role Verification | `packages/pack03/workspaces.ts` | active role switch | verified/revoked/expired grant state | pack03 role tests | IMPLEMENTED (LOCAL_DEV) |
 | E27 | Match & Competition | `match` | `packages/pack01/domain.ts`, `features/pack01/Pack01Pages.tsx` | local match/roster/lineup/events/report seam | pack01 domain/lifecycle/browser tests | IMPLEMENTED (LOCAL_DEV) |
 | E28 | Agent Portfolio | `packages/pack02/domain.ts` | `features/pack02/Pack02Pages.tsx` | local share grant/opportunity projection | pack02 domain/page/browser tests | IMPLEMENTED (LOCAL_DEV) |
 | E29 | Offline Sync | `sync` | fixture-local draft seam | local draft state | community model tests | IMPLEMENTED (FIXTURE_LOCAL) |
