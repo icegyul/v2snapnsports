@@ -22,3 +22,7 @@ All implemented Player, Training/Match/Tactic, Football Life, Manager, and Admin
 ## Validation
 
 Full suite, typecheck, lint and build are executed in this acceptance branch. Browser/accessibility evidence is retained from PACK01–04 under `docs/implementation/evidence/` and is not a production claim.
+
+## Integrated browser recovery
+
+The first matrix attempt failed in Journey D with `AssertionError: 1 !== 0`. Focused browser inspection classified it as `HARNESS_TIMING_DEFECT`: after Coach→Analyst click, actual DOM had Analyst heading and zero Coach-only controls, but the harness asserted before React committed the route projection. Exact Analyst/Agent heading waits were added without weakening stale-control expectation. The rerun passed 8 integrated core routes × mobile/tablet/desktop, including Coach→Analyst→Agent stale-control check and Agent mediation. Training→Career provenance remains separately verified by `pack01to02Provenance.test.ts` because the browser fixture stores are intentionally separate local domain instances.
