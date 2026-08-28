@@ -19,7 +19,7 @@ Source: `docs/canonical/engines/v1.3/SNAPN_SPORTS_V2_ENGINE_CATALOG_v1.3.md` and
 | E13 | Training/Schedule/Attendance | `training`, `schedule` | `packages/pack01/domain.ts`, `features/pack01/Pack01Pages.tsx` | local session/plan/participation/attendance | pack01 domain/lifecycle/browser tests | IMPLEMENTED (LOCAL_DEV) |
 | E14 | Tactical Board | `tactics` | `packages/pack01/domain.ts`, `features/pack01/Pack01Pages.tsx` | local tactic versions/static playback | pack01 domain/lifecycle/browser tests | IMPLEMENTED (LOCAL_DEV) |
 | E15 | Community Compatibility | `community` | `features/community/communityModel.ts` | fixture-local Legacy-order seam | community safety tests | IMPLEMENTED (FIXTURE_LOCAL) |
-| E16 | Community Safety | `safeguarding`, `community` | `features/community/communityModel.ts` | sanitize/hide/block seam | community safety tests | IMPLEMENTED (FIXTURE_LOCAL) |
+| E16 | Community Safety | `packages/pack04/controlPlane.ts` | `features/pack04/AdminOpsPages.tsx` | moderation projection-only/audit | pack04 tests/browser | IMPLEMENTED (LOCAL_DEV) |
 | E17 | Media & Video | `media` | `features/product/RemainingProductPages.tsx` | unavailable fixture media projection | product-page tests | IMPLEMENTED (FIXTURE_LOCAL) |
 | E18 | Growth / Career | `packages/pack02/domain.ts` | `features/pack02/Pack02Pages.tsx` | provenance-backed local Career Passport | pack02 domain/page/browser tests | IMPLEMENTED (LOCAL_DEV) |
 | E19 | Notification | `notification` | app state seam | Notification DTO | not implemented | NOT_IMPLEMENTED |
@@ -33,12 +33,12 @@ Source: `docs/canonical/engines/v1.3/SNAPN_SPORTS_V2_ENGINE_CATALOG_v1.3.md` and
 | E27 | Match & Competition | `match` | `packages/pack01/domain.ts`, `features/pack01/Pack01Pages.tsx` | local match/roster/lineup/events/report seam | pack01 domain/lifecycle/browser tests | IMPLEMENTED (LOCAL_DEV) |
 | E28 | Agent Portfolio | `packages/pack02/domain.ts` | `features/pack02/Pack02Pages.tsx` | local share grant/opportunity projection | pack02 domain/page/browser tests | IMPLEMENTED (LOCAL_DEV) |
 | E29 | Offline Sync | `sync` | fixture-local draft seam | local draft state | community model tests | IMPLEMENTED (FIXTURE_LOCAL) |
-| E30 | Data Lifecycle/Privacy | `privacy` | no UI surface | Consent state | revoked deny | PARTIAL |
+| E30 | Data Lifecycle/Privacy | `packages/pack04/controlPlane.ts` | `features/pack04/AdminOpsPages.tsx` | local privacy workflow/production block | pack04 tests/browser | IMPLEMENTED (LOCAL_DEV) |
 | E31 | Product Analytics | `analytics` | none | event seam only | not activated | NOT_IMPLEMENTED |
 | E32 | Permission-aware Search | `search` | none | AuthorizationDecision | cross-team deny | PARTIAL |
 | E33 | Community Feed Intelligence | none | none | hard false | not rendered | HARD_DISABLED |
 | E34 | 3D Asset Delivery/Cache | `stadium` | `three/stadiumScene.ts` | asset state | FULL/FAST/LIGHT/STATIC tests | IMPLEMENTED (SCAFFOLD_ONLY) |
-| E35 | Earthus Context Adapter | `earthus` | schedule context | no-op adapter | soft failure | PARTIAL |
+| E35 | Earthus Context Adapter | `packages/pack04/controlPlane.ts` | Earthus Health projection | unavailable soft state | pack04 tests/browser | IMPLEMENTED (LOCAL_DEV) |
 | E36 | Career Passport | `packages/pack02/domain.ts` | `features/pack02/Pack02Pages.tsx` | provenance-only passport and Legacy Wall projection | pack02 domain/page/browser tests | IMPLEMENTED (LOCAL_DEV) |
 | E37 | Scouting Consent | `packages/pack02/domain.ts` | `features/pack02/Pack02Pages.tsx` | shared consent + guardian/club mediated opportunity | pack02 domain/page/browser tests | IMPLEMENTED (LOCAL_DEV) |
 | E38 | Tournament/League Extension | none | none | none | none | RESERVED |
