@@ -22,94 +22,101 @@ jobs:
           path = Path('apps/web/src/three/stadiumWebglV14.ts')
           text = path.read_text()
 
-          old = '''      const seed = row * 10000 + slot;
-      if (hash(seed, 1) > recipe.crowdDensity) continue;
-      const angle = ((slot + 0.5) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.014;'''
-          new = '''      const seed = row * 10000 + slot;
-      const section = Math.floor(slot / 18);
-      const sectionNoise = hash(row * 83 + section * 19, 21);
-      const localDensity = Math.max(0.82, Math.min(0.985, recipe.crowdDensity + (sectionNoise - 0.5) * 0.16));
-      if (hash(seed, 1) > localDensity) continue;
-      const angle = ((slot + 0.5) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.022;'''
-          if old not in text:
+          crowd_old = "\n".join([
+              "      const seed = row * 10000 + slot;",
+              "      if (hash(seed, 1) > recipe.crowdDensity) continue;",
+              "      const angle = ((slot + 0.5) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.014;",
+          ])
+          crowd_new = "\n".join([
+              "      const seed = row * 10000 + slot;",
+              "      const section = Math.floor(slot / 18);",
+              "      const sectionNoise = hash(row * 83 + section * 19, 21);",
+              "      const localDensity = Math.max(0.82, Math.min(0.985, recipe.crowdDensity + (sectionNoise - 0.5) * 0.16));",
+              "      if (hash(seed, 1) > localDensity) continue;",
+              "      const angle = ((slot + 0.5) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.022;",
+          ])
+          if crowd_old not in text:
               raise SystemExit('crowd occupancy block not found')
-          text = text.replace(old, new, 1)
+          text = text.replace(crowd_old, crowd_new, 1)
 
           if 'function makeAdBoardTexture(' not in text:
               marker = 'function ellipseSurfaceGeometry('
-              fn = '''function makeAdBoardTexture(textures: Set<THREE.Texture>): THREE.Texture {
-  const canvas = document.createElement("canvas");
-  canvas.width = 1536;
-  canvas.height = 160;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("stadium ad-board canvas unavailable");
-  const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
-  gradient.addColorStop(0, "#071522");
-  gradient.addColorStop(0.46, "#0c3b60");
-  gradient.addColorStop(1, "#071522");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#dff6ff";
-  ctx.font = "700 58px Arial, sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("SNAPN SPORTS", 280, 102);
-  ctx.fillStyle = "#65c7ff";
-  ctx.font = "600 42px Arial, sans-serif";
-  ctx.fillText("TRAIN SMART", 760, 100);
-  ctx.fillStyle = "#dff6ff";
-  ctx.fillText("MATCH INTELLIGENCE", 1240, 100);
-  const texture = addDisposable(textures, new THREE.CanvasTexture(canvas));
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.wrapS = THREE.ClampToEdgeWrapping;
-  texture.wrapT = THREE.ClampToEdgeWrapping;
-  return texture;
-}
-
-'''
+              fn = "\n".join([
+                  'function makeAdBoardTexture(textures: Set<THREE.Texture>): THREE.Texture {',
+                  '  const canvas = document.createElement("canvas");',
+                  '  canvas.width = 1536;',
+                  '  canvas.height = 160;',
+                  '  const ctx = canvas.getContext("2d");',
+                  '  if (!ctx) throw new Error("stadium ad-board canvas unavailable");',
+                  '  const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);',
+                  '  gradient.addColorStop(0, "#071522");',
+                  '  gradient.addColorStop(0.46, "#0c3b60");',
+                  '  gradient.addColorStop(1, "#071522");',
+                  '  ctx.fillStyle = gradient;',
+                  '  ctx.fillRect(0, 0, canvas.width, canvas.height);',
+                  '  ctx.fillStyle = "#dff6ff";',
+                  '  ctx.font = "700 58px Arial, sans-serif";',
+                  '  ctx.textAlign = "center";',
+                  '  ctx.fillText("SNAPN SPORTS", 280, 102);',
+                  '  ctx.fillStyle = "#65c7ff";',
+                  '  ctx.font = "600 42px Arial, sans-serif";',
+                  '  ctx.fillText("TRAIN SMART", 760, 100);',
+                  '  ctx.fillStyle = "#dff6ff";',
+                  '  ctx.fillText("MATCH INTELLIGENCE", 1240, 100);',
+                  '  const texture = addDisposable(textures, new THREE.CanvasTexture(canvas));',
+                  '  texture.colorSpace = THREE.SRGBColorSpace;',
+                  '  texture.wrapS = THREE.ClampToEdgeWrapping;',
+                  '  texture.wrapT = THREE.ClampToEdgeWrapping;',
+                  '  return texture;',
+                  '}',
+                  '',
+              ])
               text = text.replace(marker, fn + marker, 1)
 
-          marker = '  const pitchGeometry = addDisposable(geometries, new THREE.PlaneGeometry(105, 68, 20, 12));'
+          material_marker = '  const pitchGeometry = addDisposable(geometries, new THREE.PlaneGeometry(105, 68, 20, 12));'
           if 'const adBoardTexture = makeAdBoardTexture(textures);' not in text:
-              material = '''  const adBoardTexture = makeAdBoardTexture(textures);
-  adBoardTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-  const adBoardMaterial = addDisposable(
-    materials,
-    new THREE.MeshStandardMaterial({
-      map: adBoardTexture,
-      emissiveMap: adBoardTexture,
-      emissive: 0x9adfff,
-      emissiveIntensity: 0.78,
-      roughness: 0.40,
-      metalness: 0.05,
-      side: THREE.DoubleSide,
-    }),
-  );
-
-'''
-              text = text.replace(marker, material + marker, 1)
+              material = "\n".join([
+                  '  const adBoardTexture = makeAdBoardTexture(textures);',
+                  '  adBoardTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());',
+                  '  const adBoardMaterial = addDisposable(',
+                  '    materials,',
+                  '    new THREE.MeshStandardMaterial({',
+                  '      map: adBoardTexture,',
+                  '      emissiveMap: adBoardTexture,',
+                  '      emissive: 0x9adfff,',
+                  '      emissiveIntensity: 0.78,',
+                  '      roughness: 0.40,',
+                  '      metalness: 0.05,',
+                  '      side: THREE.DoubleSide,',
+                  '    }),',
+                  '  );',
+                  '',
+              ])
+              text = text.replace(material_marker, material + material_marker, 1)
 
           board_marker = '  const tiers: TierSpec[] = ['
           if 'const adPanelGeometry = addDisposable' not in text:
-              boards = '''  const adPanelGeometry = addDisposable(geometries, new THREE.PlaneGeometry(24, 1.35));
-  for (const z of [-35.35, 35.35]) {
-    for (const x of [-38, -12.7, 12.7, 38]) {
-      const panel = new THREE.Mesh(adPanelGeometry, adBoardMaterial);
-      panel.position.set(x, 0.92, z);
-      panel.rotation.y = z > 0 ? Math.PI : 0;
-      group.add(panel);
-    }
-  }
-  const endPanelGeometry = addDisposable(geometries, new THREE.PlaneGeometry(20, 1.35));
-  for (const x of [-54.2, 54.2]) {
-    for (const z of [-22, 0, 22]) {
-      const panel = new THREE.Mesh(endPanelGeometry, adBoardMaterial);
-      panel.position.set(x, 0.92, z);
-      panel.rotation.y = x > 0 ? -Math.PI / 2 : Math.PI / 2;
-      group.add(panel);
-    }
-  }
-
-'''
+              boards = "\n".join([
+                  '  const adPanelGeometry = addDisposable(geometries, new THREE.PlaneGeometry(24, 1.35));',
+                  '  for (const z of [-35.35, 35.35]) {',
+                  '    for (const x of [-38, -12.7, 12.7, 38]) {',
+                  '      const panel = new THREE.Mesh(adPanelGeometry, adBoardMaterial);',
+                  '      panel.position.set(x, 0.92, z);',
+                  '      panel.rotation.y = z > 0 ? Math.PI : 0;',
+                  '      group.add(panel);',
+                  '    }',
+                  '  }',
+                  '  const endPanelGeometry = addDisposable(geometries, new THREE.PlaneGeometry(20, 1.35));',
+                  '  for (const x of [-54.2, 54.2]) {',
+                  '    for (const z of [-22, 0, 22]) {',
+                  '      const panel = new THREE.Mesh(endPanelGeometry, adBoardMaterial);',
+                  '      panel.position.set(x, 0.92, z);',
+                  '      panel.rotation.y = x > 0 ? -Math.PI / 2 : Math.PI / 2;',
+                  '      group.add(panel);',
+                  '    }',
+                  '  }',
+                  '',
+              ])
               text = text.replace(board_marker, boards + board_marker, 1)
 
           replacements = {
