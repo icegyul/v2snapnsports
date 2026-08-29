@@ -1,4 +1,4 @@
-// V14.6 PBR Base Stadium shadow evaluation entrypoint.
+// V14.7 PBR Base Stadium camera + shadow acceptance verification.
 import "../features/stadium/stadiumCinematic.css";
 import "../features/stadium/stadiumFinal.css";
 import "../features/stadium/stadiumPremiumTuning.css";
