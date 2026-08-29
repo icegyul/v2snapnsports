@@ -156,7 +156,47 @@ function makeGrassBumpTexture(textures: Set<THREE.Texture>): THREE.Texture {
   texture.repeat.set(18, 12);
   return texture;
 }
-function makeScoreboardTexture(textures: Set<THREE.Texture>): THREE.Texture {
+function makeEnvironmentTexture(textures: Set<THREE.Texture>): THREE.Texture {
+      const canvas = document.createElement("canvas");
+      canvas.width = 1024;
+      canvas.height = 512;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("stadium environment canvas unavailable");
+
+      const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      sky.addColorStop(0, "#06101a");
+      sky.addColorStop(0.34, "#162938");
+      sky.addColorStop(0.60, "#344652");
+      sky.addColorStop(0.78, "#1b242a");
+      sky.addColorStop(1, "#080d11");
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (const cx of [96, 320, 704, 928]) {
+        const glow = ctx.createRadialGradient(cx, 270, 3, cx, 270, 118);
+        glow.addColorStop(0, "rgba(255,244,210,.95)");
+        glow.addColorStop(.12, "rgba(255,229,174,.55)");
+        glow.addColorStop(.42, "rgba(155,198,232,.16)");
+        glow.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(cx - 130, 140, 260, 260);
+      }
+
+      const horizon = ctx.createLinearGradient(0, 236, 0, 310);
+      horizon.addColorStop(0, "rgba(205,222,235,0)");
+      horizon.addColorStop(.48, "rgba(205,222,235,.12)");
+      horizon.addColorStop(1, "rgba(20,32,40,0)");
+      ctx.fillStyle = horizon;
+      ctx.fillRect(0, 230, canvas.width, 90);
+
+      const texture = addDisposable(textures, new THREE.CanvasTexture(canvas));
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+      texture.needsUpdate = true;
+      return texture;
+    }
+
+    function makeScoreboardTexture(textures: Set<THREE.Texture>): THREE.Texture {
   const canvas = document.createElement("canvas");
   canvas.width = 1024;
   canvas.height = 320;
@@ -1022,10 +1062,13 @@ export function createStadiumWebglRenderer(
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x0b121a, 155, 340);
+  scene.fog = new THREE.Fog(0x0c141c, 125, 290);
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
   const textures = new Set<THREE.Texture>();
+  const environmentTexture = makeEnvironmentTexture(textures);
+  scene.environment = environmentTexture;
+  scene.environmentIntensity = 0.68;
   const stadium = buildStadium(scene, renderer, mode, recipe, geometries, materials, textures);
 
   const camera = new THREE.PerspectiveCamera(54, 1, 0.18, 380);
@@ -1048,11 +1091,11 @@ export function createStadiumWebglRenderer(
     const zoom = Math.min(1.10, Math.max(0.86, zoom0));
     const angle = ((portrait ? 24 : 18) + orbit * (portrait ? 0.12 : 0.18)) * Math.PI / 180;
     const radius = (portrait ? 52 : 38) / zoom;
-    const height = (portrait ? 27 : 24) / zoom;
-    camera.fov = portrait ? 58 : 58;
+    const height = (portrait ? 32 : 24) / zoom;
+    camera.fov = portrait ? 60 : 58;
     camera.aspect = cssWidth / cssHeight;
     camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
-    const target = portrait ? new THREE.Vector3(0, 11.5, -5.0) : new THREE.Vector3(0, 12.0, -5.0);
+    const target = portrait ? new THREE.Vector3(0, 14.2, -5.5) : new THREE.Vector3(0, 12.0, -5.0);
     camera.lookAt(target);
     camera.updateProjectionMatrix();
     stadium.rotation.y = portrait ? 0 : -0.015;
