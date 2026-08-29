@@ -132,6 +132,35 @@ function makePitchTexture(textures: Set<THREE.Texture>): THREE.Texture {
   return texture;
 }
 
+function makeScoreboardTexture(textures: Set<THREE.Texture>): THREE.Texture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1024;
+  canvas.height = 320;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("stadium scoreboard canvas unavailable");
+  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, "#07111c");
+  gradient.addColorStop(0.5, "#0b2d4b");
+  gradient.addColorStop(1, "#07111c");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = "rgba(89,190,255,.72)";
+  ctx.lineWidth = 6;
+  ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#dff4ff";
+  ctx.font = "700 72px Arial, sans-serif";
+  ctx.fillText("SNAPN SPORTS", canvas.width / 2, 132);
+  ctx.fillStyle = "#70c7ff";
+  ctx.font = "600 38px Arial, sans-serif";
+  ctx.fillText("MATCH CENTER", canvas.width / 2, 214);
+  ctx.fillStyle = "rgba(255,255,255,.65)";
+  ctx.font = "500 22px Arial, sans-serif";
+  ctx.fillText("LIVE STADIUM", canvas.width / 2, 264);
+  const texture = addDisposable(textures, new THREE.CanvasTexture(canvas));
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
 function ellipseSurfaceGeometry(
   geometries: Set<THREE.BufferGeometry>,
   innerX: number,
@@ -540,10 +569,10 @@ function addRoof(
 }
 
 function addLighting(scene: THREE.Scene, highQuality: boolean): void {
-  scene.add(new THREE.HemisphereLight(0xcadfff, 0x122016, 1.35));
-  scene.add(new THREE.AmbientLight(0xffffff, 0.34));
+  scene.add(new THREE.HemisphereLight(0xcadfff, 0x122016, 1.10));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.22));
 
-  const key = new THREE.DirectionalLight(0xeaf3ff, 2.1);
+  const key = new THREE.DirectionalLight(0xeaf3ff, 1.55);
   key.position.set(-48, 72, 24);
   key.castShadow = highQuality;
   if (highQuality) {
@@ -558,7 +587,7 @@ function addLighting(scene: THREE.Scene, highQuality: boolean): void {
   }
   scene.add(key);
 
-  const fill = new THREE.DirectionalLight(0xffe1ad, 0.75);
+  const fill = new THREE.DirectionalLight(0xffe1ad, 0.55);
   fill.position.set(54, 38, -42);
   scene.add(fill);
 
@@ -571,7 +600,7 @@ function addLighting(scene: THREE.Scene, highQuality: boolean): void {
     [-82, 54],
     [82, 54],
   ] as const) {
-    const light = new THREE.SpotLight(0xfff2d4, highQuality ? 560 : 470, 230, 0.62, 0.62, 1.45);
+    const light = new THREE.SpotLight(0xfff2d4, highQuality ? 820 : 680, 230, 0.62, 0.62, 1.45);
     light.position.set(x, 42, z);
     light.target = target;
     scene.add(light);
@@ -639,6 +668,19 @@ function buildStadium(
     }),
   );
 
+  const scoreboardTexture = makeScoreboardTexture(textures);
+  scoreboardTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  const scoreboardMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      map: scoreboardTexture,
+      emissiveMap: scoreboardTexture,
+      emissive: 0xffffff,
+      emissiveIntensity: 1.25,
+      roughness: 0.32,
+      metalness: 0.05,
+    }),
+  );
   const pitchGeometry = addDisposable(geometries, new THREE.PlaneGeometry(105, 68, 20, 12));
   const pitch = new THREE.Mesh(pitchGeometry, pitchMaterial);
   pitch.rotation.x = -Math.PI / 2;
@@ -695,7 +737,7 @@ function buildStadium(
   scoreboard.position.set(0, 28.8, -78.4);
   group.add(scoreboard);
   const screenGeometry = addDisposable(geometries, new THREE.PlaneGeometry(21.8, 4.7));
-  const screen = new THREE.Mesh(screenGeometry, ledMaterial);
+  const screen = new THREE.Mesh(screenGeometry, scoreboardMaterial);
   screen.position.set(0, 28.8, -77.86);
   group.add(screen);
 
@@ -733,7 +775,7 @@ export function createStadiumWebglRenderer(
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.02;
+  renderer.toneMappingExposure = 0.96;
   renderer.shadowMap.enabled = mode === "FULL";
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -765,7 +807,7 @@ export function createStadiumWebglRenderer(
     const angle = ((portrait ? 70 : 18) + orbit * (portrait ? 0.12 : 0.18)) * Math.PI / 180;
     const radius = (portrait ? 52 : 38) / zoom;
     const height = (portrait ? 30 : 24) / zoom;
-    camera.fov = portrait ? 72 : 66;
+    camera.fov = portrait ? 64 : 60;
     camera.aspect = cssWidth / cssHeight;
     camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
     const target = portrait ? new THREE.Vector3(0, 7.0, -2.0) : new THREE.Vector3(0, 6.0, -4.0);
