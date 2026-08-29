@@ -735,7 +735,7 @@ for (let i = 0; i < 48; i += 1) {
 catwalkLights.instanceMatrix.needsUpdate = true;
 group.add(catwalkLights);
 
-const floodMaterial = addDisposable
+const floodMaterial = addDisposable(
     materials,
     new THREE.MeshStandardMaterial({
       color: 0xfff4cf,
