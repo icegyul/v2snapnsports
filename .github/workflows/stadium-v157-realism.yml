@@ -1,4 +1,4 @@
-name: Stadium V15.11 Syntax Fix
+name: Stadium V15.12 Background Framing
 
 on:
   push:
@@ -15,22 +15,41 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Fix V15.11 roof light allocation syntax
+      - name: Expose stadium environment background and refine portrait lens
         run: |
           python - <<'PY'
           from pathlib import Path
           path = Path('apps/web/src/three/stadiumWebglV14.ts')
           text = path.read_text()
-          old = 'const floodMaterial = addDisposable\n    materials,'
-          new = 'const floodMaterial = addDisposable(\n    materials,'
+          old = '  scene.environment = environmentTexture;\n  scene.environmentIntensity = 0.72;'
+          new = '  scene.environment = environmentTexture;\n  scene.environmentIntensity = 0.72;\n  scene.background = environmentTexture;\n  scene.backgroundIntensity = 0.34;\n  scene.backgroundBlurriness = 0.20;'
           if old not in text:
-              raise SystemExit('V15.11 syntax target not found')
-          path.write_text(text.replace(old, new, 1))
+              raise SystemExit('V15.12 environment insertion target not found')
+          text = text.replace(old, new, 1)
+          old = '    camera.fov = portrait ? 66 : 58;'
+          new = '    camera.fov = portrait ? 70 : 58;'
+          if old not in text:
+              raise SystemExit('V15.12 portrait fov target not found')
+          text = text.replace(old, new, 1)
+          path.write_text(text)
           PY
-      - name: Commit V15.11 syntax fix
+      - name: Refine mobile canvas crop
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/features/stadium/stadiumV149Cinematic.css')
+          text = path.read_text()
+          old = '    transform:translateY(-.5%) scale(1.01)!important;'
+          new = '    transform:translateY(-5%) scale(1.10)!important;'
+          if old not in text:
+              raise SystemExit('V15.12 mobile canvas transform target not found')
+          text = text.replace(old, new, 1)
+          path.write_text(text)
+          PY
+      - name: Commit V15.12 background framing
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- apps/web/src/three/stadiumWebglV14.ts
-          git commit -m "fix: repair V15.11 roof light allocation syntax"
+          git add -- apps/web/src/three/stadiumWebglV14.ts apps/web/src/features/stadium/stadiumV149Cinematic.css
+          git commit -m "feat: refine V15.12 stadium background and framing"
           git push
