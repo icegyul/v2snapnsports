@@ -1,4 +1,4 @@
-name: Stadium V15.12c Safe Background
+name: Stadium V15.13 Portrait Camera
 
 on:
   push:
@@ -15,43 +15,40 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Remove blocking scene background path
+      - name: Reframe portrait stadium camera
         run: |
           python - <<'PY'
           from pathlib import Path
           path = Path('apps/web/src/three/stadiumWebglV14.ts')
           text = path.read_text()
-          for line in [
-              '  scene.background = environmentTexture;\n',
-              '  scene.backgroundIntensity = 0.34;\n',
-              '  scene.backgroundBlurriness = 0.20;\n',
-          ]:
-              if line not in text:
-                  raise SystemExit(f'V15.12c rollback line not found: {line!r}')
-              text = text.replace(line, '', 1)
+          replacements = {
+              '    const radius = (portrait ? 52 : 38) / zoom;': '    const radius = (portrait ? 68 : 38) / zoom;',
+              '    const height = (portrait ? 35 : 25) / zoom;': '    const height = (portrait ? 34 : 25) / zoom;',
+              '    camera.fov = portrait ? 70 : 58;': '    camera.fov = portrait ? 58 : 58;',
+              '    const target = portrait ? new THREE.Vector3(0, 18.4, -6.4) : new THREE.Vector3(0, 13.4, -5.4);': '    const target = portrait ? new THREE.Vector3(0, 8.5, -5.2) : new THREE.Vector3(0, 13.4, -5.4);',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'V15.13 camera token not found: {old}')
+              text = text.replace(old, new, 1)
           path.write_text(text)
           PY
-      - name: Add safe cinematic hero atmosphere
+      - name: Balance mobile canvas framing
         run: |
           python - <<'PY'
           from pathlib import Path
           path = Path('apps/web/src/features/stadium/stadiumV149Cinematic.css')
           text = path.read_text()
-          marker = '.shell-main.stadium-home-page .stadium-hero{\n  background:'
-          if marker not in text:
-              layer = '''.shell-main.stadium-home-page .stadium-hero{
-                background:
-                  radial-gradient(ellipse at 52% 9%,rgba(92,119,139,.22) 0%,rgba(40,58,72,.11) 28%,rgba(5,11,17,0) 58%),
-                  linear-gradient(180deg,#0b1218 0%,#101a22 32%,#050a0f 74%,#020507 100%)!important;
-              }
-              '''
-              text = layer + text
-          path.write_text(text)
+          old = '    transform:translateY(-5%) scale(1.10)!important;'
+          new = '    transform:translateY(-8%) scale(1.04)!important;'
+          if old not in text:
+              raise SystemExit('V15.13 mobile transform target not found')
+          path.write_text(text.replace(old, new, 1))
           PY
-      - name: Commit V15.12c safe background
+      - name: Commit V15.13 portrait camera
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- apps/web/src/three/stadiumWebglV14.ts apps/web/src/features/stadium/stadiumV149Cinematic.css
-          git commit -m "fix: use safe V15.12c stadium background"
+          git commit -m "feat: reframe V15.13 portrait stadium camera"
           git push
