@@ -1,0 +1,25 @@
+/* Photoreal matchday environment plate. Pexels free-use source: Jeffrey Paa Kwesi Opare, photo 36862525. The live WebGL stadium remains above this plate for interaction/depth. */
+.stadium-world{
+  background-image:
+    linear-gradient(180deg,rgba(3,7,13,.18) 0%,rgba(2,6,10,.03) 36%,rgba(2,5,8,.10) 72%,rgba(0,0,0,.38) 100%),
+    url("https://images.pexels.com/photos/36862525/pexels-photo-36862525.jpeg?cs=srgb&dl=pexels-jeffrey-paa-kwesi-opare-157343-36862525.jpg&fm=jpg")!important;
+  background-size:cover!important;
+  background-position:center 48%!important;
+  background-repeat:no-repeat!important;
+  background-color:#05090d!important;
+}
+.stadium-world::before{opacity:.36!important;mix-blend-mode:screen!important;filter:blur(1px)!important}
+.stadium-world::after{background:linear-gradient(180deg,rgba(2,5,9,.08),transparent 27%,transparent 74%,rgba(0,0,0,.38)),radial-gradient(ellipse at 50% 55%,transparent 0 48%,rgba(0,0,0,.14) 72%,rgba(0,0,0,.38) 100%)!important;mix-blend-mode:multiply!important;opacity:.66!important}
+.stadium-sky-glow{opacity:.20!important}
+.stadium-ground-glow{opacity:.22!important}
+.shell-main.stadium-home-page .stadium-webgl-canvas{opacity:.14;mix-blend-mode:screen;filter:saturate(.72) contrast(1.08) brightness(.96) drop-shadow(0 22px 28px rgba(0,0,0,.24))!important}
+.shell-main.stadium-home-page .stadium-hero::before{opacity:.30!important;mix-blend-mode:screen!important}
+.shell-main.stadium-home-page .stadium-hero::after{opacity:.34!important}
+.stadium-state-layer,.stadium-quality-chip,.stadium-identity-indicator{background:linear-gradient(145deg,rgba(4,8,13,.84),rgba(12,18,25,.62))!important;border-color:rgba(222,232,242,.25)!important;box-shadow:0 12px 34px rgba(0,0,0,.38)!important}
+.stadium-enter-cue{top:73%!important;background:linear-gradient(145deg,rgba(3,7,12,.78),rgba(10,17,25,.68))!important;border-color:rgba(236,242,248,.30)!important;box-shadow:0 14px 44px rgba(0,0,0,.40),0 0 28px rgba(222,235,248,.08)!important}
+.stadium-enter-arrow{background:radial-gradient(circle at 50% 28%,#fff 0 5%,#d8e9f8 16%,#5d88af 48%,#1c354c 78%)!important;box-shadow:0 0 0 4px rgba(225,238,250,.08),0 0 26px rgba(225,238,250,.22)!important}
+@media(max-width:560px){
+  .stadium-world{background-position:center 46%!important;background-size:auto 100%!important}
+  .shell-main.stadium-home-page .stadium-webgl-canvas{opacity:.10;mix-blend-mode:screen;transform:scale(1.06) translateY(.4%)!important}
+  .stadium-enter-cue{top:76%!important}
+}
