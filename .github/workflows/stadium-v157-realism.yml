@@ -1,4 +1,4 @@
-name: Stadium V15.11 Roof Crowd Realism
+name: Stadium V15.11 Syntax Fix
 
 on:
   push:
@@ -15,85 +15,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Add roof underside structure and crowd realism
+      - name: Fix V15.11 roof light allocation syntax
         run: |
           python - <<'PY'
           from pathlib import Path
           path = Path('apps/web/src/three/stadiumWebglV14.ts')
           text = path.read_text()
-
-          replacements = {
-              '  if (value > 0.72) return new THREE.Color(0xc99570);': '  if (value > 0.72) return new THREE.Color(0x8f6c59);',
-              '  if (value > 0.40) return new THREE.Color(0xa76f4e);': '  if (value > 0.40) return new THREE.Color(0x785442);',
-              '  return new THREE.Color(0x7c503a);': '  return new THREE.Color(0x5e4337);',
-              '  const headGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.150, 8, 5));': '  const headGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.128, 8, 5));',
-              '    camera.fov = portrait ? 62 : 58;': '    camera.fov = portrait ? 66 : 58;',
-              '    const target = portrait ? new THREE.Vector3(0, 17.2, -6.2) : new THREE.Vector3(0, 13.4, -5.4);': '    const target = portrait ? new THREE.Vector3(0, 18.4, -6.4) : new THREE.Vector3(0, 13.4, -5.4);',
-          }
-          for old, new in replacements.items():
-              if old not in text:
-                  raise SystemExit(f'expected V15.11 token not found: {old}')
-              text = text.replace(old, new, 1)
-
-          marker = '  addEllipticRing(group, geometries, steelMaterial, innerX, innerZ, 37.65, 0.22);\n\n  const floodMaterial = addDisposable('
-          insert = '''  addEllipticRing(group, geometries, steelMaterial, innerX, innerZ, 37.65, 0.22);
-
-          // Visible underside structure: two catwalk rings and radial ribs prevent
-          // the canopy from reading as a single flat ceiling from pitch-level views.
-          addEllipticRing(group, geometries, steelMaterial, innerX + 4.8, innerZ + 3.2, 37.05, 0.10);
-          addEllipticRing(group, geometries, steelMaterial, outerX - 8.0, outerZ - 5.8, 38.25, 0.11);
-          for (let i = 0; i < 32; i += 1) {
-            const ribAngle = (i / 32) * TAU;
-            const ribStart = new THREE.Vector3(
-              Math.cos(ribAngle) * (outerX - 7.5),
-              38.15,
-              Math.sin(ribAngle) * (outerZ - 5.4),
-            );
-            const ribEnd = new THREE.Vector3(
-              Math.cos(ribAngle) * (innerX + 1.2),
-              36.95,
-              Math.sin(ribAngle) * (innerZ + 0.9),
-            );
-            beamBetween(group, geometries, steelMaterial, ribStart, ribEnd, 0.085, 6);
-          }
-
-          const catwalkLightMaterial = addDisposable(
-            materials,
-            new THREE.MeshStandardMaterial({
-              color: 0xffe5b8,
-              emissive: 0xffcf82,
-              emissiveIntensity: 2.4,
-              roughness: 0.38,
-              metalness: 0.04,
-            }),
-          );
-          const catwalkLightGeometry = addDisposable(geometries, new THREE.BoxGeometry(0.92, 0.075, 0.15));
-          const catwalkLights = new THREE.InstancedMesh(catwalkLightGeometry, catwalkLightMaterial, 48);
-          const catwalkDummy = new THREE.Object3D();
-          for (let i = 0; i < 48; i += 1) {
-            const lightAngle = (i / 48) * TAU;
-            catwalkDummy.position.set(
-              Math.cos(lightAngle) * (innerX + 3.5),
-              36.72,
-              Math.sin(lightAngle) * (innerZ + 2.4),
-            );
-            catwalkDummy.rotation.set(0, -lightAngle, 0);
-            catwalkDummy.updateMatrix();
-            catwalkLights.setMatrixAt(i, catwalkDummy.matrix);
-          }
-          catwalkLights.instanceMatrix.needsUpdate = true;
-          group.add(catwalkLights);
-
-          const floodMaterial = addDisposable'''
-          if marker not in text:
-              raise SystemExit('V15.11 roof insertion point not found')
-          text = text.replace(marker, insert, 1)
-          path.write_text(text)
+          old = 'const floodMaterial = addDisposable\n    materials,'
+          new = 'const floodMaterial = addDisposable(\n    materials,'
+          if old not in text:
+              raise SystemExit('V15.11 syntax target not found')
+          path.write_text(text.replace(old, new, 1))
           PY
-      - name: Commit V15.11 roof crowd realism
+      - name: Commit V15.11 syntax fix
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- apps/web/src/three/stadiumWebglV14.ts
-          git commit -m "feat: refine V15.11 roof structure and crowd realism"
+          git commit -m "fix: repair V15.11 roof light allocation syntax"
           git push
