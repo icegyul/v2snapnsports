@@ -1,0 +1,3 @@
+.shell-main.stadium-home-page .stadium-webgl-canvas{transform:scale(1.46) translateY(1%)!important;transform-origin:50% 51%!important}
+.shell-main.stadium-home-page .stadium-enter-cue{top:68%!important}
+@media(max-width:560px){.shell-main.stadium-home-page .stadium-webgl-canvas{transform:scale(2.05) translateY(-6%)!important;transform-origin:50% 50%!important}.shell-main.stadium-home-page .stadium-enter-cue{top:66%!important}.shell-main.stadium-home-page .stadium-state-layer{width:min(54%,205px)!important}.shell-main.stadium-home-page .stadium-quality-chip{transform:scale(.68)!important}.shell-main.stadium-home-page .stadium-identity-indicator{transform:scale(.66)!important}}
