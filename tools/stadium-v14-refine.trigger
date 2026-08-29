@@ -1,1 +1,1 @@
-2026-08-29 V14 stepped-stand and organic-crowd refinement
+2026-08-29 V14 acceptance camera pullback
