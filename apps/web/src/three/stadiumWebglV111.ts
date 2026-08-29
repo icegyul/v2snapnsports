@@ -46,7 +46,7 @@ export function createStadiumWebglRenderer(
   ) => {
     ctx.save();
     ctx.globalCompositeOperation = "screen";
-    ctx.globalAlpha = portrait ? 0.020 : 0.028;
+    ctx.globalAlpha = portrait ? 0.018 : 0.025;
     ctx.filter = "blur(3px) brightness(1.08)";
     ctx.drawImage(
       source,
@@ -62,11 +62,32 @@ export function createStadiumWebglRenderer(
     ctx.restore();
   };
 
+  const drawFloodGlow = (x: number, y: number, radius: number, alpha: number) => {
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    glow.addColorStop(0, `rgba(255,249,225,${alpha})`);
+    glow.addColorStop(0.12, `rgba(225,238,255,${alpha * 0.62})`);
+    glow.addColorStop(0.45, `rgba(110,165,225,${alpha * 0.10})`);
+    glow.addColorStop(1, "rgba(70,120,190,0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+  };
+
+  const drawLighting = () => {
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    const radius = Math.max(canvas.width, canvas.height) * (portrait ? 0.12 : 0.095);
+    drawFloodGlow(canvas.width * 0.08, canvas.height * 0.055, radius, portrait ? 0.08 : 0.13);
+    drawFloodGlow(canvas.width * 0.92, canvas.height * 0.055, radius, portrait ? 0.08 : 0.13);
+    drawFloodGlow(canvas.width * 0.31, canvas.height * 0.09, radius * 0.62, portrait ? 0.035 : 0.055);
+    drawFloodGlow(canvas.width * 0.69, canvas.height * 0.09, radius * 0.62, portrait ? 0.035 : 0.055);
+    ctx.restore();
+  };
+
   const drawVignette = () => {
     const centerX = canvas.width * 0.5;
-    const centerY = canvas.height * 0.55;
-    const inner = canvas.width * (portrait ? 0.36 : 0.21);
-    const outer = Math.max(canvas.width, canvas.height) * 0.82;
+    const centerY = canvas.height * 0.54;
+    const inner = canvas.width * (portrait ? 0.37 : 0.22);
+    const outer = Math.max(canvas.width, canvas.height) * 0.83;
     const vignette = ctx.createRadialGradient(
       centerX,
       centerY,
@@ -76,8 +97,8 @@ export function createStadiumWebglRenderer(
       outer,
     );
     vignette.addColorStop(0, "rgba(0,0,0,0)");
-    vignette.addColorStop(0.74, "rgba(0,0,0,0.006)");
-    vignette.addColorStop(1, portrait ? "rgba(0,0,0,0.08)" : "rgba(0,0,0,0.06)");
+    vignette.addColorStop(0.75, "rgba(0,0,0,0.005)");
+    vignette.addColorStop(1, portrait ? "rgba(0,0,0,0.07)" : "rgba(0,0,0,0.055)");
     ctx.save();
     ctx.globalCompositeOperation = "multiply";
     ctx.fillStyle = vignette;
@@ -94,13 +115,13 @@ export function createStadiumWebglRenderer(
     const sourceCanvasWidth = source.width;
     const sourceCanvasHeight = source.height;
     const sx = portrait
-      ? Math.round(sourceCanvasWidth * 0.045)
-      : Math.round(sourceCanvasWidth * 0.10);
+      ? Math.round(sourceCanvasWidth * 0.06)
+      : Math.round(sourceCanvasWidth * 0.12);
     const sourceWidth = Math.max(1, sourceCanvasWidth - sx * 2);
     const sy = portrait
-      ? Math.round(sourceCanvasHeight * 0.35)
-      : Math.round(sourceCanvasHeight * 0.19);
-    const cropBottom = 0.38;
+      ? Math.round(sourceCanvasHeight * 0.33)
+      : Math.round(sourceCanvasHeight * 0.17);
+    const cropBottom = portrait ? 0.36 : 0.35;
     const sourceHeight = Math.max(
       1,
       Math.round(sourceCanvasHeight * (1 - cropBottom) - sy),
@@ -112,8 +133,8 @@ export function createStadiumWebglRenderer(
 
     ctx.save();
     ctx.filter = portrait
-      ? "contrast(1.04) saturate(0.96) brightness(1.03)"
-      : "contrast(1.05) saturate(0.97) brightness(1.03)";
+      ? "contrast(1.055) saturate(0.90) brightness(1.015)"
+      : "contrast(1.065) saturate(0.91) brightness(1.015)";
     ctx.drawImage(
       source,
       sx,
@@ -128,6 +149,7 @@ export function createStadiumWebglRenderer(
     ctx.restore();
 
     drawBloom(sx, sy, sourceWidth, sourceHeight);
+    drawLighting();
     drawVignette();
   };
 
