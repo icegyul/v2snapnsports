@@ -1115,9 +1115,6 @@ export function createStadiumWebglRenderer(
   const environmentTexture = makeEnvironmentTexture(textures);
   scene.environment = environmentTexture;
   scene.environmentIntensity = 0.72;
-  scene.background = environmentTexture;
-  scene.backgroundIntensity = 0.34;
-  scene.backgroundBlurriness = 0.20;
   const stadium = buildStadium(scene, renderer, mode, recipe, geometries, materials, textures);
 
   const camera = new THREE.PerspectiveCamera(54, 1, 0.18, 380);

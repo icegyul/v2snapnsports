@@ -1,4 +1,9 @@
-.shell-main.stadium-home-page .stadium-webgl-canvas{
+.shell-main.stadium-home-page .stadium-hero{
+      background:
+        radial-gradient(ellipse at 52% 9%,rgba(92,119,139,.22) 0%,rgba(40,58,72,.11) 28%,rgba(5,11,17,0) 58%),
+        linear-gradient(180deg,#0b1218 0%,#101a22 32%,#050a0f 74%,#020507 100%)!important;
+    }
+    .shell-main.stadium-home-page .stadium-webgl-canvas{
   transform:translateY(-1%) scale(1.03)!important;
   transform-origin:50% 50%!important;
   filter:saturate(.90) contrast(1.10) brightness(.99) drop-shadow(0 24px 42px rgba(0,0,0,.48))!important;
