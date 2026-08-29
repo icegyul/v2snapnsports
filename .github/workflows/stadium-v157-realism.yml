@@ -1,4 +1,4 @@
-name: Stadium V15.10 Camera Lights
+name: Stadium V15.11 Roof Crowd Realism
 
 on:
   push:
@@ -15,36 +15,85 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Raise camera and strengthen roof lighting
+      - name: Add roof underside structure and crowd realism
         run: |
           python - <<'PY'
           from pathlib import Path
           path = Path('apps/web/src/three/stadiumWebglV14.ts')
           text = path.read_text()
+
           replacements = {
-              '  scene.fog = new THREE.Fog(0x0c141c, 125, 290);': '  scene.fog = new THREE.Fog(0x0c141c, 112, 275);',
-              '  scene.environmentIntensity = 0.68;': '  scene.environmentIntensity = 0.72;',
-              '      opacity: 0.27,': '      opacity: 0.31,',
-              '  for (let i = 0; i < 20; i += 1) {': '  for (let i = 0; i < 24; i += 1) {',
-              '    const angle = (i / 20) * TAU;': '    const angle = (i / 24) * TAU;',
-              '    sprite.position.set(Math.cos(angle) * 98.5, 36.9, Math.sin(angle) * 70.0);': '    sprite.position.set(Math.cos(angle) * 95.6, 35.8, Math.sin(angle) * 67.8);',
-              '    sprite.scale.set(6.4, 4.2, 1);': '    sprite.scale.set(5.2, 3.6, 1);',
-              '      emissiveIntensity: 3.2,': '      emissiveIntensity: 3.9,',
-              '  const floodGeometry = addDisposable(geometries, new THREE.BoxGeometry(1.85, 0.34, 0.52));': '  const floodGeometry = addDisposable(geometries, new THREE.BoxGeometry(1.55, 0.30, 0.48));',
-              '    const height = (portrait ? 32 : 24) / zoom;': '    const height = (portrait ? 35 : 25) / zoom;',
-              '    camera.fov = portrait ? 60 : 58;': '    camera.fov = portrait ? 62 : 58;',
-              '    const target = portrait ? new THREE.Vector3(0, 14.2, -5.5) : new THREE.Vector3(0, 12.0, -5.0);': '    const target = portrait ? new THREE.Vector3(0, 17.2, -6.2) : new THREE.Vector3(0, 13.4, -5.4);',
+              '  if (value > 0.72) return new THREE.Color(0xc99570);': '  if (value > 0.72) return new THREE.Color(0x8f6c59);',
+              '  if (value > 0.40) return new THREE.Color(0xa76f4e);': '  if (value > 0.40) return new THREE.Color(0x785442);',
+              '  return new THREE.Color(0x7c503a);': '  return new THREE.Color(0x5e4337);',
+              '  const headGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.150, 8, 5));': '  const headGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.128, 8, 5));',
+              '    camera.fov = portrait ? 62 : 58;': '    camera.fov = portrait ? 66 : 58;',
+              '    const target = portrait ? new THREE.Vector3(0, 17.2, -6.2) : new THREE.Vector3(0, 13.4, -5.4);': '    const target = portrait ? new THREE.Vector3(0, 18.4, -6.4) : new THREE.Vector3(0, 13.4, -5.4);',
           }
           for old, new in replacements.items():
               if old not in text:
-                  raise SystemExit(f'expected V15.10 token not found: {old}')
+                  raise SystemExit(f'expected V15.11 token not found: {old}')
               text = text.replace(old, new, 1)
+
+          marker = '  addEllipticRing(group, geometries, steelMaterial, innerX, innerZ, 37.65, 0.22);\n\n  const floodMaterial = addDisposable('
+          insert = '''  addEllipticRing(group, geometries, steelMaterial, innerX, innerZ, 37.65, 0.22);
+
+          // Visible underside structure: two catwalk rings and radial ribs prevent
+          // the canopy from reading as a single flat ceiling from pitch-level views.
+          addEllipticRing(group, geometries, steelMaterial, innerX + 4.8, innerZ + 3.2, 37.05, 0.10);
+          addEllipticRing(group, geometries, steelMaterial, outerX - 8.0, outerZ - 5.8, 38.25, 0.11);
+          for (let i = 0; i < 32; i += 1) {
+            const ribAngle = (i / 32) * TAU;
+            const ribStart = new THREE.Vector3(
+              Math.cos(ribAngle) * (outerX - 7.5),
+              38.15,
+              Math.sin(ribAngle) * (outerZ - 5.4),
+            );
+            const ribEnd = new THREE.Vector3(
+              Math.cos(ribAngle) * (innerX + 1.2),
+              36.95,
+              Math.sin(ribAngle) * (innerZ + 0.9),
+            );
+            beamBetween(group, geometries, steelMaterial, ribStart, ribEnd, 0.085, 6);
+          }
+
+          const catwalkLightMaterial = addDisposable(
+            materials,
+            new THREE.MeshStandardMaterial({
+              color: 0xffe5b8,
+              emissive: 0xffcf82,
+              emissiveIntensity: 2.4,
+              roughness: 0.38,
+              metalness: 0.04,
+            }),
+          );
+          const catwalkLightGeometry = addDisposable(geometries, new THREE.BoxGeometry(0.92, 0.075, 0.15));
+          const catwalkLights = new THREE.InstancedMesh(catwalkLightGeometry, catwalkLightMaterial, 48);
+          const catwalkDummy = new THREE.Object3D();
+          for (let i = 0; i < 48; i += 1) {
+            const lightAngle = (i / 48) * TAU;
+            catwalkDummy.position.set(
+              Math.cos(lightAngle) * (innerX + 3.5),
+              36.72,
+              Math.sin(lightAngle) * (innerZ + 2.4),
+            );
+            catwalkDummy.rotation.set(0, -lightAngle, 0);
+            catwalkDummy.updateMatrix();
+            catwalkLights.setMatrixAt(i, catwalkDummy.matrix);
+          }
+          catwalkLights.instanceMatrix.needsUpdate = true;
+          group.add(catwalkLights);
+
+          const floodMaterial = addDisposable'''
+          if marker not in text:
+              raise SystemExit('V15.11 roof insertion point not found')
+          text = text.replace(marker, insert, 1)
           path.write_text(text)
           PY
-      - name: Commit V15.10 camera lights
+      - name: Commit V15.11 roof crowd realism
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- apps/web/src/three/stadiumWebglV14.ts
-          git commit -m "feat: refine V15.10 stadium camera and roof lights"
+          git commit -m "feat: refine V15.11 roof structure and crowd realism"
           git push
