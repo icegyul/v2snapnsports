@@ -21,9 +21,8 @@ export function createStadiumWebglRenderer(
       base.resize(width, height, dpr);
     },
     render(orbit: number, zoom: number) {
-      const compositionOrbit = portrait ? orbit - 48 : orbit - 7;
-      const compositionZoom = portrait ? Math.min(0.93, zoom * 0.92) : Math.min(0.98, zoom * 0.98);
-      base.render(compositionOrbit, compositionZoom);
+      const compositionZoom = portrait ? Math.min(0.92, zoom * 0.90) : Math.min(0.97, zoom * 0.97);
+      base.render(orbit, compositionZoom);
     },
     destroy() {
       base.destroy();
