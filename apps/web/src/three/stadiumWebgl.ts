@@ -11,5 +11,5 @@ import "../features/stadium/stadiumV74Presentation.css";
 import "../features/stadium/stadiumV75Presentation.css";
 import "../features/stadium/stadiumV76Lighting.css";
 import "../features/stadium/stadiumV77Showcase.css";
-export { createStadiumWebglRenderer } from "./stadiumWebglV8Framed";
-export type { StadiumWebglRenderer } from "./stadiumWebglV8Framed";
+export { createStadiumWebglRenderer } from "./stadiumWebglV81";
+export type { StadiumWebglRenderer } from "./stadiumWebglV81";
