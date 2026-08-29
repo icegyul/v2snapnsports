@@ -1,4 +1,4 @@
-// V14.7 PBR Base Stadium camera + shadow acceptance verification.
+// V15 PBR Base Stadium accepted-candidate entrypoint.
 import "../features/stadium/stadiumCinematic.css";
 import "../features/stadium/stadiumFinal.css";
 import "../features/stadium/stadiumPremiumTuning.css";
@@ -17,5 +17,5 @@ import "../features/stadium/stadiumV93MobileImmersive.css";
 import "../features/stadium/stadiumV12Acceptance.css";
 import "../features/stadium/stadiumV143Acceptance.css";
 import "../features/stadium/stadiumV145ViewportFill.css";
-export { createStadiumWebglRenderer } from "./stadiumWebglV146";
-export type { StadiumWebglRenderer } from "./stadiumWebglV146";
+export { createStadiumWebglRenderer } from "./stadiumWebglV15";
+export type { StadiumWebglRenderer } from "./stadiumWebglV15";
