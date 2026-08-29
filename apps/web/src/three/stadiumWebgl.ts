@@ -1,4 +1,4 @@
-// V15.7 PBR Base Stadium realism + portrait-camera acceptance entrypoint.
+// V15.8 PBR Base Stadium material-realism acceptance verification.
 import "../features/stadium/stadiumCinematic.css";
 import "../features/stadium/stadiumFinal.css";
 import "../features/stadium/stadiumPremiumTuning.css";
