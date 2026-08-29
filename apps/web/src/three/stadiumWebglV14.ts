@@ -161,6 +161,33 @@ function makeScoreboardTexture(textures: Set<THREE.Texture>): THREE.Texture {
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
+function makeAdBoardTexture(textures: Set<THREE.Texture>): THREE.Texture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1536;
+  canvas.height = 160;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("stadium ad-board canvas unavailable");
+  const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+  gradient.addColorStop(0, "#071522");
+  gradient.addColorStop(0.46, "#0c3b60");
+  gradient.addColorStop(1, "#071522");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#dff6ff";
+  ctx.font = "700 58px Arial, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("SNAPN SPORTS", 280, 102);
+  ctx.fillStyle = "#65c7ff";
+  ctx.font = "600 42px Arial, sans-serif";
+  ctx.fillText("TRAIN SMART", 760, 100);
+  ctx.fillStyle = "#dff6ff";
+  ctx.fillText("MATCH INTELLIGENCE", 1240, 100);
+  const texture = addDisposable(textures, new THREE.CanvasTexture(canvas));
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  return texture;
+}
 function ellipseSurfaceGeometry(
   geometries: Set<THREE.BufferGeometry>,
   innerX: number,
@@ -364,8 +391,11 @@ function crowdPlacements(spec: TierSpec, recipe: StadiumRecipe): CrowdPlacement[
     const rowY = spec.y0 + rise * row + 0.43;
     for (let slot = 0; slot < spec.peoplePerRow; slot += 1) {
       const seed = row * 10000 + slot;
-      if (hash(seed, 1) > recipe.crowdDensity) continue;
-      const angle = ((slot + 0.5) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.014;
+      const section = Math.floor(slot / 18);
+      const sectionNoise = hash(row * 83 + section * 19, 21);
+      const localDensity = Math.max(0.82, Math.min(0.985, recipe.crowdDensity + (sectionNoise - 0.5) * 0.16));
+      if (hash(seed, 1) > localDensity) continue;
+      const angle = ((slot + 0.5) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.022;
       const radial = (hash(seed, 10) - 0.5) * 0.48;
       const scale = 0.78 + hash(seed, 3) * 0.48;
       result.push({
@@ -554,7 +584,7 @@ function addRoof(
       metalness: 0.1,
     }),
   );
-  const floodGeometry = addDisposable(geometries, new THREE.BoxGeometry(1.2, 0.25, 0.42));
+  const floodGeometry = addDisposable(geometries, new THREE.BoxGeometry(1.85, 0.34, 0.52));
   const floods = new THREE.InstancedMesh(floodGeometry, floodMaterial, 72);
   const dummy = new THREE.Object3D();
   for (let i = 0; i < 72; i += 1) {
@@ -681,6 +711,20 @@ function buildStadium(
       metalness: 0.05,
     }),
   );
+  const adBoardTexture = makeAdBoardTexture(textures);
+  adBoardTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  const adBoardMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      map: adBoardTexture,
+      emissiveMap: adBoardTexture,
+      emissive: 0x9adfff,
+      emissiveIntensity: 0.78,
+      roughness: 0.40,
+      metalness: 0.05,
+      side: THREE.DoubleSide,
+    }),
+  );
   const pitchGeometry = addDisposable(geometries, new THREE.PlaneGeometry(105, 68, 20, 12));
   const pitch = new THREE.Mesh(pitchGeometry, pitchMaterial);
   pitch.rotation.x = -Math.PI / 2;
@@ -708,6 +752,24 @@ function buildStadium(
     group.add(bench);
   }
 
+  const adPanelGeometry = addDisposable(geometries, new THREE.PlaneGeometry(24, 1.35));
+  for (const z of [-35.35, 35.35]) {
+    for (const x of [-38, -12.7, 12.7, 38]) {
+      const panel = new THREE.Mesh(adPanelGeometry, adBoardMaterial);
+      panel.position.set(x, 0.92, z);
+      panel.rotation.y = z > 0 ? Math.PI : 0;
+      group.add(panel);
+    }
+  }
+  const endPanelGeometry = addDisposable(geometries, new THREE.PlaneGeometry(20, 1.35));
+  for (const x of [-54.2, 54.2]) {
+    for (const z of [-22, 0, 22]) {
+      const panel = new THREE.Mesh(endPanelGeometry, adBoardMaterial);
+      panel.position.set(x, 0.92, z);
+      panel.rotation.y = x > 0 ? -Math.PI / 2 : Math.PI / 2;
+      group.add(panel);
+    }
+  }
   const tiers: TierSpec[] = [
     { innerX: 58.0, innerZ: 40.6, outerX: 76.2, outerZ: 53.5, y0: 0.72, y1: 10.0, rows: 17, peoplePerRow: 300 },
     { innerX: 79.0, innerZ: 55.8, outerX: 95.5, outerZ: 67.5, y0: 11.5, y1: 21.6, rows: 16, peoplePerRow: 340 },
@@ -810,7 +872,7 @@ export function createStadiumWebglRenderer(
     camera.fov = portrait ? 64 : 60;
     camera.aspect = cssWidth / cssHeight;
     camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
-    const target = portrait ? new THREE.Vector3(0, 7.0, -2.0) : new THREE.Vector3(0, 6.0, -4.0);
+    const target = portrait ? new THREE.Vector3(0, 12.0, -4.0) : new THREE.Vector3(0, 10.0, -5.0);
     camera.lookAt(target);
     camera.updateProjectionMatrix();
     stadium.rotation.y = portrait ? 0 : -0.015;
