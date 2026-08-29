@@ -1,0 +1,69 @@
+.shell-main.stadium-home-page .stadium-webgl-canvas{
+  transform:translateY(-3%) scale(1.06)!important;
+  transform-origin:50% 50%!important;
+  filter:saturate(.90) contrast(1.10) brightness(.99) drop-shadow(0 24px 42px rgba(0,0,0,.48))!important;
+}
+.shell-main.stadium-home-page .stadium-state-layer{
+  background:linear-gradient(145deg,rgba(3,8,15,.82),rgba(7,17,28,.68))!important;
+  border-color:rgba(190,210,224,.20)!important;
+  box-shadow:0 14px 38px rgba(0,0,0,.34)!important;
+  backdrop-filter:blur(12px)!important;
+}
+.shell-main.stadium-home-page .stadium-quality-chip,
+.shell-main.stadium-home-page .stadium-demo-badge{
+  opacity:.60!important;
+}
+.shell-main.stadium-home-page .stadium-world::before{
+  opacity:.20!important;
+}
+.shell-main.stadium-home-page .stadium-world::after{
+  opacity:.26!important;
+}
+@media(max-width:560px){
+  .shell-main.stadium-home-page{
+    grid-template-rows:58px minmax(0,1fr)!important;
+    gap:3px!important;
+    padding:2px 8px 0!important;
+  }
+  .shell-main.stadium-home-page .stadium-home-header{
+    height:58px!important;
+    min-height:58px!important;
+    padding:2px 8px!important;
+    align-items:flex-start!important;
+  }
+  .shell-main.stadium-home-page .stadium-home-kicker{
+    font-size:8px!important;
+    letter-spacing:.14em!important;
+  }
+  .shell-main.stadium-home-page .stadium-home-header h1{
+    font-size:34px!important;
+    line-height:.92!important;
+    margin-top:1px!important;
+  }
+  .shell-main.stadium-home-page .stadium-home-team{
+    margin-top:2px!important;
+    font-size:9px!important;
+  }
+  .shell-main.stadium-home-page .stadium-demo-badge{
+    margin-top:10px!important;
+    transform:scale(.86)!important;
+    transform-origin:100% 0!important;
+  }
+  .shell-main.stadium-home-page .stadium-webgl-canvas{
+    transform:translate(-.5%,-4%) scale(1.08)!important;
+    transform-origin:50% 50%!important;
+    filter:saturate(.90) contrast(1.09) brightness(.99) drop-shadow(0 20px 34px rgba(0,0,0,.46))!important;
+  }
+  .shell-main.stadium-home-page .stadium-state-layer{
+    top:10px!important;
+    left:10px!important;
+    width:min(58%,220px)!important;
+    padding:8px 10px!important;
+  }
+  .shell-main.stadium-home-page .stadium-quality-chip{
+    top:10px!important;
+    right:10px!important;
+    transform:scale(.88)!important;
+    transform-origin:100% 0!important;
+  }
+}
