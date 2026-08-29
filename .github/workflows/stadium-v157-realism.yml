@@ -1,4 +1,4 @@
-name: Stadium V15.12 Background Framing
+name: Stadium V15.12b Safe Background
 
 on:
   push:
@@ -15,41 +15,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Expose stadium environment background and refine portrait lens
+      - name: Remove blocking scene background path
         run: |
           python - <<'PY'
           from pathlib import Path
           path = Path('apps/web/src/three/stadiumWebglV14.ts')
           text = path.read_text()
-          old = '  scene.environment = environmentTexture;\n  scene.environmentIntensity = 0.72;'
-          new = '  scene.environment = environmentTexture;\n  scene.environmentIntensity = 0.72;\n  scene.background = environmentTexture;\n  scene.backgroundIntensity = 0.34;\n  scene.backgroundBlurriness = 0.20;'
+          old = '''  scene.environment = environmentTexture;
+          scene.environmentIntensity = 0.72;
+          scene.background = environmentTexture;
+          scene.backgroundIntensity = 0.34;
+          scene.backgroundBlurriness = 0.20;'''
+          new = '''  scene.environment = environmentTexture;
+          scene.environmentIntensity = 0.72;'''
           if old not in text:
-              raise SystemExit('V15.12 environment insertion target not found')
-          text = text.replace(old, new, 1)
-          old = '    camera.fov = portrait ? 66 : 58;'
-          new = '    camera.fov = portrait ? 70 : 58;'
-          if old not in text:
-              raise SystemExit('V15.12 portrait fov target not found')
-          text = text.replace(old, new, 1)
-          path.write_text(text)
+              raise SystemExit('V15.12b background rollback target not found')
+          path.write_text(text.replace(old, new, 1))
           PY
-      - name: Refine mobile canvas crop
+      - name: Add safe cinematic hero atmosphere
         run: |
           python - <<'PY'
           from pathlib import Path
           path = Path('apps/web/src/features/stadium/stadiumV149Cinematic.css')
           text = path.read_text()
-          old = '    transform:translateY(-.5%) scale(1.01)!important;'
-          new = '    transform:translateY(-5%) scale(1.10)!important;'
-          if old not in text:
-              raise SystemExit('V15.12 mobile canvas transform target not found')
-          text = text.replace(old, new, 1)
+          layer = '''.shell-main.stadium-home-page .stadium-hero{
+            background:
+              radial-gradient(ellipse at 52% 9%,rgba(92,119,139,.22) 0%,rgba(40,58,72,.11) 28%,rgba(5,11,17,0) 58%),
+              linear-gradient(180deg,#0b1218 0%,#101a22 32%,#050a0f 74%,#020507 100%)!important;
+          }
+          '''
+          if layer not in text:
+              text = layer + text
           path.write_text(text)
           PY
-      - name: Commit V15.12 background framing
+      - name: Commit V15.12b safe background
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- apps/web/src/three/stadiumWebglV14.ts apps/web/src/features/stadium/stadiumV149Cinematic.css
-          git commit -m "feat: refine V15.12 stadium background and framing"
+          git commit -m "fix: use safe V15.12b stadium background"
           git push
