@@ -1,4 +1,4 @@
-name: Stadium V14 Refine Once
+name: Stadium V14 Camera Once
 
 on:
   push:
@@ -15,161 +15,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Apply V14 physical detail refinement
+      - name: Apply V14 acceptance camera
         run: |
           python - <<'PY'
           from pathlib import Path
 
           path = Path('apps/web/src/three/stadiumWebglV14.ts')
           text = path.read_text()
-
-          text = text.replace('ctx.fillStyle = i % 2 === 0 ? "#17642f" : "#1b7337";', 'ctx.fillStyle = i % 2 === 0 ? "#1d5b31" : "#24683a";')
-          text = text.replace('renderer.toneMappingExposure = 1.12;', 'renderer.toneMappingExposure = 1.02;')
-          text = text.replace('new THREE.MeshStandardMaterial({ color: 0x343f4b, roughness: 0.34, metalness: 0.74, side: THREE.DoubleSide })', 'new THREE.MeshStandardMaterial({ color: 0x46515d, roughness: 0.42, metalness: 0.64, side: THREE.DoubleSide })')
-          text = text.replace('new THREE.MeshStandardMaterial({ color: 0x7d8995, roughness: 0.30, metalness: 0.84 })', 'new THREE.MeshStandardMaterial({ color: 0x98a3ad, roughness: 0.32, metalness: 0.76 })')
-          text = text.replace('const light = new THREE.SpotLight(0xfff2d4, highQuality ? 520 : 360, 230, 0.62, 0.62, 1.45);', 'const light = new THREE.SpotLight(0xfff2d4, highQuality ? 560 : 470, 230, 0.62, 0.62, 1.45);')
-
-          crowd_start = text.index('function crowdPlacements(')
-          crowd_end = text.index('\nfunction addCrowd(', crowd_start)
-          crowd_fn = '''function crowdPlacements(spec: TierSpec, recipe: StadiumRecipe): CrowdPlacement[] {
-            const result: CrowdPlacement[] = [];
-            const rowDepthX = (spec.outerX - spec.innerX) / spec.rows;
-            const rowDepthZ = (spec.outerZ - spec.innerZ) / spec.rows;
-            const rise = (spec.y1 - spec.y0) / spec.rows;
-            const accent = new THREE.Color(recipe.accentColor);
-            for (let row = 0; row < spec.rows; row += 1) {
-              const rowX = spec.innerX + rowDepthX * (row + 0.55);
-              const rowZ = spec.innerZ + rowDepthZ * (row + 0.55);
-              const rowY = spec.y0 + rise * row + 0.43;
-              for (let slot = 0; slot < spec.peoplePerRow; slot += 1) {
-                const seed = row * 10000 + slot;
-                if (hash(seed, 1) > recipe.crowdDensity) continue;
-                const angle = ((slot + 0.5) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.014;
-                const radial = (hash(seed, 10) - 0.5) * 0.48;
-                const scale = 0.78 + hash(seed, 3) * 0.48;
-                result.push({
-                  x: Math.cos(angle) * (rowX + radial),
-                  y: rowY + (hash(seed, 11) - 0.5) * 0.14,
-                  z: Math.sin(angle) * (rowZ + radial * 0.72),
-                  angle,
-                  scale,
-                  shirt: crowdShirt(seed, accent),
-                  skin: crowdSkin(seed),
-                });
-              }
-            }
-            return result;
-          }
-          '''
-          text = text[:crowd_start] + crowd_fn + text[crowd_end:]
-
-          add_crowd_start = text.index('function addCrowd(')
-          add_crowd_end = text.index('\nfunction addTier(', add_crowd_start)
-          add_crowd_fn = '''function addCrowd(
-            group: THREE.Group,
-            geometries: Set<THREE.BufferGeometry>,
-            materials: Set<THREE.Material>,
-            spec: TierSpec,
-            recipe: StadiumRecipe,
-          ): void {
-            const placements = crowdPlacements(spec, recipe);
-            const bodyGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.18, 0.22, 0.58, 6, 1));
-            const headGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.145, 6, 4));
-            const bodyMaterial = addDisposable(
-              materials,
-              new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.90, metalness: 0.0 }),
-            );
-            const headMaterial = addDisposable(
-              materials,
-              new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.94, metalness: 0.0 }),
-            );
-            const bodies = new THREE.InstancedMesh(bodyGeometry, bodyMaterial, placements.length);
-            const heads = new THREE.InstancedMesh(headGeometry, headMaterial, placements.length);
-            const dummy = new THREE.Object3D();
-
-            placements.forEach((placement, index) => {
-              dummy.position.set(placement.x, placement.y, placement.z);
-              dummy.rotation.set(0, -placement.angle + Math.PI / 2, 0);
-              dummy.scale.set(placement.scale, placement.scale, placement.scale);
-              dummy.updateMatrix();
-              bodies.setMatrixAt(index, dummy.matrix);
-              bodies.setColorAt(index, placement.shirt);
-
-              dummy.position.set(placement.x, placement.y + 0.43 * placement.scale, placement.z);
-              dummy.rotation.set(0, 0, 0);
-              dummy.scale.setScalar(placement.scale);
-              dummy.updateMatrix();
-              heads.setMatrixAt(index, dummy.matrix);
-              heads.setColorAt(index, placement.skin);
-            });
-            bodies.instanceMatrix.needsUpdate = true;
-            heads.instanceMatrix.needsUpdate = true;
-            if (bodies.instanceColor) bodies.instanceColor.needsUpdate = true;
-            if (heads.instanceColor) heads.instanceColor.needsUpdate = true;
-            group.add(bodies, heads);
-          }
-          '''
-          text = text[:add_crowd_start] + add_crowd_fn + text[add_crowd_end:]
-
-          tier_start = text.index('function addTier(')
-          tier_end = text.index('\nfunction addColumns(', tier_start)
-          tier_fn = '''function addTier(
-            group: THREE.Group,
-            geometries: Set<THREE.BufferGeometry>,
-            materials: Set<THREE.Material>,
-            spec: TierSpec,
-            recipe: StadiumRecipe,
-            seatMaterial: THREE.Material,
-            concreteMaterial: THREE.Material,
-          ): void {
-            const rowDepthX = (spec.outerX - spec.innerX) / spec.rows;
-            const rowDepthZ = (spec.outerZ - spec.innerZ) / spec.rows;
-            const rise = (spec.y1 - spec.y0) / spec.rows;
-
-            for (let row = 0; row < spec.rows; row += 1) {
-              const innerX = spec.innerX + rowDepthX * row;
-              const innerZ = spec.innerZ + rowDepthZ * row;
-              const outerX = spec.innerX + rowDepthX * (row + 1);
-              const outerZ = spec.innerZ + rowDepthZ * (row + 1);
-              const y = spec.y0 + rise * row;
-              const nextY = spec.y0 + rise * (row + 1);
-
-              const tread = new THREE.Mesh(
-                ellipseSurfaceGeometry(geometries, innerX, innerZ, outerX, outerZ, y, y + 0.018, 192),
-                seatMaterial,
-              );
-              tread.receiveShadow = true;
-              group.add(tread);
-
-              if (row < spec.rows - 1) {
-                const riser = new THREE.Mesh(
-                  ellipseWallGeometry(geometries, outerX, outerZ, y + 0.018, nextY, 192),
-                  concreteMaterial,
-                );
-                group.add(riser);
-              }
-            }
-
-            const frontRiser = new THREE.Mesh(
-              ellipseWallGeometry(geometries, spec.innerX, spec.innerZ, spec.y0 - 1.15, spec.y0 + 0.04, 192),
-              concreteMaterial,
-            );
-            group.add(frontRiser);
-
-            const aisles = new THREE.Mesh(aisleGeometry(geometries, spec, spec.rows > 15 ? 22 : 20), concreteMaterial);
-            aisles.position.y = 0.055;
-            group.add(aisles);
-            addCrowd(group, geometries, materials, spec, recipe);
-          }
-          '''
-          text = text[:tier_start] + tier_fn + text[tier_end:]
-
-          path.write_text(text)
+          old = '''    const zoom = Math.min(1.16, Math.max(0.90, zoom0));
+              const angle = ((portrait ? 74 : 18) + orbit * (portrait ? 0.14 : 0.20)) * Math.PI / 180;
+              const radius = (portrait ? 78 : 56) / zoom;
+              const height = (portrait ? 24 : 19) / zoom;
+              camera.fov = portrait ? 57 : 53;
+              camera.aspect = cssWidth / cssHeight;
+              camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
+              const target = portrait ? new THREE.Vector3(-4, 9.0, 0) : new THREE.Vector3(0, 6.5, -7.0);'''
+          new = '''    const zoom = Math.min(1.14, Math.max(0.82, zoom0));
+              const angle = ((portrait ? 70 : 18) + orbit * (portrait ? 0.12 : 0.18)) * Math.PI / 180;
+              const radius = (portrait ? 108 : 88) / zoom;
+              const height = (portrait ? 37 : 29) / zoom;
+              camera.fov = portrait ? 58 : 51;
+              camera.aspect = cssWidth / cssHeight;
+              camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
+              const target = portrait ? new THREE.Vector3(0, 7.0, -4.0) : new THREE.Vector3(0, 7.0, -5.0);'''
+          if old not in text:
+              raise SystemExit('expected V14 camera block not found')
+          path.write_text(text.replace(old, new))
           PY
-      - name: Commit V14 refinement
+      - name: Commit V14 camera
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- apps/web/src/three/stadiumWebglV14.ts
-          git commit -m "feat: refine V14 stepped stands and organic crowd"
+          git commit -m "feat: pull back V14 acceptance camera"
           git push
