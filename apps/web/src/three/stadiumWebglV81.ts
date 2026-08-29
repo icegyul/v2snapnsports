@@ -39,32 +39,36 @@ export function createStadiumWebglRenderer(
   };
 
   const drawCrowd = () => {
-    const count = portrait ? 1320 : 2350;
+    const rows = portrait ? 28 : 34;
+    const seatsPerRow = portrait ? 34 : 76;
     ctx.save();
     ctx.globalCompositeOperation = "screen";
-    for (let i = 0; i < count; i += 1) {
-      const x = hash(i, 1) * canvas.width;
-      const band = hash(i, 2);
-      const yNorm = band < 0.30
-        ? 0.13 + hash(i, 3) * 0.13
-        : band < 0.67
-          ? 0.275 + hash(i, 4) * 0.14
-          : 0.425 + hash(i, 5) * 0.12;
-      const y = yNorm * canvas.height;
-      const centerGap = yNorm < 0.29 && x > canvas.width * 0.40 && x < canvas.width * 0.60;
-      if (centerGap) continue;
-      const brightness = hash(i, 6);
-      const accent = hash(i, 7);
-      const alpha = brightness > 0.965 ? 0.34 : brightness > 0.76 ? 0.15 : 0.070;
-      ctx.fillStyle = accent > 0.91
-        ? `rgba(86,149,235,${alpha})`
-        : accent < 0.08
-          ? `rgba(196,104,72,${alpha * 0.72})`
-          : brightness > 0.965
-            ? `rgba(245,238,218,${alpha})`
-            : `rgba(166,174,181,${alpha})`;
-      const size = (brightness > 0.95 ? 1.7 : brightness > 0.72 ? 1.12 : 0.82) * pixelRatio;
-      ctx.fillRect(x, y, size, size * 1.5);
+    for (let row = 0; row < rows; row += 1) {
+      const t = row / Math.max(1, rows - 1);
+      const yNorm = portrait ? 0.30 + t * 0.31 : 0.29 + t * 0.34;
+      const curve = (t - 0.5) * (t - 0.5);
+      for (let s = 0; s < seatsPerRow; s += 1) {
+        const q = s / Math.max(1, seatsPerRow - 1);
+        const edge = Math.abs(q - 0.5) * 2;
+        if (portrait && edge > 0.93 && row < 6) continue;
+        const seed = row * 1000 + s;
+        if (hash(seed, 9) < 0.08) continue;
+        const perspective = 0.72 + t * 0.58;
+        const x = (q + (hash(seed, 2) - 0.5) * 0.006) * canvas.width;
+        const arc = (edge * edge) * (portrait ? 0.030 : 0.024);
+        const y = (yNorm + arc + curve * 0.004 + (hash(seed, 3) - 0.5) * 0.004) * canvas.height;
+        const bright = hash(seed, 4);
+        const blue = hash(seed, 5) > 0.88;
+        const alpha = bright > 0.965 ? 0.30 : bright > 0.82 ? 0.15 : 0.075;
+        ctx.fillStyle = blue
+          ? `rgba(64,142,235,${alpha})`
+          : bright > 0.965
+            ? `rgba(232,229,214,${alpha})`
+            : `rgba(150,158,166,${alpha})`;
+        const w = Math.max(0.75, 0.85 * perspective) * pixelRatio;
+        const h = Math.max(1.0, 1.45 * perspective) * pixelRatio;
+        ctx.fillRect(x, y, w, h);
+      }
     }
     ctx.restore();
   };
@@ -79,25 +83,12 @@ export function createStadiumWebglRenderer(
     ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
   };
 
-  const drawFieldGrade = () => {
-    const start = canvas.height * (portrait ? 0.53 : 0.56);
-    const gradient = ctx.createLinearGradient(0, start, 0, canvas.height);
-    gradient.addColorStop(0, "rgba(18,28,20,0)");
-    gradient.addColorStop(0.34, "rgba(16,26,18,0.035)");
-    gradient.addColorStop(1, "rgba(8,18,10,0.12)");
-    ctx.save();
-    ctx.globalCompositeOperation = "multiply";
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, start, canvas.width, canvas.height - start);
-    ctx.restore();
-  };
-
   const render = (orbit: number, zoom: number) => {
-    base.render(orbit, portrait ? Math.max(1.08, zoom) : Math.max(1.14, zoom));
+    base.render(orbit, portrait ? Math.max(1.05, zoom) : Math.max(1.11, zoom));
     const sw = frame.width;
     const sh = frame.height;
-    const sy = portrait ? Math.round(sh * 0.205) : Math.round(sh * 0.09);
-    const cropBottom = portrait ? 0.205 : 0.16;
+    const sy = portrait ? Math.round(sh * 0.145) : Math.round(sh * 0.09);
+    const cropBottom = portrait ? 0.285 : 0.18;
     const sHeight = Math.max(1, Math.round(sh * (1 - cropBottom) - sy));
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -106,41 +97,40 @@ export function createStadiumWebglRenderer(
 
     ctx.save();
     ctx.filter = portrait
-      ? "contrast(1.12) saturate(0.96) brightness(1.05)"
-      : "contrast(1.11) saturate(0.95) brightness(1.04)";
+      ? "contrast(1.07) saturate(0.96) brightness(1.02)"
+      : "contrast(1.08) saturate(0.97) brightness(1.03)";
     ctx.drawImage(frame, 0, sy, sw, sHeight, 0, 0, canvas.width, canvas.height);
     ctx.restore();
 
     drawCrowd();
-    drawFieldGrade();
 
     ctx.save();
     ctx.globalCompositeOperation = "screen";
-    ctx.globalAlpha = portrait ? 0.065 : 0.075;
-    ctx.filter = "blur(6px) brightness(1.22)";
+    ctx.globalAlpha = portrait ? 0.040 : 0.050;
+    ctx.filter = "blur(5px) brightness(1.16)";
     ctx.drawImage(frame, 0, sy, sw, sHeight, 0, 0, canvas.width, canvas.height);
     ctx.restore();
 
     ctx.save();
     ctx.globalCompositeOperation = "screen";
-    const radius = Math.max(canvas.width, canvas.height) * (portrait ? 0.14 : 0.11);
-    drawLight(canvas.width * 0.10, canvas.height * 0.04, radius, portrait ? 0.18 : 0.22);
-    drawLight(canvas.width * 0.90, canvas.height * 0.04, radius, portrait ? 0.18 : 0.22);
-    drawLight(canvas.width * 0.24, canvas.height * 0.11, radius * 0.70, portrait ? 0.09 : 0.11);
-    drawLight(canvas.width * 0.76, canvas.height * 0.11, radius * 0.70, portrait ? 0.09 : 0.11);
+    const radius = Math.max(canvas.width, canvas.height) * (portrait ? 0.12 : 0.095);
+    drawLight(canvas.width * 0.10, canvas.height * 0.045, radius, portrait ? 0.10 : 0.15);
+    drawLight(canvas.width * 0.90, canvas.height * 0.045, radius, portrait ? 0.10 : 0.15);
+    drawLight(canvas.width * 0.24, canvas.height * 0.12, radius * 0.70, portrait ? 0.05 : 0.07);
+    drawLight(canvas.width * 0.76, canvas.height * 0.12, radius * 0.70, portrait ? 0.05 : 0.07);
     ctx.restore();
 
     const vignette = ctx.createRadialGradient(
       canvas.width * 0.5,
-      canvas.height * 0.55,
-      canvas.width * 0.16,
+      canvas.height * 0.56,
+      canvas.width * 0.19,
       canvas.width * 0.5,
-      canvas.height * 0.55,
-      Math.max(canvas.width, canvas.height) * 0.73,
+      canvas.height * 0.56,
+      Math.max(canvas.width, canvas.height) * 0.75,
     );
     vignette.addColorStop(0, "rgba(0,0,0,0)");
-    vignette.addColorStop(0.65, "rgba(0,0,0,0.02)");
-    vignette.addColorStop(1, portrait ? "rgba(0,0,0,0.17)" : "rgba(0,0,0,0.16)");
+    vignette.addColorStop(0.67, "rgba(0,0,0,0.015)");
+    vignette.addColorStop(1, portrait ? "rgba(0,0,0,0.15)" : "rgba(0,0,0,0.14)");
     ctx.save();
     ctx.globalCompositeOperation = "multiply";
     ctx.fillStyle = vignette;
