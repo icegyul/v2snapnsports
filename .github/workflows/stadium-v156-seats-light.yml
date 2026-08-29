@@ -1,0 +1,159 @@
+name: Stadium V15.6 Seats Light
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v156-seats-light.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add instanced seats dense crowd and roof glow
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/three/stadiumWebglV14.ts')
+          text = path.read_text()
+
+          text = text.replace(
+              '  const bodyGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.18, 0.22, 0.58, 6, 1));',
+              '  const bodyGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.22, 0.25, 0.60, 6, 1));',
+              1,
+          )
+          text = text.replace(
+              '  const headGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.145, 6, 4));',
+              '  const headGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.155, 6, 4));',
+              1,
+          )
+
+          if 'function addSeatBacks(' not in text:
+              marker = 'function addTier('
+              fn = "\n".join([
+                  'function addSeatBacks(',
+                  '  group: THREE.Group,',
+                  '  geometries: Set<THREE.BufferGeometry>,',
+                  '  materials: Set<THREE.Material>,',
+                  '  spec: TierSpec,',
+                  '  recipe: StadiumRecipe,',
+                  '): void {',
+                  '  const count = spec.rows * spec.peoplePerRow;',
+                  '  const geometry = addDisposable(geometries, new THREE.BoxGeometry(0.50, 0.38, 0.10));',
+                  '  const material = addDisposable(',
+                  '    materials,',
+                  '    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.72, metalness: 0.03 }),',
+                  '  );',
+                  '  const seats = new THREE.InstancedMesh(geometry, material, count);',
+                  '  const dummy = new THREE.Object3D();',
+                  '  const baseColor = new THREE.Color(recipe.seatColor);',
+                  '  const accentColor = new THREE.Color(recipe.accentColor).multiplyScalar(0.55);',
+                  '  const rowDepthX = (spec.outerX - spec.innerX) / spec.rows;',
+                  '  const rowDepthZ = (spec.outerZ - spec.innerZ) / spec.rows;',
+                  '  const rise = (spec.y1 - spec.y0) / spec.rows;',
+                  '  let index = 0;',
+                  '  for (let row = 0; row < spec.rows; row += 1) {',
+                  '    const rx = spec.innerX + rowDepthX * (row + 0.48);',
+                  '    const rz = spec.innerZ + rowDepthZ * (row + 0.48);',
+                  '    const y = spec.y0 + rise * row + 0.24;',
+                  '    for (let slot = 0; slot < spec.peoplePerRow; slot += 1) {',
+                  '      const angle = ((slot + 0.5) / spec.peoplePerRow) * TAU;',
+                  '      dummy.position.set(Math.cos(angle) * rx, y, Math.sin(angle) * rz);',
+                  '      dummy.rotation.set(0, -angle + Math.PI / 2, 0);',
+                  '      dummy.scale.set(0.92, 0.92, 0.92);',
+                  '      dummy.updateMatrix();',
+                  '      seats.setMatrixAt(index, dummy.matrix);',
+                  '      const section = Math.floor(slot / 24);',
+                  '      seats.setColorAt(index, section % 9 === 0 ? accentColor : baseColor);',
+                  '      index += 1;',
+                  '    }',
+                  '  }',
+                  '  seats.instanceMatrix.needsUpdate = true;',
+                  '  if (seats.instanceColor) seats.instanceColor.needsUpdate = true;',
+                  '  seats.receiveShadow = true;',
+                  '  group.add(seats);',
+                  '}',
+                  '',
+              ])
+              text = text.replace(marker, fn + marker, 1)
+
+          old = '  group.add(aisles);\n  addCrowd(group, geometries, materials, spec, recipe);'
+          new = '  group.add(aisles);\n  addSeatBacks(group, geometries, materials, spec, recipe);\n  addCrowd(group, geometries, materials, spec, recipe);'
+          if old not in text:
+              raise SystemExit('seat-back call insertion point not found')
+          text = text.replace(old, new, 1)
+
+          if 'function addLightGlows(' not in text:
+              marker = 'function addLighting('
+              fn = "\n".join([
+                  'function addLightGlows(',
+                  '  group: THREE.Group,',
+                  '  textures: Set<THREE.Texture>,',
+                  '  materials: Set<THREE.Material>,',
+                  '): void {',
+                  '  const canvas = document.createElement("canvas");',
+                  '  canvas.width = 128;',
+                  '  canvas.height = 128;',
+                  '  const ctx = canvas.getContext("2d");',
+                  '  if (!ctx) return;',
+                  '  const gradient = ctx.createRadialGradient(64, 64, 3, 64, 64, 62);',
+                  '  gradient.addColorStop(0, "rgba(255,248,220,.96)");',
+                  '  gradient.addColorStop(.18, "rgba(255,230,170,.62)");',
+                  '  gradient.addColorStop(.48, "rgba(155,205,255,.18)");',
+                  '  gradient.addColorStop(1, "rgba(0,0,0,0)");',
+                  '  ctx.fillStyle = gradient;',
+                  '  ctx.fillRect(0, 0, 128, 128);',
+                  '  const texture = addDisposable(textures, new THREE.CanvasTexture(canvas));',
+                  '  const material = addDisposable(',
+                  '    materials,',
+                  '    new THREE.SpriteMaterial({',
+                  '      map: texture,',
+                  '      color: 0xfff3d3,',
+                  '      transparent: true,',
+                  '      opacity: 0.34,',
+                  '      blending: THREE.AdditiveBlending,',
+                  '      depthWrite: false,',
+                  '    }),',
+                  '  );',
+                  '  for (let i = 0; i < 14; i += 1) {',
+                  '    const angle = (i / 14) * TAU;',
+                  '    const sprite = new THREE.Sprite(material);',
+                  '    sprite.position.set(Math.cos(angle) * 98.5, 36.9, Math.sin(angle) * 70.0);',
+                  '    sprite.scale.set(8.5, 5.5, 1);',
+                  '    group.add(sprite);',
+                  '  }',
+                  '}',
+                  '',
+              ])
+              text = text.replace(marker, fn + marker, 1)
+
+          old = '  addRoof(group, geometries, materials, recipe, roofMaterial, steelMaterial);\n  addLighting(scene, mode === "FULL");'
+          new = '  addRoof(group, geometries, materials, recipe, roofMaterial, steelMaterial);\n  addLightGlows(group, textures, materials);\n  addLighting(scene, mode === "FULL");'
+          if old not in text:
+              raise SystemExit('light-glow call insertion point not found')
+          text = text.replace(old, new, 1)
+
+          tier_replacements = {
+              'peoplePerRow: 300': 'peoplePerRow: 420',
+              'peoplePerRow: 340': 'peoplePerRow: 470',
+              'peoplePerRow: 370': 'peoplePerRow: 520',
+          }
+          for old, new in tier_replacements.items():
+              if old not in text:
+                  raise SystemExit(f'tier density token not found: {old}')
+              text = text.replace(old, new, 1)
+
+          path.write_text(text)
+          PY
+      - name: Commit V15.6 seating and light refinement
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts
+          git commit -m "feat: add V15.6 instanced seating and roof glow"
+          git push
