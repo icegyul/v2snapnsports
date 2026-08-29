@@ -1,0 +1,60 @@
+name: Stadium V15.5 Depth Refine
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v155-depth-refine.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add stadium shadow depth and roof ring
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/three/stadiumWebglV14.ts')
+          text = path.read_text()
+
+          old = '  const mesh = new THREE.Mesh(geometry, material);\n  mesh.position.copy(start).add(end).multiplyScalar(0.5);'
+          new = '  const mesh = new THREE.Mesh(geometry, material);\n  mesh.castShadow = true;\n  mesh.receiveShadow = true;\n  mesh.position.copy(start).add(end).multiplyScalar(0.5);'
+          if old not in text:
+              raise SystemExit('beam shadow insertion point not found')
+          text = text.replace(old, new, 1)
+
+          old = '  if (heads.instanceColor) heads.instanceColor.needsUpdate = true;\n  group.add(bodies, heads);'
+          new = '  if (heads.instanceColor) heads.instanceColor.needsUpdate = true;\n  bodies.castShadow = true;\n  bodies.receiveShadow = true;\n  heads.castShadow = true;\n  heads.receiveShadow = true;\n  group.add(bodies, heads);'
+          if old not in text:
+              raise SystemExit('crowd shadow insertion point not found')
+          text = text.replace(old, new, 1)
+
+          old = '  const floodMaterial = addDisposable('
+          ring = '  addEllipticRing(group, geometries, steelMaterial, innerX, innerZ, 37.65, 0.22);\n\n  const floodMaterial = addDisposable('
+          if old not in text:
+              raise SystemExit('roof ring insertion point not found')
+          text = text.replace(old, ring, 1)
+
+          replacements = {
+              '    new THREE.MeshStandardMaterial({ color: 0x7b8187, roughness: 0.90, metalness: 0.03 }),': '    new THREE.MeshStandardMaterial({ color: 0x5b6268, roughness: 0.94, metalness: 0.02 }),',
+              '    const target = portrait ? new THREE.Vector3(0, 12.0, -4.0) : new THREE.Vector3(0, 10.0, -5.0);': '    const target = portrait ? new THREE.Vector3(0, 13.5, -4.0) : new THREE.Vector3(0, 12.0, -5.0);',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'expected V15.5 line not found: {old}')
+              text = text.replace(old, new, 1)
+
+          path.write_text(text)
+          PY
+      - name: Commit V15.5 depth refinement
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts
+          git commit -m "feat: add V15.5 crowd shadows and roof depth"
+          git push
