@@ -1,4 +1,4 @@
-// V15.12c PBR Base Stadium safe-background + mobile-framing acceptance verification.
+// V15.13 PBR Base Stadium portrait-camera acceptance verification.
 import "../features/stadium/stadiumCinematic.css";
 import "../features/stadium/stadiumFinal.css";
 import "../features/stadium/stadiumPremiumTuning.css";
