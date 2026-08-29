@@ -64,7 +64,7 @@ function addDisposable<T extends THREE.BufferGeometry | THREE.Material | THREE.T
   return value;
 }
 
-function makePitchTexture(textures: Set<THREE.Texture>): THREE.CanvasTexture {
+function makePitchTexture(textures: Set<THREE.Texture>): THREE.Texture {
   const canvas = document.createElement("canvas");
   canvas.width = 1050;
   canvas.height = 680;
