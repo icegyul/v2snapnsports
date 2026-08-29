@@ -34,7 +34,6 @@ function addPitch(m:Mesh,detail:number){
   const h=.08; const lines:[Vec3,Vec3][]=[[[0,.18,-34],[105,h,.18]],[[0,.18,34],[105,h,.18]],[[-52.5,.18,0],[.18,h,68]],[[52.5,.18,0],[.18,h,68]],[[0,.18,0],[.18,h,68]]];
   for(const [p,s] of lines)box(m,p,s,C.white); ring(m,9.15,.18,.20,Math.max(64,Math.floor(detail/2)),C.white); box(m,[0,.22,0],[.28,.08,.28],C.white);
   for(const side of[-1,1]as const){const gx=side*52.5,px=gx-side*16.5,ax=gx-side*5.5;box(m,[px,.18,0],[.18,h,40.32],C.white);box(m,[(gx+px)/2,.18,-20.16],[16.5,h,.18],C.white);box(m,[(gx+px)/2,.18,20.16],[16.5,h,.18],C.white);box(m,[ax,.18,0],[.18,h,18.32],C.white);box(m,[(gx+ax)/2,.18,-9.16],[5.5,h,.18],C.white);box(m,[(gx+ax)/2,.18,9.16],[5.5,h,.18],C.white);const post=gx+side*.20;box(m,[post,1.25,-3.66],[.13,2.5,.13],C.white);box(m,[post,1.25,3.66],[.13,2.5,.13],C.white);box(m,[post,2.5,0],[.13,.13,7.45],C.white);for(let j=-5;j<=5;j++)box(m,[gx+side*1.3,1.1,j*.7],[.025,2.15,.025],C.crowdWhite);for(let j=0;j<7;j++){box(m,[gx+side*(.22+j*.18),1.1,-3.66],[.025,2.15,.025],C.crowdWhite);box(m,[gx+side*(.22+j*.18),1.1,3.66],[.025,2.15,.025],C.crowdWhite)}}
-  // Technical areas and benches.
   for(const z of[-38.5,38.5]){box(m,[0,.65,z],[22,1.2,2.2],C.dark);box(m,[0,1.65,z],[22,.16,2.8],C.steel);for(let x=-8;x<=8;x+=2)box(m,[x,.48,z+(z>0?-1:1)*.35],[1.1,.42,.75],C.seatBright)}
 }
 
@@ -71,7 +70,9 @@ function arr(gl:WebGLRenderingContext,d:number[]){const b=gl.createBuffer();if(!
 
 export function createStadiumWebglRenderer(canvas:HTMLCanvasElement,mode:Exclude<CoreVisualMode,"STATIC">):StadiumWebglRenderer|null{
   if(typeof window.WebGLRenderingContext==="undefined")return null;
-  const gl=canvas.getContext("webgl",{alpha:true,antialias:true,depth:true,premultipliedAlpha:false,powerPreference:mode==="FULL"?"high-performance":"default"}) as WebGLRenderingContext|null; if(!gl)return null;
+  const maybeGl=canvas.getContext("webgl",{alpha:true,antialias:true,depth:true,premultipliedAlpha:false,powerPreference:mode==="FULL"?"high-performance":"default"}) as WebGLRenderingContext|null;
+  if(!maybeGl)return null;
+  const gl:WebGLRenderingContext=maybeGl;
   const m=build(mode),p=createProgram(gl),pb=arr(gl,m.positions),nb=arr(gl,m.normals),cb=arr(gl,m.colors),ib=gl.createBuffer();if(!ib)throw Error("STADIUM_INDEX_BUFFER_CREATE_FAILED");
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);const max=m.indices.reduce((a,b)=>Math.max(a,b),0),uint=max>65535;if(uint&&!gl.getExtension("OES_element_index_uint"))throw Error("STADIUM_INDEX_RANGE_UNSUPPORTED");gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,uint?new Uint32Array(m.indices):new Uint16Array(m.indices),gl.STATIC_DRAW);
   const pos=gl.getAttribLocation(p,"aPosition"),nor=gl.getAttribLocation(p,"aNormal"),col=gl.getAttribLocation(p,"aColor"),uMvp=gl.getUniformLocation(p,"uMvp"),uCamera=gl.getUniformLocation(p,"uCamera"),uSun=gl.getUniformLocation(p,"uSunDir");if(pos<0||nor<0||col<0||!uMvp||!uCamera||!uSun)throw Error("STADIUM_SHADER_LOCATION_FAILED");
