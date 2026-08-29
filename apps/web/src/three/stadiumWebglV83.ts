@@ -18,7 +18,7 @@ export function createStadiumWebglRenderer(
       base.resize(width, height, dpr);
     },
     render(orbit: number, zoom: number) {
-      const cinematicBias = portrait ? 1.0 : 11.5;
+      const cinematicBias = portrait ? 0.0 : 6.5;
       base.render(orbit + cinematicBias, zoom);
     },
     destroy() {
