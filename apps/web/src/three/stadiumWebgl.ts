@@ -1,4 +1,4 @@
-// V15.8 PBR Base Stadium material-realism acceptance verification.
+// V15.9 PBR Base Stadium environment-depth acceptance verification.
 import "../features/stadium/stadiumCinematic.css";
 import "../features/stadium/stadiumFinal.css";
 import "../features/stadium/stadiumPremiumTuning.css";
