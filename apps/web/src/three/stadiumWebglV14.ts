@@ -73,7 +73,7 @@ function makePitchTexture(textures: Set<THREE.Texture>): THREE.Texture {
 
   const stripe = canvas.width / 20;
   for (let i = 0; i < 20; i += 1) {
-    ctx.fillStyle = i % 2 === 0 ? "#17642f" : "#1b7337";
+    ctx.fillStyle = i % 2 === 0 ? "#1d5b31" : "#24683a";
     ctx.fillRect(i * stripe, 0, stripe + 1, canvas.height);
   }
 
@@ -330,18 +330,19 @@ function crowdPlacements(spec: TierSpec, recipe: StadiumRecipe): CrowdPlacement[
   const rise = (spec.y1 - spec.y0) / spec.rows;
   const accent = new THREE.Color(recipe.accentColor);
   for (let row = 0; row < spec.rows; row += 1) {
-    const rx = spec.innerX + rowDepthX * (row + 0.55);
-    const rz = spec.innerZ + rowDepthZ * (row + 0.55);
-    const y = spec.y0 + rise * row + 0.43;
+    const rowX = spec.innerX + rowDepthX * (row + 0.55);
+    const rowZ = spec.innerZ + rowDepthZ * (row + 0.55);
+    const rowY = spec.y0 + rise * row + 0.43;
     for (let slot = 0; slot < spec.peoplePerRow; slot += 1) {
       const seed = row * 10000 + slot;
       if (hash(seed, 1) > recipe.crowdDensity) continue;
-      const angle = ((slot + 0.5) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.006;
-      const scale = 0.83 + hash(seed, 3) * 0.40;
+      const angle = ((slot + 0.5) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.014;
+      const radial = (hash(seed, 10) - 0.5) * 0.48;
+      const scale = 0.78 + hash(seed, 3) * 0.48;
       result.push({
-        x: Math.cos(angle) * rx,
-        y,
-        z: Math.sin(angle) * rz,
+        x: Math.cos(angle) * (rowX + radial),
+        y: rowY + (hash(seed, 11) - 0.5) * 0.14,
+        z: Math.sin(angle) * (rowZ + radial * 0.72),
         angle,
         scale,
         shirt: crowdShirt(seed, accent),
@@ -360,15 +361,15 @@ function addCrowd(
   recipe: StadiumRecipe,
 ): void {
   const placements = crowdPlacements(spec, recipe);
-  const bodyGeometry = addDisposable(geometries, new THREE.BoxGeometry(0.42, 0.62, 0.27));
-  const headGeometry = addDisposable(geometries, new THREE.IcosahedronGeometry(0.16, 1));
+  const bodyGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.18, 0.22, 0.58, 6, 1));
+  const headGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.145, 6, 4));
   const bodyMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.88, metalness: 0.0 }),
+    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.90, metalness: 0.0 }),
   );
   const headMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.92, metalness: 0.0 }),
+    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.94, metalness: 0.0 }),
   );
   const bodies = new THREE.InstancedMesh(bodyGeometry, bodyMaterial, placements.length);
   const heads = new THREE.InstancedMesh(headGeometry, headMaterial, placements.length);
@@ -382,7 +383,7 @@ function addCrowd(
     bodies.setMatrixAt(index, dummy.matrix);
     bodies.setColorAt(index, placement.shirt);
 
-    dummy.position.set(placement.x, placement.y + 0.45 * placement.scale, placement.z);
+    dummy.position.set(placement.x, placement.y + 0.43 * placement.scale, placement.z);
     dummy.rotation.set(0, 0, 0);
     dummy.scale.setScalar(placement.scale);
     dummy.updateMatrix();
@@ -405,30 +406,42 @@ function addTier(
   seatMaterial: THREE.Material,
   concreteMaterial: THREE.Material,
 ): void {
-  const surface = new THREE.Mesh(
-    ellipseSurfaceGeometry(
-      geometries,
-      spec.innerX,
-      spec.innerZ,
-      spec.outerX,
-      spec.outerZ,
-      spec.y0,
-      spec.y1,
-      192,
-    ),
-    seatMaterial,
-  );
-  surface.receiveShadow = true;
-  group.add(surface);
+  const rowDepthX = (spec.outerX - spec.innerX) / spec.rows;
+  const rowDepthZ = (spec.outerZ - spec.innerZ) / spec.rows;
+  const rise = (spec.y1 - spec.y0) / spec.rows;
 
-  const riser = new THREE.Mesh(
-    ellipseWallGeometry(geometries, spec.innerX, spec.innerZ, spec.y0 - 1.1, spec.y0 + 0.05, 192),
+  for (let row = 0; row < spec.rows; row += 1) {
+    const innerX = spec.innerX + rowDepthX * row;
+    const innerZ = spec.innerZ + rowDepthZ * row;
+    const outerX = spec.innerX + rowDepthX * (row + 1);
+    const outerZ = spec.innerZ + rowDepthZ * (row + 1);
+    const y = spec.y0 + rise * row;
+    const nextY = spec.y0 + rise * (row + 1);
+
+    const tread = new THREE.Mesh(
+      ellipseSurfaceGeometry(geometries, innerX, innerZ, outerX, outerZ, y, y + 0.018, 192),
+      seatMaterial,
+    );
+    tread.receiveShadow = true;
+    group.add(tread);
+
+    if (row < spec.rows - 1) {
+      const riser = new THREE.Mesh(
+        ellipseWallGeometry(geometries, outerX, outerZ, y + 0.018, nextY, 192),
+        concreteMaterial,
+      );
+      group.add(riser);
+    }
+  }
+
+  const frontRiser = new THREE.Mesh(
+    ellipseWallGeometry(geometries, spec.innerX, spec.innerZ, spec.y0 - 1.15, spec.y0 + 0.04, 192),
     concreteMaterial,
   );
-  group.add(riser);
+  group.add(frontRiser);
 
   const aisles = new THREE.Mesh(aisleGeometry(geometries, spec, spec.rows > 15 ? 22 : 20), concreteMaterial);
-  aisles.position.y = 0.03;
+  aisles.position.y = 0.055;
   group.add(aisles);
   addCrowd(group, geometries, materials, spec, recipe);
 }
@@ -558,7 +571,7 @@ function addLighting(scene: THREE.Scene, highQuality: boolean): void {
     [-82, 54],
     [82, 54],
   ] as const) {
-    const light = new THREE.SpotLight(0xfff2d4, highQuality ? 520 : 360, 230, 0.62, 0.62, 1.45);
+    const light = new THREE.SpotLight(0xfff2d4, highQuality ? 560 : 470, 230, 0.62, 0.62, 1.45);
     light.position.set(x, 42, z);
     light.target = target;
     scene.add(light);
@@ -597,11 +610,11 @@ function buildStadium(
   );
   const roofMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: 0x343f4b, roughness: 0.34, metalness: 0.74, side: THREE.DoubleSide }),
+    new THREE.MeshStandardMaterial({ color: 0x46515d, roughness: 0.42, metalness: 0.64, side: THREE.DoubleSide }),
   );
   const steelMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: 0x7d8995, roughness: 0.30, metalness: 0.84 }),
+    new THREE.MeshStandardMaterial({ color: 0x98a3ad, roughness: 0.32, metalness: 0.76 }),
   );
   const blackMaterial = addDisposable(
     materials,
@@ -720,7 +733,7 @@ export function createStadiumWebglRenderer(
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.12;
+  renderer.toneMappingExposure = 1.02;
   renderer.shadowMap.enabled = mode === "FULL";
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
