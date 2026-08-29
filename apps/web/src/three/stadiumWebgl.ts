@@ -1,4 +1,4 @@
-// V14 PBR Base Stadium acceptance entrypoint.
+// V14.1 PBR Base Stadium acceptance entrypoint.
 import "../features/stadium/stadiumCinematic.css";
 import "../features/stadium/stadiumFinal.css";
 import "../features/stadium/stadiumPremiumTuning.css";
@@ -15,5 +15,5 @@ import "../features/stadium/stadiumV77Showcase.css";
 import "../features/stadium/stadiumV84MobileFinish.css";
 import "../features/stadium/stadiumV93MobileImmersive.css";
 import "../features/stadium/stadiumV12Acceptance.css";
-export { createStadiumWebglRenderer } from "./stadiumWebglV14";
-export type { StadiumWebglRenderer } from "./stadiumWebglV14";
+export { createStadiumWebglRenderer } from "./stadiumWebglV141";
+export type { StadiumWebglRenderer } from "./stadiumWebglV141";
