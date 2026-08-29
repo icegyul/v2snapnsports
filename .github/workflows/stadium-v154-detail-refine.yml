@@ -1,0 +1,132 @@
+name: Stadium V15.4 Detail Refine
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v154-detail-refine.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add stadium detail and organic crowd composition
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/three/stadiumWebglV14.ts')
+          text = path.read_text()
+
+          old = '''      const seed = row * 10000 + slot;
+      if (hash(seed, 1) > recipe.crowdDensity) continue;
+      const angle = ((slot + 0.5) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.014;'''
+          new = '''      const seed = row * 10000 + slot;
+      const section = Math.floor(slot / 18);
+      const sectionNoise = hash(row * 83 + section * 19, 21);
+      const localDensity = Math.max(0.82, Math.min(0.985, recipe.crowdDensity + (sectionNoise - 0.5) * 0.16));
+      if (hash(seed, 1) > localDensity) continue;
+      const angle = ((slot + 0.5) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.022;'''
+          if old not in text:
+              raise SystemExit('crowd occupancy block not found')
+          text = text.replace(old, new, 1)
+
+          if 'function makeAdBoardTexture(' not in text:
+              marker = 'function ellipseSurfaceGeometry('
+              fn = '''function makeAdBoardTexture(textures: Set<THREE.Texture>): THREE.Texture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1536;
+  canvas.height = 160;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("stadium ad-board canvas unavailable");
+  const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+  gradient.addColorStop(0, "#071522");
+  gradient.addColorStop(0.46, "#0c3b60");
+  gradient.addColorStop(1, "#071522");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#dff6ff";
+  ctx.font = "700 58px Arial, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("SNAPN SPORTS", 280, 102);
+  ctx.fillStyle = "#65c7ff";
+  ctx.font = "600 42px Arial, sans-serif";
+  ctx.fillText("TRAIN SMART", 760, 100);
+  ctx.fillStyle = "#dff6ff";
+  ctx.fillText("MATCH INTELLIGENCE", 1240, 100);
+  const texture = addDisposable(textures, new THREE.CanvasTexture(canvas));
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  return texture;
+}
+
+'''
+              text = text.replace(marker, fn + marker, 1)
+
+          marker = '  const pitchGeometry = addDisposable(geometries, new THREE.PlaneGeometry(105, 68, 20, 12));'
+          if 'const adBoardTexture = makeAdBoardTexture(textures);' not in text:
+              material = '''  const adBoardTexture = makeAdBoardTexture(textures);
+  adBoardTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  const adBoardMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      map: adBoardTexture,
+      emissiveMap: adBoardTexture,
+      emissive: 0x9adfff,
+      emissiveIntensity: 0.78,
+      roughness: 0.40,
+      metalness: 0.05,
+      side: THREE.DoubleSide,
+    }),
+  );
+
+'''
+              text = text.replace(marker, material + marker, 1)
+
+          board_marker = '  const tiers: TierSpec[] = ['
+          if 'const adPanelGeometry = addDisposable' not in text:
+              boards = '''  const adPanelGeometry = addDisposable(geometries, new THREE.PlaneGeometry(24, 1.35));
+  for (const z of [-35.35, 35.35]) {
+    for (const x of [-38, -12.7, 12.7, 38]) {
+      const panel = new THREE.Mesh(adPanelGeometry, adBoardMaterial);
+      panel.position.set(x, 0.92, z);
+      panel.rotation.y = z > 0 ? Math.PI : 0;
+      group.add(panel);
+    }
+  }
+  const endPanelGeometry = addDisposable(geometries, new THREE.PlaneGeometry(20, 1.35));
+  for (const x of [-54.2, 54.2]) {
+    for (const z of [-22, 0, 22]) {
+      const panel = new THREE.Mesh(endPanelGeometry, adBoardMaterial);
+      panel.position.set(x, 0.92, z);
+      panel.rotation.y = x > 0 ? -Math.PI / 2 : Math.PI / 2;
+      group.add(panel);
+    }
+  }
+
+'''
+              text = text.replace(board_marker, boards + board_marker, 1)
+
+          replacements = {
+              '  const floodGeometry = addDisposable(geometries, new THREE.BoxGeometry(1.2, 0.25, 0.42));': '  const floodGeometry = addDisposable(geometries, new THREE.BoxGeometry(1.85, 0.34, 0.52));',
+              '    const target = portrait ? new THREE.Vector3(0, 7.0, -2.0) : new THREE.Vector3(0, 6.0, -4.0);': '    const target = portrait ? new THREE.Vector3(0, 12.0, -4.0) : new THREE.Vector3(0, 10.0, -5.0);',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'expected detail line not found: {old}')
+              text = text.replace(old, new, 1)
+
+          path.write_text(text)
+          PY
+      - name: Commit V15.4 detail refinement
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts
+          git commit -m "feat: add V15.4 organic crowd and stadium LED detail"
+          git push
