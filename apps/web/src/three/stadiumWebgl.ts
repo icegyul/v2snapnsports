@@ -1,4 +1,4 @@
-// V15.11 PBR Base Stadium roof-structure + crowd-realism acceptance verification.
+// V15.11b PBR Base Stadium roof-structure + crowd-realism acceptance verification.
 import "../features/stadium/stadiumCinematic.css";
 import "../features/stadium/stadiumFinal.css";
 import "../features/stadium/stadiumPremiumTuning.css";
