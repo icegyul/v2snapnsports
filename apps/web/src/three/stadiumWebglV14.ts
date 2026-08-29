@@ -280,6 +280,8 @@ function beamBetween(
     new THREE.CylinderGeometry(radius, radius, length, radialSegments, 1, false),
   );
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
   mesh.position.copy(start).add(end).multiplyScalar(0.5);
   mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
   group.add(mesh);
@@ -453,6 +455,10 @@ function addCrowd(
   heads.instanceMatrix.needsUpdate = true;
   if (bodies.instanceColor) bodies.instanceColor.needsUpdate = true;
   if (heads.instanceColor) heads.instanceColor.needsUpdate = true;
+  bodies.castShadow = true;
+  bodies.receiveShadow = true;
+  heads.castShadow = true;
+  heads.receiveShadow = true;
   group.add(bodies, heads);
 }
 
@@ -574,6 +580,8 @@ function addRoof(
     beamBetween(group, geometries, steelMaterial, start, end, 0.18, 6);
   }
 
+  addEllipticRing(group, geometries, steelMaterial, innerX, innerZ, 37.65, 0.22);
+
   const floodMaterial = addDisposable(
     materials,
     new THREE.MeshStandardMaterial({
@@ -657,7 +665,7 @@ function buildStadium(
   );
   const concreteMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: 0x7b8187, roughness: 0.90, metalness: 0.03 }),
+    new THREE.MeshStandardMaterial({ color: 0x5b6268, roughness: 0.94, metalness: 0.02 }),
   );
   const darkConcreteMaterial = addDisposable(
     materials,
@@ -872,7 +880,7 @@ export function createStadiumWebglRenderer(
     camera.fov = portrait ? 64 : 60;
     camera.aspect = cssWidth / cssHeight;
     camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
-    const target = portrait ? new THREE.Vector3(0, 12.0, -4.0) : new THREE.Vector3(0, 10.0, -5.0);
+    const target = portrait ? new THREE.Vector3(0, 13.5, -4.0) : new THREE.Vector3(0, 12.0, -5.0);
     camera.lookAt(target);
     camera.updateProjectionMatrix();
     stadium.rotation.y = portrait ? 0 : -0.015;
