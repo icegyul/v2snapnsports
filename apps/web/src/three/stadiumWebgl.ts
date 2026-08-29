@@ -5,5 +5,6 @@ import "../features/stadium/stadiumV61Framing.css";
 import "../features/stadium/stadiumV62Mobile.css";
 import "../features/stadium/stadiumV63Polish.css";
 import "../features/stadium/stadiumV64Crop.css";
+import "../features/stadium/stadiumV65Viewport.css";
 export { createStadiumWebglRenderer } from "./stadiumWebglV6";
 export type { StadiumWebglRenderer } from "./stadiumWebglV6";
