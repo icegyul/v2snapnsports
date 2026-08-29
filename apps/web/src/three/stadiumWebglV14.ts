@@ -440,9 +440,9 @@ function crowdShirt(seed: number, accent: THREE.Color): THREE.Color {
 
 function crowdSkin(seed: number): THREE.Color {
   const value = hash(seed, 8);
-  if (value > 0.72) return new THREE.Color(0xc99570);
-  if (value > 0.40) return new THREE.Color(0xa76f4e);
-  return new THREE.Color(0x7c503a);
+  if (value > 0.72) return new THREE.Color(0x8f6c59);
+  if (value > 0.40) return new THREE.Color(0x785442);
+  return new THREE.Color(0x5e4337);
 }
 
 function crowdPlacements(spec: TierSpec, recipe: StadiumRecipe): CrowdPlacement[] {
@@ -487,7 +487,7 @@ function addCrowd(
 ): void {
   const placements = crowdPlacements(spec, recipe);
   const bodyGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.22, 0.25, 0.60, 6, 1));
-  const headGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.150, 8, 5));
+  const headGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.128, 8, 5));
   const bodyMaterial = addDisposable(
     materials,
     new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.90, metalness: 0.0 }),
@@ -689,7 +689,53 @@ function addRoof(
 
   addEllipticRing(group, geometries, steelMaterial, innerX, innerZ, 37.65, 0.22);
 
-  const floodMaterial = addDisposable(
+// Visible underside structure: two catwalk rings and radial ribs prevent
+// the canopy from reading as a single flat ceiling from pitch-level views.
+addEllipticRing(group, geometries, steelMaterial, innerX + 4.8, innerZ + 3.2, 37.05, 0.10);
+addEllipticRing(group, geometries, steelMaterial, outerX - 8.0, outerZ - 5.8, 38.25, 0.11);
+for (let i = 0; i < 32; i += 1) {
+  const ribAngle = (i / 32) * TAU;
+  const ribStart = new THREE.Vector3(
+    Math.cos(ribAngle) * (outerX - 7.5),
+    38.15,
+    Math.sin(ribAngle) * (outerZ - 5.4),
+  );
+  const ribEnd = new THREE.Vector3(
+    Math.cos(ribAngle) * (innerX + 1.2),
+    36.95,
+    Math.sin(ribAngle) * (innerZ + 0.9),
+  );
+  beamBetween(group, geometries, steelMaterial, ribStart, ribEnd, 0.085, 6);
+}
+
+const catwalkLightMaterial = addDisposable(
+  materials,
+  new THREE.MeshStandardMaterial({
+    color: 0xffe5b8,
+    emissive: 0xffcf82,
+    emissiveIntensity: 2.4,
+    roughness: 0.38,
+    metalness: 0.04,
+  }),
+);
+const catwalkLightGeometry = addDisposable(geometries, new THREE.BoxGeometry(0.92, 0.075, 0.15));
+const catwalkLights = new THREE.InstancedMesh(catwalkLightGeometry, catwalkLightMaterial, 48);
+const catwalkDummy = new THREE.Object3D();
+for (let i = 0; i < 48; i += 1) {
+  const lightAngle = (i / 48) * TAU;
+  catwalkDummy.position.set(
+    Math.cos(lightAngle) * (innerX + 3.5),
+    36.72,
+    Math.sin(lightAngle) * (innerZ + 2.4),
+  );
+  catwalkDummy.rotation.set(0, -lightAngle, 0);
+  catwalkDummy.updateMatrix();
+  catwalkLights.setMatrixAt(i, catwalkDummy.matrix);
+}
+catwalkLights.instanceMatrix.needsUpdate = true;
+group.add(catwalkLights);
+
+const floodMaterial = addDisposable
     materials,
     new THREE.MeshStandardMaterial({
       color: 0xfff4cf,
@@ -1092,10 +1138,10 @@ export function createStadiumWebglRenderer(
     const angle = ((portrait ? 24 : 18) + orbit * (portrait ? 0.12 : 0.18)) * Math.PI / 180;
     const radius = (portrait ? 52 : 38) / zoom;
     const height = (portrait ? 35 : 25) / zoom;
-    camera.fov = portrait ? 62 : 58;
+    camera.fov = portrait ? 66 : 58;
     camera.aspect = cssWidth / cssHeight;
     camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
-    const target = portrait ? new THREE.Vector3(0, 17.2, -6.2) : new THREE.Vector3(0, 13.4, -5.4);
+    const target = portrait ? new THREE.Vector3(0, 18.4, -6.4) : new THREE.Vector3(0, 13.4, -5.4);
     camera.lookAt(target);
     camera.updateProjectionMatrix();
     stadium.rotation.y = portrait ? 0 : -0.015;
