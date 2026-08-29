@@ -73,14 +73,14 @@ function makePitchTexture(textures: Set<THREE.Texture>): THREE.Texture {
 
   const stripe = canvas.width / 20;
   for (let i = 0; i < 20; i += 1) {
-    ctx.fillStyle = i % 2 === 0 ? "#1d5b31" : "#24683a";
+    ctx.fillStyle = i % 2 === 0 ? "#1a4c2d" : "#205532";
     ctx.fillRect(i * stripe, 0, stripe + 1, canvas.height);
   }
 
   const vignette = ctx.createRadialGradient(525, 340, 40, 525, 340, 660);
-  vignette.addColorStop(0, "rgba(255,255,225,0.07)");
+  vignette.addColorStop(0, "rgba(255,255,225,0.045)");
   vignette.addColorStop(0.56, "rgba(0,0,0,0)");
-  vignette.addColorStop(1, "rgba(0,20,6,0.18)");
+  vignette.addColorStop(1, "rgba(0,18,8,0.12)");
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -419,9 +419,9 @@ function crowdPlacements(spec: TierSpec, recipe: StadiumRecipe): CrowdPlacement[
       const seed = row * 10000 + slot;
       const section = Math.floor(slot / 18);
       const sectionNoise = hash(row * 83 + section * 19, 21);
-      const localDensity = Math.max(0.82, Math.min(0.985, recipe.crowdDensity + (sectionNoise - 0.5) * 0.16));
+      const localDensity = Math.max(0.70, Math.min(0.97, recipe.crowdDensity + (sectionNoise - 0.5) * 0.30));
       if (hash(seed, 1) > localDensity) continue;
-      const angle = ((slot + 0.5) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.022;
+      const angle = ((slot + 0.5 + (row % 2) * 0.38) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.026;
       const radial = (hash(seed, 10) - 0.5) * 0.48;
       const scale = 0.78 + hash(seed, 3) * 0.48;
       result.push({
@@ -447,7 +447,7 @@ function addCrowd(
 ): void {
   const placements = crowdPlacements(spec, recipe);
   const bodyGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.22, 0.25, 0.60, 6, 1));
-  const headGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.155, 6, 4));
+  const headGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.150, 8, 5));
   const bodyMaterial = addDisposable(
     materials,
     new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.90, metalness: 0.0 }),
@@ -512,7 +512,7 @@ function addSeatBacks(
     const rz = spec.innerZ + rowDepthZ * (row + 0.48);
     const y = spec.y0 + rise * row + 0.24;
     for (let slot = 0; slot < spec.peoplePerRow; slot += 1) {
-      const angle = ((slot + 0.5) / spec.peoplePerRow) * TAU;
+      const angle = ((slot + 0.5 + (row % 2) * 0.42) / spec.peoplePerRow) * TAU;
       dummy.position.set(Math.cos(angle) * rx, y, Math.sin(angle) * rz);
       dummy.rotation.set(0, -angle + Math.PI / 2, 0);
       dummy.scale.set(0.92, 0.92, 0.92);
@@ -697,22 +697,22 @@ function addLightGlows(
       map: texture,
       color: 0xfff3d3,
       transparent: true,
-      opacity: 0.34,
+      opacity: 0.27,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     }),
   );
-  for (let i = 0; i < 14; i += 1) {
-    const angle = (i / 14) * TAU;
+  for (let i = 0; i < 20; i += 1) {
+    const angle = (i / 20) * TAU;
     const sprite = new THREE.Sprite(material as THREE.SpriteMaterial);
     sprite.position.set(Math.cos(angle) * 98.5, 36.9, Math.sin(angle) * 70.0);
-    sprite.scale.set(8.5, 5.5, 1);
+    sprite.scale.set(6.4, 4.2, 1);
     group.add(sprite);
   }
 }
 function addLighting(scene: THREE.Scene, highQuality: boolean): void {
-  scene.add(new THREE.HemisphereLight(0xcadfff, 0x122016, 1.10));
-  scene.add(new THREE.AmbientLight(0xffffff, 0.22));
+  scene.add(new THREE.HemisphereLight(0xc8d9eb, 0x101811, 0.96));
+  scene.add(new THREE.AmbientLight(0xeaf2f7, 0.18));
 
   const key = new THREE.DirectionalLight(0xeaf3ff, 1.55);
   key.position.set(-48, 72, 24);
@@ -742,7 +742,7 @@ function addLighting(scene: THREE.Scene, highQuality: boolean): void {
     [-82, 54],
     [82, 54],
   ] as const) {
-    const light = new THREE.SpotLight(0xfff2d4, highQuality ? 820 : 680, 230, 0.62, 0.62, 1.45);
+    const light = new THREE.SpotLight(0xfff1d2, highQuality ? 900 : 740, 230, 0.60, 0.66, 1.45);
     light.position.set(x, 42, z);
     light.target = target;
     scene.add(light);
@@ -756,15 +756,40 @@ function addStadiumOpenings(
 ): void {
   const portalMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: 0x05080b, roughness: 0.97, metalness: 0.01 }),
+    new THREE.MeshStandardMaterial({
+      color: 0x11161b,
+      emissive: 0x1d1308,
+      emissiveIntensity: 0.20,
+      roughness: 0.88,
+      metalness: 0.04,
+    }),
   );
   const glassMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: 0x193342, emissive: 0x07151e, emissiveIntensity: 0.42, roughness: 0.22, metalness: 0.18 }),
+    new THREE.MeshPhysicalMaterial({
+      color: 0x243946,
+      emissive: 0x07131b,
+      emissiveIntensity: 0.22,
+      roughness: 0.20,
+      metalness: 0.20,
+      clearcoat: 0.28,
+      clearcoatRoughness: 0.32,
+    }),
   );
-  const portalGeometry = addDisposable(geometries, new THREE.BoxGeometry(5.8, 3.2, 1.25));
-  const suiteGeometry = addDisposable(geometries, new THREE.BoxGeometry(7.0, 2.1, 0.55));
-  for (const [rx, rz, y, count] of [[69, 48.5, 6.0, 9], [88, 62.0, 17.0, 10], [106, 75.0, 28.0, 9]] as const) {
+  const corridorLightMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      color: 0xffe7b0,
+      emissive: 0xffcc7c,
+      emissiveIntensity: 1.7,
+      roughness: 0.42,
+      metalness: 0.04,
+    }),
+  );
+  const portalGeometry = addDisposable(geometries, new THREE.BoxGeometry(4.8, 2.75, 0.92));
+  const suiteGeometry = addDisposable(geometries, new THREE.BoxGeometry(6.1, 1.82, 0.42));
+  const corridorGeometry = addDisposable(geometries, new THREE.BoxGeometry(3.5, 0.11, 0.10));
+  for (const [rx, rz, y, count] of [[69, 48.5, 6.0, 7], [88, 62.0, 17.0, 8], [106, 75.0, 28.0, 6]] as const) {
     for (let i = 0; i < count; i += 1) {
       const angle = Math.PI + ((i + 0.5) / count) * Math.PI;
       const portal = new THREE.Mesh(portalGeometry, portalMaterial);
@@ -772,15 +797,22 @@ function addStadiumOpenings(
       portal.rotation.y = -angle + Math.PI / 2;
       portal.castShadow = true;
       group.add(portal);
+
+      const corridor = new THREE.Mesh(corridorGeometry, corridorLightMaterial);
+      corridor.position.set(Math.cos(angle) * (rx - 0.48), y + 0.96, Math.sin(angle) * (rz - 0.34));
+      corridor.rotation.y = -angle + Math.PI / 2;
+      group.add(corridor);
+
       if (y > 10) {
         const suite = new THREE.Mesh(suiteGeometry, glassMaterial);
-        suite.position.set(Math.cos(angle) * (rx - 0.45), y + 2.15, Math.sin(angle) * (rz - 0.32));
+        suite.position.set(Math.cos(angle) * (rx - 0.56), y + 1.88, Math.sin(angle) * (rz - 0.40));
         suite.rotation.y = -angle + Math.PI / 2;
         group.add(suite);
       }
     }
   }
 }
+
 function buildStadium(
   scene: THREE.Scene,
   renderer: THREE.WebGLRenderer,
@@ -799,7 +831,7 @@ function buildStadium(
   grassBumpTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const pitchMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ map: grassTexture, bumpMap: grassBumpTexture, bumpScale: 0.055, roughness: 0.91, metalness: 0.0 }),
+    new THREE.MeshStandardMaterial({ map: grassTexture, bumpMap: grassBumpTexture, bumpScale: 0.038, roughness: 0.91, metalness: 0.0 }),
   );
   const concreteMaterial = addDisposable(
     materials,
@@ -815,11 +847,11 @@ function buildStadium(
   );
   const roofMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: 0x46515d, roughness: 0.42, metalness: 0.64, side: THREE.DoubleSide }),
+    new THREE.MeshPhysicalMaterial({ color: 0x46515d, roughness: 0.38, metalness: 0.68, clearcoat: 0.10, clearcoatRoughness: 0.54, side: THREE.DoubleSide }),
   );
   const steelMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: 0x98a3ad, roughness: 0.32, metalness: 0.76 }),
+    new THREE.MeshStandardMaterial({ color: 0xa6afb7, roughness: 0.36, metalness: 0.72 }),
   );
   const blackMaterial = addDisposable(
     materials,
@@ -985,7 +1017,7 @@ export function createStadiumWebglRenderer(
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.96;
+  renderer.toneMappingExposure = 1.02;
   renderer.shadowMap.enabled = mode === "FULL";
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
