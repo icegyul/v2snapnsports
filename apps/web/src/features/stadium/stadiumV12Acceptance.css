@@ -1,0 +1,53 @@
+.shell-main.stadium-home-page .stadium-hero{
+  background:
+    radial-gradient(ellipse at 50% 78%,rgba(95,135,176,.08) 0%,rgba(25,43,64,.035) 30%,transparent 56%),
+    linear-gradient(180deg,#070b10 0%,#080e15 44%,#05090e 100%)!important;
+  border-color:rgba(126,150,181,.24)!important;
+  box-shadow:0 34px 90px rgba(0,0,0,.58),inset 0 0 90px rgba(135,166,198,.025)!important;
+}
+.shell-main.stadium-home-page .stadium-hero::before{
+  background:
+    radial-gradient(circle at 8% 7%,rgba(255,247,218,.12) 0 1%,rgba(210,231,255,.035) 5%,transparent 17%),
+    radial-gradient(circle at 92% 7%,rgba(255,247,218,.12) 0 1%,rgba(210,231,255,.035) 5%,transparent 17%),
+    radial-gradient(ellipse at 50% 48%,rgba(209,225,241,.025),transparent 45%)!important;
+  filter:blur(5px)!important;
+  opacity:.64!important;
+}
+.shell-main.stadium-home-page .stadium-hero::after{
+  background:radial-gradient(ellipse at 50% 54%,transparent 0 48%,rgba(0,0,0,.10) 72%,rgba(0,0,0,.34) 100%)!important;
+  mix-blend-mode:multiply!important;
+  opacity:.70!important;
+}
+.shell-main.stadium-home-page .stadium-webgl-canvas{
+  transform:none!important;
+  opacity:1!important;
+  mix-blend-mode:normal!important;
+  filter:saturate(.84) contrast(1.13) brightness(.97) drop-shadow(0 26px 42px rgba(0,0,0,.42))!important;
+}
+.shell-main.stadium-home-page .stadium-state-layer,
+.shell-main.stadium-home-page .stadium-identity-indicator,
+.shell-main.stadium-home-page .stadium-enter-cue{
+  background:rgba(5,10,17,.70)!important;
+  border-color:rgba(157,181,207,.20)!important;
+  box-shadow:0 10px 30px rgba(0,0,0,.34)!important;
+  backdrop-filter:blur(12px) saturate(.75)!important;
+}
+.shell-main.stadium-home-page .stadium-enter-arrow{
+  box-shadow:0 0 0 3px rgba(111,155,207,.08),0 0 18px rgba(119,170,226,.25)!important;
+}
+@media(max-width:560px){
+  .shell-main.stadium-home-page .stadium-webgl-canvas{
+    transform:translateY(-9%) scale(1.22)!important;
+    transform-origin:50% 50%!important;
+    filter:saturate(.86) contrast(1.11) brightness(.98) drop-shadow(0 20px 32px rgba(0,0,0,.40))!important;
+  }
+  .shell-main.stadium-home-page .stadium-state-layer{
+    opacity:.76!important;
+  }
+  .shell-main.stadium-home-page .stadium-enter-cue{
+    bottom:12px!important;
+  }
+  .shell-main.stadium-home-page .stadium-identity-indicator{
+    bottom:12px!important;
+  }
+}
