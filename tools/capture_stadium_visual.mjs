@@ -1,3 +1,4 @@
+/* global process, document, window, console */
 import { chromium } from "playwright";
 import fs from "node:fs/promises";
 
