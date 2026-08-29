@@ -8,5 +8,6 @@ import "../features/stadium/stadiumV64Crop.css";
 import "../features/stadium/stadiumV65Viewport.css";
 import "../features/stadium/stadiumV7Live.css";
 import "../features/stadium/stadiumV74Presentation.css";
+import "../features/stadium/stadiumV75Presentation.css";
 export { createStadiumWebglRenderer } from "./stadiumWebglV7";
 export type { StadiumWebglRenderer } from "./stadiumWebglV7";
