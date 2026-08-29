@@ -132,6 +132,30 @@ function makePitchTexture(textures: Set<THREE.Texture>): THREE.Texture {
   return texture;
 }
 
+function makeGrassBumpTexture(textures: Set<THREE.Texture>): THREE.Texture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("stadium grass bump canvas unavailable");
+  const image = ctx.createImageData(canvas.width, canvas.height);
+  for (let y = 0; y < canvas.height; y += 1) {
+    for (let x = 0; x < canvas.width; x += 1) {
+      const i = (y * canvas.width + x) * 4;
+      const blade = 104 + ((x * 17 + y * 31 + (x * y) % 37) % 48);
+      image.data[i] = blade;
+      image.data[i + 1] = blade;
+      image.data[i + 2] = blade;
+      image.data[i + 3] = 255;
+    }
+  }
+  ctx.putImageData(image, 0, 0);
+  const texture = addDisposable(textures, new THREE.CanvasTexture(canvas));
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(18, 12);
+  return texture;
+}
 function makeScoreboardTexture(textures: Set<THREE.Texture>): THREE.Texture {
   const canvas = document.createElement("canvas");
   canvas.width = 1024;
@@ -366,12 +390,12 @@ function addGoal(
 
 function crowdShirt(seed: number, accent: THREE.Color): THREE.Color {
   const value = hash(seed, 4);
-  if (value > 0.93) return accent.clone().multiplyScalar(0.82 + hash(seed, 7) * 0.24);
-  if (value > 0.88) return new THREE.Color(0x763829);
-  if (value > 0.83) return new THREE.Color(0x5c594e);
-  if (value > 0.62) return new THREE.Color(0x85827b);
-  if (value > 0.34) return new THREE.Color(0x4f5358);
-  return new THREE.Color(0x24282d);
+  if (value > 0.965) return accent.clone().multiplyScalar(0.62 + hash(seed, 7) * 0.18);
+  if (value > 0.925) return new THREE.Color(0x553632);
+  if (value > 0.80) return new THREE.Color(0x615f5a);
+  if (value > 0.55) return new THREE.Color(0x474c52);
+  if (value > 0.30) return new THREE.Color(0x343b43);
+  return new THREE.Color(0x1d2329);
 }
 
 function crowdSkin(seed: number): THREE.Color {
@@ -478,7 +502,7 @@ function addSeatBacks(
   const seats = new THREE.InstancedMesh(geometry, material, count);
   const dummy = new THREE.Object3D();
   const baseColor = new THREE.Color(recipe.seatColor);
-  const accentColor = new THREE.Color(recipe.accentColor).multiplyScalar(0.55);
+  const accentColor = new THREE.Color(recipe.accentColor).multiplyScalar(0.40);
   const rowDepthX = (spec.outerX - spec.innerX) / spec.rows;
   const rowDepthZ = (spec.outerZ - spec.innerZ) / spec.rows;
   const rise = (spec.y1 - spec.y0) / spec.rows;
@@ -495,7 +519,7 @@ function addSeatBacks(
       dummy.updateMatrix();
       seats.setMatrixAt(index, dummy.matrix);
       const section = Math.floor(slot / 24);
-      seats.setColorAt(index, section % 9 === 0 ? accentColor : baseColor);
+      seats.setColorAt(index, section % 13 === 0 ? accentColor : baseColor);
       index += 1;
     }
   }
@@ -725,6 +749,38 @@ function addLighting(scene: THREE.Scene, highQuality: boolean): void {
   }
 }
 
+function addStadiumOpenings(
+  group: THREE.Group,
+  geometries: Set<THREE.BufferGeometry>,
+  materials: Set<THREE.Material>,
+): void {
+  const portalMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({ color: 0x05080b, roughness: 0.97, metalness: 0.01 }),
+  );
+  const glassMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({ color: 0x193342, emissive: 0x07151e, emissiveIntensity: 0.42, roughness: 0.22, metalness: 0.18 }),
+  );
+  const portalGeometry = addDisposable(geometries, new THREE.BoxGeometry(5.8, 3.2, 1.25));
+  const suiteGeometry = addDisposable(geometries, new THREE.BoxGeometry(7.0, 2.1, 0.55));
+  for (const [rx, rz, y, count] of [[69, 48.5, 6.0, 9], [88, 62.0, 17.0, 10], [106, 75.0, 28.0, 9]] as const) {
+    for (let i = 0; i < count; i += 1) {
+      const angle = Math.PI + ((i + 0.5) / count) * Math.PI;
+      const portal = new THREE.Mesh(portalGeometry, portalMaterial);
+      portal.position.set(Math.cos(angle) * rx, y, Math.sin(angle) * rz);
+      portal.rotation.y = -angle + Math.PI / 2;
+      portal.castShadow = true;
+      group.add(portal);
+      if (y > 10) {
+        const suite = new THREE.Mesh(suiteGeometry, glassMaterial);
+        suite.position.set(Math.cos(angle) * (rx - 0.45), y + 2.15, Math.sin(angle) * (rz - 0.32));
+        suite.rotation.y = -angle + Math.PI / 2;
+        group.add(suite);
+      }
+    }
+  }
+}
 function buildStadium(
   scene: THREE.Scene,
   renderer: THREE.WebGLRenderer,
@@ -739,9 +795,11 @@ function buildStadium(
 
   const grassTexture = makePitchTexture(textures);
   grassTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  const grassBumpTexture = makeGrassBumpTexture(textures);
+  grassBumpTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const pitchMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ map: grassTexture, roughness: 0.94, metalness: 0.0 }),
+    new THREE.MeshStandardMaterial({ map: grassTexture, bumpMap: grassBumpTexture, bumpScale: 0.055, roughness: 0.91, metalness: 0.0 }),
   );
   const concreteMaterial = addDisposable(
     materials,
@@ -866,6 +924,7 @@ function buildStadium(
   for (let i = 0; i < Math.min(recipe.tierCount, tiers.length); i += 1) {
     addTier(group, geometries, materials, tiers[i], recipe, seatMaterial, concreteMaterial);
   }
+  addStadiumOpenings(group, geometries, materials);
 
   addEllipticRing(group, geometries, ledMaterial, 77.2, 54.3, 10.15, 0.18);
   if (recipe.tierCount >= 2) addEllipticRing(group, geometries, ledMaterial, 96.4, 68.0, 21.78, 0.18);
@@ -882,11 +941,11 @@ function buildStadium(
   );
   group.add(fascia2);
 
-  const scoreboardGeometry = addDisposable(geometries, new THREE.BoxGeometry(25, 7.2, 1.0));
+  const scoreboardGeometry = addDisposable(geometries, new THREE.BoxGeometry(31, 9.2, 1.0));
   const scoreboard = new THREE.Mesh(scoreboardGeometry, blackMaterial);
   scoreboard.position.set(0, 28.8, -78.4);
   group.add(scoreboard);
-  const screenGeometry = addDisposable(geometries, new THREE.PlaneGeometry(21.8, 4.7));
+  const screenGeometry = addDisposable(geometries, new THREE.PlaneGeometry(27.0, 6.2));
   const screen = new THREE.Mesh(screenGeometry, scoreboardMaterial);
   screen.position.set(0, 28.8, -77.86);
   group.add(screen);
@@ -955,13 +1014,13 @@ export function createStadiumWebglRenderer(
   const render = (orbit: number, zoom0: number) => {
     const portrait = cssWidth / cssHeight < 0.82;
     const zoom = Math.min(1.10, Math.max(0.86, zoom0));
-    const angle = ((portrait ? 70 : 18) + orbit * (portrait ? 0.12 : 0.18)) * Math.PI / 180;
+    const angle = ((portrait ? 24 : 18) + orbit * (portrait ? 0.12 : 0.18)) * Math.PI / 180;
     const radius = (portrait ? 52 : 38) / zoom;
-    const height = (portrait ? 30 : 24) / zoom;
-    camera.fov = portrait ? 64 : 60;
+    const height = (portrait ? 27 : 24) / zoom;
+    camera.fov = portrait ? 58 : 58;
     camera.aspect = cssWidth / cssHeight;
     camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
-    const target = portrait ? new THREE.Vector3(0, 13.5, -4.0) : new THREE.Vector3(0, 12.0, -5.0);
+    const target = portrait ? new THREE.Vector3(0, 11.5, -5.0) : new THREE.Vector3(0, 12.0, -5.0);
     camera.lookAt(target);
     camera.updateProjectionMatrix();
     stadium.rotation.y = portrait ? 0 : -0.015;
