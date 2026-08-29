@@ -1,48 +1,59 @@
 .shell-main.stadium-home-page .stadium-hero{
   background:
-    radial-gradient(ellipse at 50% 78%,rgba(95,135,176,.08) 0%,rgba(25,43,64,.035) 30%,transparent 56%),
-    linear-gradient(180deg,#070b10 0%,#080e15 44%,#05090e 100%)!important;
-  border-color:rgba(126,150,181,.24)!important;
-  box-shadow:0 34px 90px rgba(0,0,0,.58),inset 0 0 90px rgba(135,166,198,.025)!important;
+    radial-gradient(ellipse at 50% 74%,rgba(112,147,181,.095) 0%,rgba(30,48,68,.045) 28%,transparent 56%),
+    linear-gradient(180deg,#05080c 0%,#070c12 42%,#04070b 100%)!important;
+  border-color:rgba(139,160,184,.24)!important;
+  box-shadow:0 36px 96px rgba(0,0,0,.62),inset 0 0 110px rgba(135,166,198,.032)!important;
 }
 .shell-main.stadium-home-page .stadium-hero::before{
   background:
-    radial-gradient(circle at 8% 7%,rgba(255,247,218,.12) 0 1%,rgba(210,231,255,.035) 5%,transparent 17%),
-    radial-gradient(circle at 92% 7%,rgba(255,247,218,.12) 0 1%,rgba(210,231,255,.035) 5%,transparent 17%),
-    radial-gradient(ellipse at 50% 48%,rgba(209,225,241,.025),transparent 45%)!important;
-  filter:blur(5px)!important;
-  opacity:.64!important;
+    radial-gradient(circle at 7% 7%,rgba(255,249,226,.30) 0 .55%,rgba(226,239,255,.12) 1.8%,rgba(150,194,240,.035) 7%,transparent 17%),
+    radial-gradient(circle at 31% 6%,rgba(255,249,226,.19) 0 .45%,rgba(226,239,255,.075) 1.6%,transparent 12%),
+    radial-gradient(circle at 69% 6%,rgba(255,249,226,.19) 0 .45%,rgba(226,239,255,.075) 1.6%,transparent 12%),
+    radial-gradient(circle at 93% 7%,rgba(255,249,226,.30) 0 .55%,rgba(226,239,255,.12) 1.8%,rgba(150,194,240,.035) 7%,transparent 17%),
+    linear-gradient(112deg,transparent 0 9%,rgba(220,237,255,.018) 20%,transparent 37%),
+    linear-gradient(68deg,transparent 0 63%,rgba(220,237,255,.018) 80%,transparent 91%),
+    radial-gradient(ellipse at 50% 52%,rgba(211,227,244,.028),transparent 45%)!important;
+  filter:blur(4px)!important;
+  mix-blend-mode:screen!important;
+  opacity:.88!important;
 }
 .shell-main.stadium-home-page .stadium-hero::after{
-  background:radial-gradient(ellipse at 50% 54%,transparent 0 48%,rgba(0,0,0,.10) 72%,rgba(0,0,0,.34) 100%)!important;
+  background:
+    repeating-linear-gradient(117deg,rgba(255,255,255,.006) 0 1px,transparent 1px 5px),
+    radial-gradient(ellipse at 50% 54%,transparent 0 44%,rgba(0,0,0,.09) 70%,rgba(0,0,0,.36) 100%)!important;
   mix-blend-mode:multiply!important;
-  opacity:.70!important;
+  opacity:.72!important;
 }
 .shell-main.stadium-home-page .stadium-webgl-canvas{
   transform:none!important;
   opacity:1!important;
   mix-blend-mode:normal!important;
-  filter:saturate(.84) contrast(1.13) brightness(.97) drop-shadow(0 26px 42px rgba(0,0,0,.42))!important;
+  filter:saturate(.82) contrast(1.16) brightness(.98) blur(.10px) drop-shadow(0 28px 46px rgba(0,0,0,.44))!important;
 }
 .shell-main.stadium-home-page .stadium-state-layer,
 .shell-main.stadium-home-page .stadium-identity-indicator,
 .shell-main.stadium-home-page .stadium-enter-cue{
-  background:rgba(5,10,17,.70)!important;
-  border-color:rgba(157,181,207,.20)!important;
+  background:rgba(4,9,15,.66)!important;
+  border-color:rgba(162,184,207,.18)!important;
   box-shadow:0 10px 30px rgba(0,0,0,.34)!important;
-  backdrop-filter:blur(12px) saturate(.75)!important;
+  backdrop-filter:blur(13px) saturate(.72)!important;
 }
 .shell-main.stadium-home-page .stadium-enter-arrow{
-  box-shadow:0 0 0 3px rgba(111,155,207,.08),0 0 18px rgba(119,170,226,.25)!important;
+  box-shadow:0 0 0 3px rgba(111,155,207,.08),0 0 21px rgba(119,170,226,.29)!important;
 }
 @media(max-width:560px){
   .shell-main.stadium-home-page .stadium-webgl-canvas{
-    transform:translateY(-9%) scale(1.22)!important;
+    transform:translateY(-8%) scale(1.18)!important;
     transform-origin:50% 50%!important;
-    filter:saturate(.86) contrast(1.11) brightness(.98) drop-shadow(0 20px 32px rgba(0,0,0,.40))!important;
+    filter:saturate(.84) contrast(1.13) brightness(.99) blur(.08px) drop-shadow(0 22px 34px rgba(0,0,0,.42))!important;
+  }
+  .shell-main.stadium-home-page .stadium-hero::before{
+    opacity:.74!important;
+    filter:blur(4px)!important;
   }
   .shell-main.stadium-home-page .stadium-state-layer{
-    opacity:.76!important;
+    opacity:.74!important;
   }
   .shell-main.stadium-home-page .stadium-enter-cue{
     bottom:12px!important;
