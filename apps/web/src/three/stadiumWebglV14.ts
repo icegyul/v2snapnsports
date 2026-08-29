@@ -1115,6 +1115,9 @@ export function createStadiumWebglRenderer(
   const environmentTexture = makeEnvironmentTexture(textures);
   scene.environment = environmentTexture;
   scene.environmentIntensity = 0.72;
+  scene.background = environmentTexture;
+  scene.backgroundIntensity = 0.34;
+  scene.backgroundBlurriness = 0.20;
   const stadium = buildStadium(scene, renderer, mode, recipe, geometries, materials, textures);
 
   const camera = new THREE.PerspectiveCamera(54, 1, 0.18, 380);
@@ -1138,7 +1141,7 @@ export function createStadiumWebglRenderer(
     const angle = ((portrait ? 24 : 18) + orbit * (portrait ? 0.12 : 0.18)) * Math.PI / 180;
     const radius = (portrait ? 52 : 38) / zoom;
     const height = (portrait ? 35 : 25) / zoom;
-    camera.fov = portrait ? 66 : 58;
+    camera.fov = portrait ? 70 : 58;
     camera.aspect = cssWidth / cssHeight;
     camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
     const target = portrait ? new THREE.Vector3(0, 18.4, -6.4) : new THREE.Vector3(0, 13.4, -5.4);
