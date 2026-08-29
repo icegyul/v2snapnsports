@@ -761,14 +761,14 @@ export function createStadiumWebglRenderer(
 
   const render = (orbit: number, zoom0: number) => {
     const portrait = cssWidth / cssHeight < 0.82;
-    const zoom = Math.min(1.16, Math.max(0.90, zoom0));
-    const angle = ((portrait ? 74 : 18) + orbit * (portrait ? 0.14 : 0.20)) * Math.PI / 180;
-    const radius = (portrait ? 78 : 56) / zoom;
-    const height = (portrait ? 24 : 19) / zoom;
-    camera.fov = portrait ? 57 : 53;
+    const zoom = Math.min(1.14, Math.max(0.82, zoom0));
+    const angle = ((portrait ? 70 : 18) + orbit * (portrait ? 0.12 : 0.18)) * Math.PI / 180;
+    const radius = (portrait ? 108 : 88) / zoom;
+    const height = (portrait ? 37 : 29) / zoom;
+    camera.fov = portrait ? 58 : 51;
     camera.aspect = cssWidth / cssHeight;
     camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
-    const target = portrait ? new THREE.Vector3(-4, 9.0, 0) : new THREE.Vector3(0, 6.5, -7.0);
+    const target = portrait ? new THREE.Vector3(0, 7.0, -4.0) : new THREE.Vector3(0, 7.0, -5.0);
     camera.lookAt(target);
     camera.updateProjectionMatrix();
     stadium.rotation.y = portrait ? 0 : -0.015;
