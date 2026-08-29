@@ -1,1 +1,1 @@
-2026-08-30 V15.11 roof light syntax fix
+2026-08-30 V15.12 environment background mobile crop
