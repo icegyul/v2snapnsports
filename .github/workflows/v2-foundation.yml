@@ -2,7 +2,7 @@ name: V2 Foundation
 
 on:
   push:
-    branches: [main, feature/v2-foundation-integration]
+    branches: [main, feature/v2-foundation-integration, ci/v2-stadium-cinematic-final-verify]
   pull_request:
     branches: [main]
 
