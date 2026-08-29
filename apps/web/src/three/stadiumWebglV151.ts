@@ -37,10 +37,9 @@ export function createStadiumWebglRenderer(
         base.render(orbit - 34, Math.min(0.985, Math.max(0.92, zoom * 0.965)));
         return;
       }
-      // Current V14 camera sits outside the upper bowl at ordinary zoom.
-      // Feed its minimum zoom to lift the eye above the tier rim so the
-      // first-screen view looks into the stadium instead of at stand backs.
-      base.render(orbit - 5, 0.82);
+      // V14.8 moved the physical camera inside the bowl-safe radius.
+      // Keep desktop at neutral zoom so the eye remains in front of the lower tier.
+      base.render(orbit - 5, 1.0);
     },
     destroy() {
       base.destroy();
