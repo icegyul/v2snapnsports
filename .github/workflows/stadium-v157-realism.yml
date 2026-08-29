@@ -1,4 +1,4 @@
-name: Stadium V15.9 Environment Depth
+name: Stadium V15.10 Camera Lights
 
 on:
   push:
@@ -15,100 +15,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Add procedural PBR environment and depth
+      - name: Raise camera and strengthen roof lighting
         run: |
           python - <<'PY'
           from pathlib import Path
-
           path = Path('apps/web/src/three/stadiumWebglV14.ts')
           text = path.read_text()
-
-          if 'function makeEnvironmentTexture(' not in text:
-              marker = 'function makeScoreboardTexture('
-              fn = '''function makeEnvironmentTexture(textures: Set<THREE.Texture>): THREE.Texture {
-                const canvas = document.createElement("canvas");
-                canvas.width = 1024;
-                canvas.height = 512;
-                const ctx = canvas.getContext("2d");
-                if (!ctx) throw new Error("stadium environment canvas unavailable");
-
-                const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                sky.addColorStop(0, "#06101a");
-                sky.addColorStop(0.34, "#162938");
-                sky.addColorStop(0.60, "#344652");
-                sky.addColorStop(0.78, "#1b242a");
-                sky.addColorStop(1, "#080d11");
-                ctx.fillStyle = sky;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                for (const cx of [96, 320, 704, 928]) {
-                  const glow = ctx.createRadialGradient(cx, 270, 3, cx, 270, 118);
-                  glow.addColorStop(0, "rgba(255,244,210,.95)");
-                  glow.addColorStop(.12, "rgba(255,229,174,.55)");
-                  glow.addColorStop(.42, "rgba(155,198,232,.16)");
-                  glow.addColorStop(1, "rgba(0,0,0,0)");
-                  ctx.fillStyle = glow;
-                  ctx.fillRect(cx - 130, 140, 260, 260);
-                }
-
-                const horizon = ctx.createLinearGradient(0, 236, 0, 310);
-                horizon.addColorStop(0, "rgba(205,222,235,0)");
-                horizon.addColorStop(.48, "rgba(205,222,235,.12)");
-                horizon.addColorStop(1, "rgba(20,32,40,0)");
-                ctx.fillStyle = horizon;
-                ctx.fillRect(0, 230, canvas.width, 90);
-
-                const texture = addDisposable(textures, new THREE.CanvasTexture(canvas));
-                texture.colorSpace = THREE.SRGBColorSpace;
-                texture.mapping = THREE.EquirectangularReflectionMapping;
-                texture.needsUpdate = true;
-                return texture;
-              }
-
-              '''
-              text = text.replace(marker, fn + marker, 1)
-
-          text = text.replace(
-              '  const scene = new THREE.Scene();\n  scene.fog = new THREE.Fog(0x0b121a, 155, 340);\n  const geometries = new Set<THREE.BufferGeometry>();\n  const materials = new Set<THREE.Material>();\n  const textures = new Set<THREE.Texture>();',
-              '  const scene = new THREE.Scene();\n  scene.fog = new THREE.Fog(0x0c141c, 125, 290);\n  const geometries = new Set<THREE.BufferGeometry>();\n  const materials = new Set<THREE.Material>();\n  const textures = new Set<THREE.Texture>();\n  const environmentTexture = makeEnvironmentTexture(textures);\n  scene.environment = environmentTexture;\n  scene.environmentIntensity = 0.68;',
-              1,
-          )
-
           replacements = {
-              '    const height = (portrait ? 27 : 24) / zoom;': '    const height = (portrait ? 32 : 24) / zoom;',
-              '    camera.fov = portrait ? 58 : 58;': '    camera.fov = portrait ? 60 : 58;',
-              '    const target = portrait ? new THREE.Vector3(0, 11.5, -5.0) : new THREE.Vector3(0, 12.0, -5.0);': '    const target = portrait ? new THREE.Vector3(0, 14.2, -5.5) : new THREE.Vector3(0, 12.0, -5.0);',
+              '  scene.fog = new THREE.Fog(0x0c141c, 125, 290);': '  scene.fog = new THREE.Fog(0x0c141c, 112, 275);',
+              '  scene.environmentIntensity = 0.68;': '  scene.environmentIntensity = 0.72;',
+              '      opacity: 0.27,': '      opacity: 0.31,',
+              '  for (let i = 0; i < 20; i += 1) {': '  for (let i = 0; i < 24; i += 1) {',
+              '    const angle = (i / 20) * TAU;': '    const angle = (i / 24) * TAU;',
+              '    sprite.position.set(Math.cos(angle) * 98.5, 36.9, Math.sin(angle) * 70.0);': '    sprite.position.set(Math.cos(angle) * 95.6, 35.8, Math.sin(angle) * 67.8);',
+              '    sprite.scale.set(6.4, 4.2, 1);': '    sprite.scale.set(5.2, 3.6, 1);',
+              '      emissiveIntensity: 3.2,': '      emissiveIntensity: 3.9,',
+              '  const floodGeometry = addDisposable(geometries, new THREE.BoxGeometry(1.85, 0.34, 0.52));': '  const floodGeometry = addDisposable(geometries, new THREE.BoxGeometry(1.55, 0.30, 0.48));',
+              '    const height = (portrait ? 32 : 24) / zoom;': '    const height = (portrait ? 35 : 25) / zoom;',
+              '    camera.fov = portrait ? 60 : 58;': '    camera.fov = portrait ? 62 : 58;',
+              '    const target = portrait ? new THREE.Vector3(0, 14.2, -5.5) : new THREE.Vector3(0, 12.0, -5.0);': '    const target = portrait ? new THREE.Vector3(0, 17.2, -6.2) : new THREE.Vector3(0, 13.4, -5.4);',
           }
           for old, new in replacements.items():
               if old not in text:
-                  raise SystemExit(f'expected V15.9 camera token not found: {old}')
-              text = text.replace(old, new, 1)
-
-          path.write_text(text)
-          PY
-      - name: Tighten mobile presentation chrome
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('apps/web/src/features/stadium/stadiumV149Cinematic.css')
-          text = path.read_text()
-          replacements = {
-              '    top:10px!important;': '    top:8px!important;',
-              '    font-size:24px!important;': '    font-size:20px!important;',
-              '    top:48px!important;': '    top:40px!important;',
-              '    width:176px!important;': '    width:164px!important;',
-              '    padding:6px 8px!important;': '    padding:5px 7px!important;',
-          }
-          for old, new in replacements.items():
-              if old not in text:
-                  raise SystemExit(f'expected V15.9 css token not found: {old}')
+                  raise SystemExit(f'expected V15.10 token not found: {old}')
               text = text.replace(old, new, 1)
           path.write_text(text)
           PY
-      - name: Commit V15.9 environment depth
+      - name: Commit V15.10 camera lights
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- apps/web/src/three/stadiumWebglV14.ts apps/web/src/features/stadium/stadiumV149Cinematic.css
-          git commit -m "feat: add V15.9 stadium environment depth"
+          git add -- apps/web/src/three/stadiumWebglV14.ts
+          git commit -m "feat: refine V15.10 stadium camera and roof lights"
           git push
