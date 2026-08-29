@@ -1,0 +1,104 @@
+name: Stadium V15.3 Render Refine
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v153-render-refine.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refine PBR scoreboard lighting and camera
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/three/stadiumWebglV14.ts')
+          text = path.read_text()
+
+          if 'function makeScoreboardTexture(' not in text:
+              marker = 'function ellipseSurfaceGeometry('
+              lines = [
+                  'function makeScoreboardTexture(textures: Set<THREE.Texture>): THREE.Texture {',
+                  '  const canvas = document.createElement("canvas");',
+                  '  canvas.width = 1024;',
+                  '  canvas.height = 320;',
+                  '  const ctx = canvas.getContext("2d");',
+                  '  if (!ctx) throw new Error("stadium scoreboard canvas unavailable");',
+                  '  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);',
+                  '  gradient.addColorStop(0, "#07111c");',
+                  '  gradient.addColorStop(0.5, "#0b2d4b");',
+                  '  gradient.addColorStop(1, "#07111c");',
+                  '  ctx.fillStyle = gradient;',
+                  '  ctx.fillRect(0, 0, canvas.width, canvas.height);',
+                  '  ctx.strokeStyle = "rgba(89,190,255,.72)";',
+                  '  ctx.lineWidth = 6;',
+                  '  ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);',
+                  '  ctx.textAlign = "center";',
+                  '  ctx.fillStyle = "#dff4ff";',
+                  '  ctx.font = "700 72px Arial, sans-serif";',
+                  '  ctx.fillText("SNAPN SPORTS", canvas.width / 2, 132);',
+                  '  ctx.fillStyle = "#70c7ff";',
+                  '  ctx.font = "600 38px Arial, sans-serif";',
+                  '  ctx.fillText("MATCH CENTER", canvas.width / 2, 214);',
+                  '  ctx.fillStyle = "rgba(255,255,255,.65)";',
+                  '  ctx.font = "500 22px Arial, sans-serif";',
+                  '  ctx.fillText("LIVE STADIUM", canvas.width / 2, 264);',
+                  '  const texture = addDisposable(textures, new THREE.CanvasTexture(canvas));',
+                  '  texture.colorSpace = THREE.SRGBColorSpace;',
+                  '  return texture;',
+                  '}',
+                  '',
+              ]
+              text = text.replace(marker, '\n'.join(lines) + marker, 1)
+
+          material_marker = '  const pitchGeometry = addDisposable(geometries, new THREE.PlaneGeometry(105, 68, 20, 12));'
+          if 'const scoreboardTexture = makeScoreboardTexture(textures);' not in text:
+              material_lines = [
+                  '  const scoreboardTexture = makeScoreboardTexture(textures);',
+                  '  scoreboardTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());',
+                  '  const scoreboardMaterial = addDisposable(',
+                  '    materials,',
+                  '    new THREE.MeshStandardMaterial({',
+                  '      map: scoreboardTexture,',
+                  '      emissiveMap: scoreboardTexture,',
+                  '      emissive: 0xffffff,',
+                  '      emissiveIntensity: 1.25,',
+                  '      roughness: 0.32,',
+                  '      metalness: 0.05,',
+                  '    }),',
+                  '  );',
+                  '',
+              ]
+              text = text.replace(material_marker, '\n'.join(material_lines) + material_marker, 1)
+
+          replacements = {
+              '  scene.add(new THREE.HemisphereLight(0xcadfff, 0x122016, 1.35));': '  scene.add(new THREE.HemisphereLight(0xcadfff, 0x122016, 1.10));',
+              '  scene.add(new THREE.AmbientLight(0xffffff, 0.34));': '  scene.add(new THREE.AmbientLight(0xffffff, 0.22));',
+              '  const key = new THREE.DirectionalLight(0xeaf3ff, 2.1);': '  const key = new THREE.DirectionalLight(0xeaf3ff, 1.55);',
+              '  const fill = new THREE.DirectionalLight(0xffe1ad, 0.75);': '  const fill = new THREE.DirectionalLight(0xffe1ad, 0.55);',
+              '    const light = new THREE.SpotLight(0xfff2d4, highQuality ? 560 : 470, 230, 0.62, 0.62, 1.45);': '    const light = new THREE.SpotLight(0xfff2d4, highQuality ? 820 : 680, 230, 0.62, 0.62, 1.45);',
+              '  renderer.toneMappingExposure = 1.02;': '  renderer.toneMappingExposure = 0.96;',
+              '    camera.fov = portrait ? 72 : 66;': '    camera.fov = portrait ? 64 : 60;',
+              '  const screen = new THREE.Mesh(screenGeometry, ledMaterial);': '  const screen = new THREE.Mesh(screenGeometry, scoreboardMaterial);',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'expected V15.3 render line not found: {old}')
+              text = text.replace(old, new, 1)
+
+          path.write_text(text)
+          PY
+      - name: Commit V15.3 render refinement
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts
+          git commit -m "feat: refine V15.3 scoreboard lighting and framing"
+          git push
