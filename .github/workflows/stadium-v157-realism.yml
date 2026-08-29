@@ -1,4 +1,4 @@
-name: Stadium V15.7 Realism
+name: Stadium V15.8 Material Realism
 
 on:
   push:
@@ -15,142 +15,124 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Add stadium openings grass relief and cinematic portrait camera
+      - name: Refine material lighting crowd and portals
         run: |
           python - <<'PY'
           from pathlib import Path
+
           path = Path('apps/web/src/three/stadiumWebglV14.ts')
           text = path.read_text()
 
-          if 'function makeGrassBumpTexture(' not in text:
-              marker = 'function makeScoreboardTexture('
-              fn = "\n".join([
-                  'function makeGrassBumpTexture(textures: Set<THREE.Texture>): THREE.Texture {',
-                  '  const canvas = document.createElement("canvas");',
-                  '  canvas.width = 256;',
-                  '  canvas.height = 256;',
-                  '  const ctx = canvas.getContext("2d");',
-                  '  if (!ctx) throw new Error("stadium grass bump canvas unavailable");',
-                  '  const image = ctx.createImageData(canvas.width, canvas.height);',
-                  '  for (let y = 0; y < canvas.height; y += 1) {',
-                  '    for (let x = 0; x < canvas.width; x += 1) {',
-                  '      const i = (y * canvas.width + x) * 4;',
-                  '      const blade = 104 + ((x * 17 + y * 31 + (x * y) % 37) % 48);',
-                  '      image.data[i] = blade;',
-                  '      image.data[i + 1] = blade;',
-                  '      image.data[i + 2] = blade;',
-                  '      image.data[i + 3] = 255;',
-                  '    }',
-                  '  }',
-                  '  ctx.putImageData(image, 0, 0);',
-                  '  const texture = addDisposable(textures, new THREE.CanvasTexture(canvas));',
-                  '  texture.wrapS = THREE.RepeatWrapping;',
-                  '  texture.wrapT = THREE.RepeatWrapping;',
-                  '  texture.repeat.set(18, 12);',
-                  '  return texture;',
-                  '}',
-                  '',
-              ])
-              text = text.replace(marker, fn + marker, 1)
-
-          old = '  const grassTexture = makePitchTexture(textures);\n  grassTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());\n  const pitchMaterial = addDisposable(\n    materials,\n    new THREE.MeshStandardMaterial({ map: grassTexture, roughness: 0.94, metalness: 0.0 }),\n  );'
-          new = '  const grassTexture = makePitchTexture(textures);\n  grassTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());\n  const grassBumpTexture = makeGrassBumpTexture(textures);\n  grassBumpTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());\n  const pitchMaterial = addDisposable(\n    materials,\n    new THREE.MeshStandardMaterial({ map: grassTexture, bumpMap: grassBumpTexture, bumpScale: 0.055, roughness: 0.91, metalness: 0.0 }),\n  );'
-          if old not in text:
-              raise SystemExit('pitch material block not found')
-          text = text.replace(old, new, 1)
-
-          shirt_old = "\n".join([
-              'function crowdShirt(seed: number, accent: THREE.Color): THREE.Color {',
-              '  const value = hash(seed, 4);',
-              '  if (value > 0.93) return accent.clone().multiplyScalar(0.82 + hash(seed, 7) * 0.24);',
-              '  if (value > 0.88) return new THREE.Color(0x763829);',
-              '  if (value > 0.83) return new THREE.Color(0x5c594e);',
-              '  if (value > 0.62) return new THREE.Color(0x85827b);',
-              '  if (value > 0.34) return new THREE.Color(0x4f5358);',
-              '  return new THREE.Color(0x24282d);',
-              '}',
-          ])
-          shirt_new = "\n".join([
-              'function crowdShirt(seed: number, accent: THREE.Color): THREE.Color {',
-              '  const value = hash(seed, 4);',
-              '  if (value > 0.965) return accent.clone().multiplyScalar(0.62 + hash(seed, 7) * 0.18);',
-              '  if (value > 0.925) return new THREE.Color(0x553632);',
-              '  if (value > 0.80) return new THREE.Color(0x615f5a);',
-              '  if (value > 0.55) return new THREE.Color(0x474c52);',
-              '  if (value > 0.30) return new THREE.Color(0x343b43);',
-              '  return new THREE.Color(0x1d2329);',
-              '}',
-          ])
-          if shirt_old not in text:
-              raise SystemExit('crowd shirt block not found')
-          text = text.replace(shirt_old, shirt_new, 1)
-          text = text.replace('  const accentColor = new THREE.Color(recipe.accentColor).multiplyScalar(0.55);', '  const accentColor = new THREE.Color(recipe.accentColor).multiplyScalar(0.40);', 1)
-          text = text.replace('      seats.setColorAt(index, section % 9 === 0 ? accentColor : baseColor);', '      seats.setColorAt(index, section % 13 === 0 ? accentColor : baseColor);', 1)
-
-          if 'function addStadiumOpenings(' not in text:
-              marker = 'function buildStadium('
-              fn = "\n".join([
-                  'function addStadiumOpenings(',
-                  '  group: THREE.Group,',
-                  '  geometries: Set<THREE.BufferGeometry>,',
-                  '  materials: Set<THREE.Material>,',
-                  '): void {',
-                  '  const portalMaterial = addDisposable(',
-                  '    materials,',
-                  '    new THREE.MeshStandardMaterial({ color: 0x05080b, roughness: 0.97, metalness: 0.01 }),',
-                  '  );',
-                  '  const glassMaterial = addDisposable(',
-                  '    materials,',
-                  '    new THREE.MeshStandardMaterial({ color: 0x193342, emissive: 0x07151e, emissiveIntensity: 0.42, roughness: 0.22, metalness: 0.18 }),',
-                  '  );',
-                  '  const portalGeometry = addDisposable(geometries, new THREE.BoxGeometry(5.8, 3.2, 1.25));',
-                  '  const suiteGeometry = addDisposable(geometries, new THREE.BoxGeometry(7.0, 2.1, 0.55));',
-                  '  for (const [rx, rz, y, count] of [[69, 48.5, 6.0, 9], [88, 62.0, 17.0, 10], [106, 75.0, 28.0, 9]] as const) {',
-                  '    for (let i = 0; i < count; i += 1) {',
-                  '      const angle = Math.PI + ((i + 0.5) / count) * Math.PI;',
-                  '      const portal = new THREE.Mesh(portalGeometry, portalMaterial);',
-                  '      portal.position.set(Math.cos(angle) * rx, y, Math.sin(angle) * rz);',
-                  '      portal.rotation.y = -angle + Math.PI / 2;',
-                  '      portal.castShadow = true;',
-                  '      group.add(portal);',
-                  '      if (y > 10) {',
-                  '        const suite = new THREE.Mesh(suiteGeometry, glassMaterial);',
-                  '        suite.position.set(Math.cos(angle) * (rx - 0.45), y + 2.15, Math.sin(angle) * (rz - 0.32));',
-                  '        suite.rotation.y = -angle + Math.PI / 2;',
-                  '        group.add(suite);',
-                  '      }',
-                  '    }',
-                  '  }',
-                  '}',
-                  '',
-              ])
-              text = text.replace(marker, fn + marker, 1)
-
-          old = '  for (let i = 0; i < Math.min(recipe.tierCount, tiers.length); i += 1) {\n    addTier(group, geometries, materials, tiers[i], recipe, seatMaterial, concreteMaterial);\n  }\n\n  addEllipticRing('
-          new = '  for (let i = 0; i < Math.min(recipe.tierCount, tiers.length); i += 1) {\n    addTier(group, geometries, materials, tiers[i], recipe, seatMaterial, concreteMaterial);\n  }\n  addStadiumOpenings(group, geometries, materials);\n\n  addEllipticRing('
-          if old not in text:
-              raise SystemExit('stadium openings call insertion point not found')
-          text = text.replace(old, new, 1)
-
           replacements = {
-              '  const scoreboardGeometry = addDisposable(geometries, new THREE.BoxGeometry(25, 7.2, 1.0));': '  const scoreboardGeometry = addDisposable(geometries, new THREE.BoxGeometry(31, 9.2, 1.0));',
-              '  const screenGeometry = addDisposable(geometries, new THREE.PlaneGeometry(21.8, 4.7));': '  const screenGeometry = addDisposable(geometries, new THREE.PlaneGeometry(27.0, 6.2));',
-              '    const angle = ((portrait ? 70 : 18) + orbit * (portrait ? 0.12 : 0.18)) * Math.PI / 180;': '    const angle = ((portrait ? 24 : 18) + orbit * (portrait ? 0.12 : 0.18)) * Math.PI / 180;',
-              '    const height = (portrait ? 30 : 24) / zoom;': '    const height = (portrait ? 27 : 24) / zoom;',
-              '    camera.fov = portrait ? 64 : 60;': '    camera.fov = portrait ? 58 : 58;',
-              '    const target = portrait ? new THREE.Vector3(0, 13.5, -4.0) : new THREE.Vector3(0, 12.0, -5.0);': '    const target = portrait ? new THREE.Vector3(0, 11.5, -5.0) : new THREE.Vector3(0, 12.0, -5.0);',
+            'ctx.fillStyle = i % 2 === 0 ? "#1d5b31" : "#24683a";': 'ctx.fillStyle = i % 2 === 0 ? "#1a4c2d" : "#205532";',
+            'vignette.addColorStop(0, "rgba(255,255,225,0.07)");': 'vignette.addColorStop(0, "rgba(255,255,225,0.045)");',
+            'vignette.addColorStop(1, "rgba(0,20,6,0.18)");': 'vignette.addColorStop(1, "rgba(0,18,8,0.12)");',
+            'bumpScale: 0.055': 'bumpScale: 0.038',
+            'renderer.toneMappingExposure = 0.96;': 'renderer.toneMappingExposure = 1.02;',
+            'new THREE.MeshStandardMaterial({ color: 0x46515d, roughness: 0.42, metalness: 0.64, side: THREE.DoubleSide })': 'new THREE.MeshPhysicalMaterial({ color: 0x46515d, roughness: 0.38, metalness: 0.68, clearcoat: 0.10, clearcoatRoughness: 0.54, side: THREE.DoubleSide })',
+            'new THREE.MeshStandardMaterial({ color: 0x98a3ad, roughness: 0.32, metalness: 0.76 })': 'new THREE.MeshStandardMaterial({ color: 0xa6afb7, roughness: 0.36, metalness: 0.72 })',
+            '      const localDensity = Math.max(0.82, Math.min(0.985, recipe.crowdDensity + (sectionNoise - 0.5) * 0.16));': '      const localDensity = Math.max(0.70, Math.min(0.97, recipe.crowdDensity + (sectionNoise - 0.5) * 0.30));',
+            '      const angle = ((slot + 0.5) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.022;': '      const angle = ((slot + 0.5 + (row % 2) * 0.38) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.026;',
+            '      const angle = ((slot + 0.5) / spec.peoplePerRow) * TAU;': '      const angle = ((slot + 0.5 + (row % 2) * 0.42) / spec.peoplePerRow) * TAU;',
+            'new THREE.SphereGeometry(0.155, 6, 4)': 'new THREE.SphereGeometry(0.150, 8, 5)',
+            'new THREE.SpotLight(0xfff2d4, highQuality ? 820 : 680, 230, 0.62, 0.62, 1.45)': 'new THREE.SpotLight(0xfff1d2, highQuality ? 900 : 740, 230, 0.60, 0.66, 1.45)',
+            'new THREE.HemisphereLight(0xcadfff, 0x122016, 1.10)': 'new THREE.HemisphereLight(0xc8d9eb, 0x101811, 0.96)',
+            'new THREE.AmbientLight(0xffffff, 0.22)': 'new THREE.AmbientLight(0xeaf2f7, 0.18)',
+            '      opacity: 0.34,': '      opacity: 0.27,',
+            '  for (let i = 0; i < 14; i += 1) {': '  for (let i = 0; i < 20; i += 1) {',
+            '    const angle = (i / 14) * TAU;': '    const angle = (i / 20) * TAU;',
+            '    sprite.scale.set(8.5, 5.5, 1);': '    sprite.scale.set(6.4, 4.2, 1);',
           }
           for old, new in replacements.items():
               if old not in text:
-                  raise SystemExit(f'expected V15.7 line not found: {old}')
+                  raise SystemExit(f'expected V15.8 token not found: {old}')
               text = text.replace(old, new, 1)
 
+          start = text.index('function addStadiumOpenings(')
+          end = text.index('\nfunction buildStadium(', start)
+          fn = '''function addStadiumOpenings(
+            group: THREE.Group,
+            geometries: Set<THREE.BufferGeometry>,
+            materials: Set<THREE.Material>,
+          ): void {
+            const portalMaterial = addDisposable(
+              materials,
+              new THREE.MeshStandardMaterial({
+                color: 0x11161b,
+                emissive: 0x1d1308,
+                emissiveIntensity: 0.20,
+                roughness: 0.88,
+                metalness: 0.04,
+              }),
+            );
+            const glassMaterial = addDisposable(
+              materials,
+              new THREE.MeshPhysicalMaterial({
+                color: 0x243946,
+                emissive: 0x07131b,
+                emissiveIntensity: 0.22,
+                roughness: 0.20,
+                metalness: 0.20,
+                clearcoat: 0.28,
+                clearcoatRoughness: 0.32,
+              }),
+            );
+            const corridorLightMaterial = addDisposable(
+              materials,
+              new THREE.MeshStandardMaterial({
+                color: 0xffe7b0,
+                emissive: 0xffcc7c,
+                emissiveIntensity: 1.7,
+                roughness: 0.42,
+                metalness: 0.04,
+              }),
+            );
+            const portalGeometry = addDisposable(geometries, new THREE.BoxGeometry(4.8, 2.75, 0.92));
+            const suiteGeometry = addDisposable(geometries, new THREE.BoxGeometry(6.1, 1.82, 0.42));
+            const corridorGeometry = addDisposable(geometries, new THREE.BoxGeometry(3.5, 0.11, 0.10));
+            for (const [rx, rz, y, count] of [[69, 48.5, 6.0, 7], [88, 62.0, 17.0, 8], [106, 75.0, 28.0, 6]] as const) {
+              for (let i = 0; i < count; i += 1) {
+                const angle = Math.PI + ((i + 0.5) / count) * Math.PI;
+                const portal = new THREE.Mesh(portalGeometry, portalMaterial);
+                portal.position.set(Math.cos(angle) * rx, y, Math.sin(angle) * rz);
+                portal.rotation.y = -angle + Math.PI / 2;
+                portal.castShadow = true;
+                group.add(portal);
+
+                const corridor = new THREE.Mesh(corridorGeometry, corridorLightMaterial);
+                corridor.position.set(Math.cos(angle) * (rx - 0.48), y + 0.96, Math.sin(angle) * (rz - 0.34));
+                corridor.rotation.y = -angle + Math.PI / 2;
+                group.add(corridor);
+
+                if (y > 10) {
+                  const suite = new THREE.Mesh(suiteGeometry, glassMaterial);
+                  suite.position.set(Math.cos(angle) * (rx - 0.56), y + 1.88, Math.sin(angle) * (rz - 0.40));
+                  suite.rotation.y = -angle + Math.PI / 2;
+                  group.add(suite);
+                }
+              }
+            }
+          }
+          '''
+          text = text[:start] + fn + text[end:]
           path.write_text(text)
           PY
-      - name: Commit V15.7 realism refinement
+      - name: Refine V15.8 wrapper density
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/three/stadiumWebglV151.ts')
+          text = path.read_text()
+          old = '  crowdDensity: 0.94,'
+          new = '  crowdDensity: 0.90,'
+          if old not in text:
+              raise SystemExit('V15.8 wrapper crowd density token not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit V15.8 material realism
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- apps/web/src/three/stadiumWebglV14.ts
-          git commit -m "feat: add V15.7 stadium openings grass relief and portrait camera"
+          git add -- apps/web/src/three/stadiumWebglV14.ts apps/web/src/three/stadiumWebglV151.ts
+          git commit -m "feat: refine V15.8 stadium material realism"
           git push
