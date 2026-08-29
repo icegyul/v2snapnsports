@@ -42,21 +42,21 @@ export function createStadiumWebglRenderer(
   const drawBloom = (sx: number, sy: number, sw: number, sh: number) => {
     ctx.save();
     ctx.globalCompositeOperation = "screen";
-    ctx.globalAlpha = portrait ? 0.035 : 0.045;
-    ctx.filter = "blur(4px) brightness(1.16)";
+    ctx.globalAlpha = portrait ? 0.028 : 0.038;
+    ctx.filter = "blur(3px) brightness(1.12)";
     ctx.drawImage(source, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
     ctx.restore();
   };
 
   const drawVignette = () => {
     const cx = canvas.width * 0.5;
-    const cy = canvas.height * (portrait ? 0.54 : 0.55);
-    const inner = canvas.width * (portrait ? 0.34 : 0.19);
-    const outer = Math.max(canvas.width, canvas.height) * 0.76;
+    const cy = canvas.height * (portrait ? 0.53 : 0.55);
+    const inner = canvas.width * (portrait ? 0.36 : 0.20);
+    const outer = Math.max(canvas.width, canvas.height) * 0.78;
     const gradient = ctx.createRadialGradient(cx, cy, inner, cx, cy, outer);
     gradient.addColorStop(0, "rgba(0,0,0,0)");
-    gradient.addColorStop(0.68, "rgba(0,0,0,0.015)");
-    gradient.addColorStop(1, portrait ? "rgba(0,0,0,0.13)" : "rgba(0,0,0,0.10)");
+    gradient.addColorStop(0.70, "rgba(0,0,0,0.012)");
+    gradient.addColorStop(1, portrait ? "rgba(0,0,0,0.10)" : "rgba(0,0,0,0.08)");
     ctx.save();
     ctx.globalCompositeOperation = "multiply";
     ctx.fillStyle = gradient;
@@ -65,14 +65,17 @@ export function createStadiumWebglRenderer(
   };
 
   const render = (orbit: number, zoom: number) => {
-    physical.render(orbit, portrait ? Math.max(1.02, zoom) : Math.max(1.04, zoom));
+    const physicalZoom = portrait
+      ? Math.max(0.95, zoom * 0.96)
+      : Math.max(1.00, zoom * 0.99);
+    physical.render(orbit, physicalZoom);
 
     const sw = source.width;
     const sh = source.height;
-    const sx = portrait ? Math.round(sw * 0.015) : Math.round(sw * 0.025);
+    const sx = portrait ? Math.round(sw * 0.03) : Math.round(sw * 0.05);
     const sourceWidth = Math.max(1, sw - sx * 2);
-    const sy = portrait ? Math.round(sh * 0.235) : Math.round(sh * 0.145);
-    const cropBottom = portrait ? 0.205 : 0.245;
+    const sy = portrait ? Math.round(sh * 0.30) : Math.round(sh * 0.10);
+    const cropBottom = portrait ? 0.28 : 0.33;
     const sourceHeight = Math.max(1, Math.round(sh * (1 - cropBottom) - sy));
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -81,8 +84,8 @@ export function createStadiumWebglRenderer(
 
     ctx.save();
     ctx.filter = portrait
-      ? "contrast(1.07) saturate(0.97) brightness(1.04)"
-      : "contrast(1.08) saturate(0.98) brightness(1.04)";
+      ? "contrast(1.06) saturate(0.96) brightness(1.035)"
+      : "contrast(1.07) saturate(0.97) brightness(1.035)";
     ctx.drawImage(
       source,
       sx,
