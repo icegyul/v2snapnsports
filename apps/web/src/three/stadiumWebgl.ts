@@ -1,4 +1,4 @@
-// V15.4 PBR Base Stadium organic-crowd + LED-detail acceptance entrypoint.
+// V15.6 PBR Base Stadium instanced-seating + roof-glow acceptance entrypoint.
 import "../features/stadium/stadiumCinematic.css";
 import "../features/stadium/stadiumFinal.css";
 import "../features/stadium/stadiumPremiumTuning.css";
