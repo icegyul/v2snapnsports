@@ -680,7 +680,7 @@ function addLightGlows(
   );
   for (let i = 0; i < 14; i += 1) {
     const angle = (i / 14) * TAU;
-    const sprite = new THREE.Sprite(material);
+    const sprite = new THREE.Sprite(material as THREE.SpriteMaterial);
     sprite.position.set(Math.cos(angle) * 98.5, 36.9, Math.sin(angle) * 70.0);
     sprite.scale.set(8.5, 5.5, 1);
     group.add(sprite);
