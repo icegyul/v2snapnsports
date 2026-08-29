@@ -42,21 +42,21 @@ export function createStadiumWebglRenderer(
   const drawBloom = (sx: number, sy: number, sw: number, sh: number) => {
     ctx.save();
     ctx.globalCompositeOperation = "screen";
-    ctx.globalAlpha = portrait ? 0.028 : 0.038;
-    ctx.filter = "blur(3px) brightness(1.12)";
+    ctx.globalAlpha = portrait ? 0.024 : 0.032;
+    ctx.filter = "blur(3px) brightness(1.10)";
     ctx.drawImage(source, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
     ctx.restore();
   };
 
   const drawVignette = () => {
     const cx = canvas.width * 0.5;
-    const cy = canvas.height * (portrait ? 0.53 : 0.55);
-    const inner = canvas.width * (portrait ? 0.36 : 0.20);
-    const outer = Math.max(canvas.width, canvas.height) * 0.78;
+    const cy = canvas.height * (portrait ? 0.54 : 0.56);
+    const inner = canvas.width * (portrait ? 0.36 : 0.21);
+    const outer = Math.max(canvas.width, canvas.height) * 0.80;
     const gradient = ctx.createRadialGradient(cx, cy, inner, cx, cy, outer);
     gradient.addColorStop(0, "rgba(0,0,0,0)");
-    gradient.addColorStop(0.70, "rgba(0,0,0,0.012)");
-    gradient.addColorStop(1, portrait ? "rgba(0,0,0,0.10)" : "rgba(0,0,0,0.08)");
+    gradient.addColorStop(0.72, "rgba(0,0,0,0.008)");
+    gradient.addColorStop(1, portrait ? "rgba(0,0,0,0.08)" : "rgba(0,0,0,0.07)");
     ctx.save();
     ctx.globalCompositeOperation = "multiply";
     ctx.fillStyle = gradient;
@@ -75,7 +75,7 @@ export function createStadiumWebglRenderer(
     const sx = portrait ? Math.round(sw * 0.03) : Math.round(sw * 0.05);
     const sourceWidth = Math.max(1, sw - sx * 2);
     const sy = portrait ? Math.round(sh * 0.30) : Math.round(sh * 0.10);
-    const cropBottom = portrait ? 0.28 : 0.33;
+    const cropBottom = portrait ? 0.37 : 0.42;
     const sourceHeight = Math.max(1, Math.round(sh * (1 - cropBottom) - sy));
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -84,8 +84,8 @@ export function createStadiumWebglRenderer(
 
     ctx.save();
     ctx.filter = portrait
-      ? "contrast(1.06) saturate(0.96) brightness(1.035)"
-      : "contrast(1.07) saturate(0.97) brightness(1.035)";
+      ? "contrast(1.055) saturate(0.95) brightness(1.025)"
+      : "contrast(1.06) saturate(0.96) brightness(1.03)";
     ctx.drawImage(
       source,
       sx,
