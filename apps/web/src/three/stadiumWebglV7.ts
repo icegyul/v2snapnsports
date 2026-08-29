@@ -37,6 +37,16 @@ export function createStadiumWebglRenderer(
     base.resize(width, sourceHeight, pixelRatio);
   };
 
+  const drawLight = (x: number, y: number, radius: number, alpha: number) => {
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    glow.addColorStop(0, `rgba(255,248,222,${alpha})`);
+    glow.addColorStop(0.12, `rgba(222,238,255,${alpha * 0.75})`);
+    glow.addColorStop(0.42, `rgba(118,181,255,${alpha * 0.20})`);
+    glow.addColorStop(1, "rgba(55,112,205,0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+  };
+
   const render = (orbit: number, zoom: number) => {
     base.render(orbit, portrait ? Math.max(1.12, zoom) : Math.max(1.04, zoom));
 
@@ -63,6 +73,28 @@ export function createStadiumWebglRenderer(
     ctx.globalAlpha = portrait ? 0.10 : 0.12;
     ctx.filter = "blur(7px) brightness(1.38) saturate(1.12)";
     ctx.drawImage(frame, sx, sy, sw, sHeight, 0, 0, canvas.width, canvas.height);
+    ctx.restore();
+
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    const lightRadius = Math.max(canvas.width, canvas.height) * (portrait ? 0.18 : 0.13);
+    drawLight(canvas.width * 0.10, canvas.height * 0.08, lightRadius, portrait ? 0.20 : 0.26);
+    drawLight(canvas.width * 0.90, canvas.height * 0.08, lightRadius, portrait ? 0.20 : 0.26);
+    drawLight(canvas.width * 0.20, canvas.height * 0.18, lightRadius * 0.72, portrait ? 0.10 : 0.14);
+    drawLight(canvas.width * 0.80, canvas.height * 0.18, lightRadius * 0.72, portrait ? 0.10 : 0.14);
+    const pitchGlow = ctx.createRadialGradient(
+      canvas.width * 0.5,
+      canvas.height * (portrait ? 0.67 : 0.70),
+      0,
+      canvas.width * 0.5,
+      canvas.height * (portrait ? 0.67 : 0.70),
+      Math.max(canvas.width, canvas.height) * 0.32,
+    );
+    pitchGlow.addColorStop(0, portrait ? "rgba(210,235,255,0.11)" : "rgba(210,235,255,0.09)");
+    pitchGlow.addColorStop(0.45, "rgba(120,188,255,0.04)");
+    pitchGlow.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = pitchGlow;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.restore();
 
     const vignette = ctx.createRadialGradient(
