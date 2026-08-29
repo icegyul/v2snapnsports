@@ -35,34 +35,34 @@ export function createStadiumWebglRenderer(
     canvas.height = Math.max(1, Math.round(height * pixelRatio));
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
-    base.resize(width, portrait ? height * 1.27 : height * 1.07, pixelRatio);
+    base.resize(width, portrait ? height * 1.22 : height * 1.04, pixelRatio);
   };
 
   const drawCrowd = () => {
-    const count = portrait ? 520 : 920;
+    const count = portrait ? 620 : 1080;
     ctx.save();
     ctx.globalCompositeOperation = "screen";
     for (let i = 0; i < count; i += 1) {
       const x = hash(i, 1) * canvas.width;
       const band = hash(i, 2);
       const yNorm = band < 0.34
-        ? 0.17 + hash(i, 3) * 0.12
+        ? 0.13 + hash(i, 3) * 0.13
         : band < 0.72
-          ? 0.31 + hash(i, 4) * 0.11
-          : 0.45 + hash(i, 5) * 0.10;
+          ? 0.27 + hash(i, 4) * 0.13
+          : 0.41 + hash(i, 5) * 0.12;
       const y = yNorm * canvas.height;
-      const centerGap = yNorm < 0.31 && x > canvas.width * 0.42 && x < canvas.width * 0.58;
+      const centerGap = yNorm < 0.28 && x > canvas.width * 0.41 && x < canvas.width * 0.59;
       if (centerGap) continue;
       const brightness = hash(i, 6);
-      const alpha = brightness > 0.94 ? 0.24 : brightness > 0.72 ? 0.10 : 0.045;
+      const alpha = brightness > 0.94 ? 0.28 : brightness > 0.72 ? 0.12 : 0.055;
       const blue = hash(i, 7) > 0.84;
       ctx.fillStyle = blue
         ? `rgba(90,155,235,${alpha})`
         : brightness > 0.94
-          ? `rgba(235,235,224,${alpha})`
-          : `rgba(165,175,184,${alpha})`;
-      const size = (brightness > 0.93 ? 1.4 : 0.8) * pixelRatio;
-      ctx.fillRect(x, y, size, size * 1.35);
+          ? `rgba(238,235,222,${alpha})`
+          : `rgba(170,177,184,${alpha})`;
+      const size = (brightness > 0.93 ? 1.55 : 0.9) * pixelRatio;
+      ctx.fillRect(x, y, size, size * 1.45);
     }
     ctx.restore();
   };
@@ -78,11 +78,11 @@ export function createStadiumWebglRenderer(
   };
 
   const render = (orbit: number, zoom: number) => {
-    base.render(orbit, portrait ? Math.max(1.10, zoom) : Math.max(1.03, zoom));
+    base.render(orbit, portrait ? Math.max(1.18, zoom) : Math.max(1.14, zoom));
     const sw = frame.width;
     const sh = frame.height;
-    const sy = portrait ? Math.round(sh * 0.30) : Math.round(sh * 0.115);
-    const cropBottom = portrait ? 0.28 : 0.19;
+    const sy = portrait ? Math.round(sh * 0.255) : Math.round(sh * 0.09);
+    const cropBottom = portrait ? 0.26 : 0.16;
     const sHeight = Math.max(1, Math.round(sh * (1 - cropBottom) - sy));
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -108,10 +108,10 @@ export function createStadiumWebglRenderer(
     ctx.save();
     ctx.globalCompositeOperation = "screen";
     const radius = Math.max(canvas.width, canvas.height) * (portrait ? 0.15 : 0.11);
-    drawLight(canvas.width * 0.10, canvas.height * 0.055, radius, portrait ? 0.14 : 0.19);
-    drawLight(canvas.width * 0.90, canvas.height * 0.055, radius, portrait ? 0.14 : 0.19);
-    drawLight(canvas.width * 0.24, canvas.height * 0.13, radius * 0.70, portrait ? 0.07 : 0.095);
-    drawLight(canvas.width * 0.76, canvas.height * 0.13, radius * 0.70, portrait ? 0.07 : 0.095);
+    drawLight(canvas.width * 0.10, canvas.height * 0.05, radius, portrait ? 0.15 : 0.20);
+    drawLight(canvas.width * 0.90, canvas.height * 0.05, radius, portrait ? 0.15 : 0.20);
+    drawLight(canvas.width * 0.24, canvas.height * 0.12, radius * 0.70, portrait ? 0.075 : 0.10);
+    drawLight(canvas.width * 0.76, canvas.height * 0.12, radius * 0.70, portrait ? 0.075 : 0.10);
     ctx.restore();
 
     const vignette = ctx.createRadialGradient(
