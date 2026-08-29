@@ -35,7 +35,7 @@ export function createStadiumWebglRenderer(
     canvas.height = Math.max(1, Math.round(height * pixelRatio));
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
-    base.resize(width, portrait ? height * 1.10 : height * 1.04, pixelRatio);
+    base.resize(width, portrait ? height * 1.22 : height * 1.04, pixelRatio);
   };
 
   const drawCrowd = () => {
@@ -78,12 +78,11 @@ export function createStadiumWebglRenderer(
   };
 
   const render = (orbit: number, zoom: number) => {
-    const renderZoom = portrait ? Math.max(0.88, zoom * 0.90) : Math.max(1.14, zoom);
-    base.render(orbit, renderZoom);
+    base.render(orbit, portrait ? Math.max(1.08, zoom) : Math.max(1.14, zoom));
     const sw = frame.width;
     const sh = frame.height;
-    const sy = portrait ? Math.round(sh * 0.125) : Math.round(sh * 0.09);
-    const cropBottom = portrait ? 0.10 : 0.16;
+    const sy = portrait ? Math.round(sh * 0.205) : Math.round(sh * 0.09);
+    const cropBottom = portrait ? 0.205 : 0.16;
     const sHeight = Math.max(1, Math.round(sh * (1 - cropBottom) - sy));
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
