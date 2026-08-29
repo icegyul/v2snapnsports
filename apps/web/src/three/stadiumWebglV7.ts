@@ -33,24 +33,54 @@ export function createStadiumWebglRenderer(
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
 
-    const sourceHeight = portrait ? height * 1.34 : height * 1.10;
+    const sourceHeight = portrait ? height * 1.30 : height * 1.08;
     base.resize(width, sourceHeight, pixelRatio);
   };
 
   const render = (orbit: number, zoom: number) => {
-    base.render(orbit, portrait ? Math.max(1.08, zoom) : Math.max(1.02, zoom));
+    base.render(orbit, portrait ? Math.max(1.12, zoom) : Math.max(1.04, zoom));
 
     const sw = frame.width;
     const sh = frame.height;
     const sx = 0;
-    const sy = portrait ? Math.round(sh * 0.21) : Math.round(sh * 0.07);
-    const cropBottom = portrait ? 0.31 : 0.20;
+    const sy = portrait ? Math.round(sh * 0.32) : Math.round(sh * 0.12);
+    const cropBottom = portrait ? 0.285 : 0.19;
     const sHeight = Math.max(1, Math.round(sh * (1 - cropBottom) - sy));
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
+
+    ctx.save();
+    ctx.filter = portrait
+      ? "contrast(1.13) saturate(1.10) brightness(1.08)"
+      : "contrast(1.11) saturate(1.08) brightness(1.06)";
     ctx.drawImage(frame, sx, sy, sw, sHeight, 0, 0, canvas.width, canvas.height);
+    ctx.restore();
+
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    ctx.globalAlpha = portrait ? 0.10 : 0.12;
+    ctx.filter = "blur(7px) brightness(1.38) saturate(1.12)";
+    ctx.drawImage(frame, sx, sy, sw, sHeight, 0, 0, canvas.width, canvas.height);
+    ctx.restore();
+
+    const vignette = ctx.createRadialGradient(
+      canvas.width * 0.5,
+      canvas.height * 0.53,
+      canvas.width * 0.12,
+      canvas.width * 0.5,
+      canvas.height * 0.53,
+      Math.max(canvas.width, canvas.height) * 0.72,
+    );
+    vignette.addColorStop(0, "rgba(0,0,0,0)");
+    vignette.addColorStop(0.62, "rgba(0,0,0,0.03)");
+    vignette.addColorStop(1, portrait ? "rgba(0,0,0,0.26)" : "rgba(0,0,0,0.20)");
+    ctx.save();
+    ctx.globalCompositeOperation = "multiply";
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
   };
 
   const destroy = () => {
