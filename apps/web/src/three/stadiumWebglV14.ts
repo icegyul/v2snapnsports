@@ -72,7 +72,7 @@ function makePitchTexture(textures: Set<THREE.Texture>): THREE.Texture {
   if (!ctx) throw new Error("stadium pitch canvas unavailable");
 
   const stripe = canvas.width / 20;
-  for (let i = 0; i < 20; i += 1) {
+  for (let i = 0; i < 24; i += 1) {
     ctx.fillStyle = i % 2 === 0 ? "#1a4c2d" : "#205532";
     ctx.fillRect(i * stripe, 0, stripe + 1, canvas.height);
   }
@@ -694,12 +694,12 @@ function addRoof(
     new THREE.MeshStandardMaterial({
       color: 0xfff4cf,
       emissive: 0xffe0a0,
-      emissiveIntensity: 3.2,
+      emissiveIntensity: 3.9,
       roughness: 0.24,
       metalness: 0.1,
     }),
   );
-  const floodGeometry = addDisposable(geometries, new THREE.BoxGeometry(1.85, 0.34, 0.52));
+  const floodGeometry = addDisposable(geometries, new THREE.BoxGeometry(1.55, 0.30, 0.48));
   const floods = new THREE.InstancedMesh(floodGeometry, floodMaterial, 72);
   const dummy = new THREE.Object3D();
   for (let i = 0; i < 72; i += 1) {
@@ -737,16 +737,16 @@ function addLightGlows(
       map: texture,
       color: 0xfff3d3,
       transparent: true,
-      opacity: 0.27,
+      opacity: 0.31,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     }),
   );
   for (let i = 0; i < 20; i += 1) {
-    const angle = (i / 20) * TAU;
+    const angle = (i / 24) * TAU;
     const sprite = new THREE.Sprite(material as THREE.SpriteMaterial);
-    sprite.position.set(Math.cos(angle) * 98.5, 36.9, Math.sin(angle) * 70.0);
-    sprite.scale.set(6.4, 4.2, 1);
+    sprite.position.set(Math.cos(angle) * 95.6, 35.8, Math.sin(angle) * 67.8);
+    sprite.scale.set(5.2, 3.6, 1);
     group.add(sprite);
   }
 }
@@ -1062,13 +1062,13 @@ export function createStadiumWebglRenderer(
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x0c141c, 125, 290);
+  scene.fog = new THREE.Fog(0x0c141c, 112, 275);
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
   const textures = new Set<THREE.Texture>();
   const environmentTexture = makeEnvironmentTexture(textures);
   scene.environment = environmentTexture;
-  scene.environmentIntensity = 0.68;
+  scene.environmentIntensity = 0.72;
   const stadium = buildStadium(scene, renderer, mode, recipe, geometries, materials, textures);
 
   const camera = new THREE.PerspectiveCamera(54, 1, 0.18, 380);
@@ -1091,11 +1091,11 @@ export function createStadiumWebglRenderer(
     const zoom = Math.min(1.10, Math.max(0.86, zoom0));
     const angle = ((portrait ? 24 : 18) + orbit * (portrait ? 0.12 : 0.18)) * Math.PI / 180;
     const radius = (portrait ? 52 : 38) / zoom;
-    const height = (portrait ? 32 : 24) / zoom;
-    camera.fov = portrait ? 60 : 58;
+    const height = (portrait ? 35 : 25) / zoom;
+    camera.fov = portrait ? 62 : 58;
     camera.aspect = cssWidth / cssHeight;
     camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
-    const target = portrait ? new THREE.Vector3(0, 14.2, -5.5) : new THREE.Vector3(0, 12.0, -5.0);
+    const target = portrait ? new THREE.Vector3(0, 17.2, -6.2) : new THREE.Vector3(0, 13.4, -5.4);
     camera.lookAt(target);
     camera.updateProjectionMatrix();
     stadium.rotation.y = portrait ? 0 : -0.015;
