@@ -1,1 +1,1 @@
-V15.36 rerun canonical 3D pitch projection after MeshStandardMaterial type fix; actual fixture values only
+V15.36 final rerun after mobile CTA safe-area fix; verify projection, actual fixture values, and fixed-nav clearance
