@@ -130,10 +130,18 @@
 }
 
 @media (max-width: 760px) {
+  .player-position-page {
+    padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+  }
+
   .player-position-header,
   .player-position-footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .player-position-footer {
+    padding-bottom: 12px;
   }
 
   .player-position-meta {
