@@ -116,6 +116,19 @@
   background: linear-gradient(90deg, #45c7ff, #c7f4ff);
 }
 
+.player-position-accessibility-contract {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (max-width: 760px) {
   .player-position-header,
   .player-position-footer {
