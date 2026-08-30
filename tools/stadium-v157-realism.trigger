@@ -1,1 +1,1 @@
-2026-08-30 V15.19 portrait sightline
+2026-08-30 V15.20 portrait composition
