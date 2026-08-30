@@ -1,0 +1,60 @@
+name: Stadium V15.38 Full Entry Cleanup
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1538-full-entry-cleanup.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Clean full entry contract and audio route
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          full = Path('apps/web/src/features/stadium/FullStadiumJourneyScene.tsx')
+          text = full.read_text()
+          replacements = {
+            'import type { CoreFormation, CoreSpatialHome, CoreStadiumHome, CoreVisualMode } from "../../api/coreProductContracts";': 'import type { CoreFormation, CoreSpatialHome, CoreVisualMode } from "../../api/coreProductContracts";',
+            '  readonly home: CoreStadiumHome;\n': '',
+            'export function FullStadiumJourneyScene({ mode, home, formation, spatial }: FullStadiumJourneySceneProps) {': 'export function FullStadiumJourneyScene({ mode, formation, spatial }: FullStadiumJourneySceneProps) {',
+            '<button className="full-journey-skip" type="button" onClick={finishImmediately}>': '<button className="full-journey-skip" type="button" onClick={finishImmediately} disabled={renderState !== "READY"}>',
+          }
+          for old, new in replacements.items():
+            count = text.count(old)
+            if count != 1:
+              raise SystemExit(f'full entry cleanup token mismatch {count}: {old}')
+            text = text.replace(old, new, 1)
+          full.write_text(text)
+
+          pages = Path('apps/web/src/features/stadium/PlayerStadiumPages.tsx')
+          text = pages.read_text()
+          old = '<FullStadiumJourneyScene mode={home.visualMode} home={home} formation={formation} spatial={spatial} />'
+          new = '<FullStadiumJourneyScene mode={home.visualMode} formation={formation} spatial={spatial} />'
+          if text.count(old) != 1:
+            raise SystemExit('full journey page prop token mismatch')
+          pages.write_text(text.replace(old, new, 1))
+
+          dock = Path('apps/web/src/features/stadium/StadiumAudioDock.tsx')
+          text = dock.read_text()
+          old = '  if (pathname === "/home") return "HOME";\n  if (pathname === "/home/approach") return "APPROACH";'
+          new = '  if (pathname === "/home") return "HOME";\n  if (pathname === "/home/full") return "APPROACH";\n  if (pathname === "/home/approach") return "APPROACH";'
+          if text.count(old) != 1:
+            raise SystemExit('full journey audio route token mismatch')
+          dock.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/features/stadium/FullStadiumJourneyScene.tsx apps/web/src/features/stadium/PlayerStadiumPages.tsx apps/web/src/features/stadium/StadiumAudioDock.tsx
+          git commit -m "fix: clean V15.38 full entry contract"
+          git push
