@@ -23,11 +23,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          OUT="handoff-out"
+          OUT="$RUNNER_TEMP/handoff-out"
           ROOT="$OUT/SNAPN_SPORTS_V2_STADIUM_HANDOFF_2026-08-30"
           REPO="$ROOT/REPOSITORY"
           HANDOFF="$ROOT/HANDOFF"
+          rm -rf "$OUT"
           mkdir -p "$REPO" "$HANDOFF"
+
+          git rev-parse HEAD > "$ROOT/SOURCE_HEAD.txt"
+          git branch --show-current > "$ROOT/SOURCE_BRANCH.txt"
+          git status --short > "$ROOT/SOURCE_GIT_STATUS.txt"
+          git log -50 --oneline --decorate > "$ROOT/RECENT_50_COMMITS.txt"
 
           rsync -a ./ "$REPO/" \
             --exclude '.git/' \
@@ -45,11 +51,6 @@ jobs:
 
           cp docs/handoff/2026-08-30/SNAPN_STADIUM_V2_CONTINUATION_DIRECTIVE_KO.md "$HANDOFF/DEVELOPMENT_DIRECTIVE_KO.md"
           cp docs/handoff/2026-08-30/SNAPN_STADIUM_V2_CURRENT_STATUS_KO.md "$HANDOFF/CURRENT_STATUS_KO.md"
-
-          git rev-parse HEAD > "$ROOT/SOURCE_HEAD.txt"
-          git branch --show-current > "$ROOT/SOURCE_BRANCH.txt"
-          git status --short > "$ROOT/SOURCE_GIT_STATUS.txt"
-          git log -50 --oneline --decorate > "$ROOT/RECENT_50_COMMITS.txt"
 
           find "$REPO" -type f -printf '%P\n' | LC_ALL=C sort > "$ROOT/FILE_MANIFEST.txt"
 
@@ -116,7 +117,7 @@ jobs:
         with:
           name: snapn-stadium-v2-full-handoff
           path: |
-            handoff-out/SNAPN_SPORTS_V2_STADIUM_FULL_HANDOFF_2026-08-30.zip
-            handoff-out/SNAPN_SPORTS_V2_STADIUM_FULL_HANDOFF_2026-08-30.zip.sha256
+            ${{ runner.temp }}/handoff-out/SNAPN_SPORTS_V2_STADIUM_FULL_HANDOFF_2026-08-30.zip
+            ${{ runner.temp }}/handoff-out/SNAPN_SPORTS_V2_STADIUM_FULL_HANDOFF_2026-08-30.zip.sha256
           if-no-files-found: error
           retention-days: 14
