@@ -1,4 +1,4 @@
-name: Stadium V15.21 Portrait Bowl View
+name: Stadium V15.22 Mobile Final Framing
 
 on:
   push:
@@ -15,48 +15,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Shift portrait camera to elevated bowl view
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('apps/web/src/three/stadiumWebglV14.ts')
-          text = path.read_text()
-          replacements = {
-              'const angle = (90 + orbit * 0.04) * Math.PI / 180;': 'const angle = (72 + orbit * 0.04) * Math.PI / 180;',
-              'const radius = 58;': 'const radius = 56;',
-              'camera.fov = 76;': 'camera.fov = 72;',
-              'camera.zoom = 0.78;': 'camera.zoom = 0.74;',
-              'camera.position.set(Math.sin(angle) * radius, 26.5, Math.cos(angle) * radius);': 'camera.position.set(Math.sin(angle) * radius, 32.0, Math.cos(angle) * radius);',
-              'camera.lookAt(new THREE.Vector3(-8, 10.5, 0));': 'camera.lookAt(new THREE.Vector3(-4, 10.0, -4));',
-          }
-          for old, new in replacements.items():
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f'V15.21 expected one token, found {count}: {old}')
-              text = text.replace(old, new, 1)
-          path.write_text(text)
-          PY
-      - name: Reduce portrait canvas over-crop
+      - name: Tighten final mobile stadium framing
         run: |
           python - <<'PY'
           from pathlib import Path
           path = Path('apps/web/src/features/stadium/stadiumV149Cinematic.css')
           text = path.read_text()
           replacements = {
-              '    transform:translateY(-3%) scale(1.20)!important;': '    transform:translateY(-2%) scale(1.10)!important;',
-              '    transform-origin:50% 54%!important;': '    transform-origin:50% 52%!important;',
+              '    transform:translateY(-2%) scale(1.10)!important;': '    transform:translateY(-10%) scale(1.12)!important;',
+              '    transform-origin:50% 52%!important;': '    transform-origin:50% 54%!important;',
           }
           for old, new in replacements.items():
               count = text.count(old)
               if count != 1:
-                  raise SystemExit(f'V15.21 expected one CSS token, found {count}: {old}')
+                  raise SystemExit(f'V15.22 expected one CSS token, found {count}: {old}')
               text = text.replace(old, new, 1)
           path.write_text(text)
           PY
-      - name: Commit V15.21 portrait bowl view
+      - name: Commit V15.22 final mobile framing
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- apps/web/src/three/stadiumWebglV14.ts apps/web/src/features/stadium/stadiumV149Cinematic.css
-          git commit -m "feat: refine V15.21 portrait stadium bowl view"
+          git add -- apps/web/src/features/stadium/stadiumV149Cinematic.css
+          git commit -m "feat: tighten V15.22 mobile stadium framing"
           git push
