@@ -4,6 +4,8 @@ import { Buffer } from "node:buffer";
 import fs from "node:fs/promises";
 
 const baseUrl = process.env.STADIUM_PREVIEW_URL ?? "http://127.0.0.1:4173";
+const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
+const appBaseUrl = normalizedBaseUrl.endsWith("/v2") ? normalizedBaseUrl : `${normalizedBaseUrl}/v2`;
 const outputDir = process.env.STADIUM_APPROACH_EVIDENCE_DIR ?? "output/stadium-approach-evidence";
 await fs.mkdir(outputDir, { recursive: true });
 
@@ -40,7 +42,7 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
   page.on("pageerror", (error) => consoleErrors.push(error.stack ?? error.message));
 
   try {
-    await page.goto(`${baseUrl}/home/approach`, { waitUntil: "networkidle" });
+    await page.goto(`${appBaseUrl}/home/approach`, { waitUntil: "networkidle" });
     await page.waitForFunction(() => {
       const heading = document.querySelector(".stadium-approach-header h1");
       const surface = document.querySelector(".stadium-approach-surface");
