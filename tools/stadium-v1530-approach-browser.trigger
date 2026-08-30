@@ -1,1 +1,1 @@
-V15.30 browser approach verification rerun with /v2 route
+V15.30 browser verification after dropped-frame-safe camera timing
