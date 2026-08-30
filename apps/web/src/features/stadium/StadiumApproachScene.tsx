@@ -60,19 +60,21 @@ export function StadiumApproachScene({ mode, onComplete }: StadiumApproachSceneP
       renderer = null;
     }
 
-    if (!renderer) {
+    if (!renderer || !renderer.renderApproach) {
+      renderer?.destroy();
       setRenderState("INITIALIZING");
       setEffectiveMode(nextStadiumMode(effectiveMode));
       return;
     }
 
+    const renderApproach = renderer.renderApproach.bind(renderer);
     rendererRef.current = renderer;
     setRenderState("READY");
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
       renderer?.resize(rect.width, rect.height, window.devicePixelRatio || 1);
-      renderer?.renderApproach(progressRef.current);
+      renderApproach(progressRef.current);
     };
     resize();
 
@@ -101,7 +103,7 @@ export function StadiumApproachScene({ mode, onComplete }: StadiumApproachSceneP
     if (reducedMotion) {
       progressRef.current = 1;
       setProgress(1);
-      renderer.renderApproach(1);
+      renderApproach(1);
       onCompleteRef.current?.();
     } else {
       const durationMs = 4300;
@@ -110,7 +112,7 @@ export function StadiumApproachScene({ mode, onComplete }: StadiumApproachSceneP
       const tick = (now: number) => {
         const nextProgress = clamp01((now - start) / durationMs);
         progressRef.current = nextProgress;
-        renderer?.renderApproach(nextProgress);
+        renderApproach(nextProgress);
         if (nextProgress === 1 || nextProgress - lastPublished >= 0.025) {
           lastPublished = nextProgress;
           setProgress(nextProgress);
