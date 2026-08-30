@@ -1,0 +1,45 @@
+name: Stadium V15.26 Concourse Depth
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1526-concourse-depth.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add concourse and suite depth
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/three/stadiumWebglV14.ts')
+          text = path.read_text()
+          replacements = {
+              'emissiveIntensity: 0.20,': 'emissiveIntensity: 0.30,',
+              'emissiveIntensity: 0.22,': 'emissiveIntensity: 0.38,',
+              'emissiveIntensity: 1.7,': 'emissiveIntensity: 2.25,',
+              'new THREE.BoxGeometry(4.8, 2.75, 0.92)': 'new THREE.BoxGeometry(4.8, 2.75, 1.42)',
+              'new THREE.BoxGeometry(6.1, 1.82, 0.42)': 'new THREE.BoxGeometry(6.1, 1.82, 0.68)',
+              'new THREE.BoxGeometry(3.5, 0.11, 0.10)': 'new THREE.BoxGeometry(3.5, 0.16, 0.18)',
+          }
+          for old, new in replacements.items():
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'V15.26 expected one token, found {count}: {old}')
+              text = text.replace(old, new, 1)
+          path.write_text(text)
+          PY
+      - name: Commit V15.26 concourse depth
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts
+          git commit -m "feat: deepen V15.26 stadium concourse openings"
+          git push
