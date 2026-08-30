@@ -1,0 +1,49 @@
+name: Stadium V15.29 Crowd Silhouette
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1529-crowd-silhouette.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refine crowd silhouettes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/three/stadiumWebglV14.ts')
+          text = path.read_text()
+          replacements = {
+              'if (value > 0.72) return new THREE.Color(0x806653);': 'if (value > 0.72) return new THREE.Color(0x695242);',
+              'if (value > 0.40) return new THREE.Color(0x6d5142);': 'if (value > 0.40) return new THREE.Color(0x584338);',
+              'return new THREE.Color(0x59453b);': 'return new THREE.Color(0x473730);',
+              'new THREE.CylinderGeometry(0.22, 0.25, 0.60, 6, 1)': 'new THREE.CylinderGeometry(0.20, 0.16, 0.68, 6, 1)',
+              'new THREE.SphereGeometry(0.128, 8, 5)': 'new THREE.SphereGeometry(0.098, 7, 4)',
+              'dummy.scale.set(placement.scale, placement.scale, placement.scale);': 'dummy.scale.set(placement.scale * 0.82, placement.scale, placement.scale * 0.82);',
+              'dummy.position.set(placement.x, placement.y + 0.43 * placement.scale, placement.z);': 'dummy.position.set(placement.x, placement.y + 0.405 * placement.scale, placement.z);',
+              'dummy.scale.setScalar(placement.scale);': 'dummy.scale.setScalar(placement.scale * 0.92);',
+              'bodies.castShadow = true;': 'bodies.castShadow = false;',
+              'heads.castShadow = true;': 'heads.castShadow = false;',
+          }
+          for old, new in replacements.items():
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'V15.29 expected one token, found {count}: {old}')
+              text = text.replace(old, new, 1)
+          path.write_text(text)
+          PY
+      - name: Commit V15.29 crowd silhouettes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts
+          git commit -m "feat: refine V15.29 stadium crowd silhouettes"
+          git push
