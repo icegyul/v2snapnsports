@@ -1,9 +1,9 @@
 .shell-main.stadium-home-page .stadium-hero{
-      background:
-        radial-gradient(ellipse at 52% 9%,rgba(92,119,139,.22) 0%,rgba(40,58,72,.11) 28%,rgba(5,11,17,0) 58%),
-        linear-gradient(180deg,#0b1218 0%,#101a22 32%,#050a0f 74%,#020507 100%)!important;
-    }
-    .shell-main.stadium-home-page .stadium-webgl-canvas{
+  background:
+    radial-gradient(ellipse at 52% 9%,rgba(92,119,139,.22) 0%,rgba(40,58,72,.11) 28%,rgba(5,11,17,0) 58%),
+    linear-gradient(180deg,#0b1218 0%,#101a22 32%,#050a0f 74%,#020507 100%)!important;
+}
+.shell-main.stadium-home-page .stadium-webgl-canvas{
   transform:translateY(-1%) scale(1.03)!important;
   transform-origin:50% 50%!important;
   filter:saturate(.90) contrast(1.10) brightness(.99) drop-shadow(0 24px 42px rgba(0,0,0,.48))!important;
@@ -24,6 +24,81 @@
 .shell-main.stadium-home-page .stadium-world::after{
   opacity:.24!important;
 }
+
+@media(min-width:561px){
+  .shell-main.stadium-home-page{
+    position:relative!important;
+    display:block!important;
+    width:100%!important;
+    height:calc(100dvh - 64px)!important;
+    min-height:calc(100dvh - 64px)!important;
+    padding:12px 18px!important;
+    overflow:hidden!important;
+  }
+  .shell-main.stadium-home-page .stadium-home-header{
+    position:absolute!important;
+    z-index:24!important;
+    top:28px!important;
+    left:38px!important;
+    right:38px!important;
+    display:block!important;
+    width:auto!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    padding:0!important;
+    pointer-events:none!important;
+    overflow:visible!important;
+  }
+  .shell-main.stadium-home-page .stadium-home-kicker{
+    margin:0 0 7px!important;
+    opacity:.64!important;
+    text-shadow:0 2px 16px rgba(0,0,0,.88)!important;
+  }
+  .shell-main.stadium-home-page .stadium-home-header h1{
+    margin:0!important;
+    font-size:clamp(38px,3.25vw,50px)!important;
+    line-height:.94!important;
+    letter-spacing:-.045em!important;
+    color:rgba(244,248,252,.96)!important;
+    text-shadow:0 4px 28px rgba(0,0,0,.88)!important;
+  }
+  .shell-main.stadium-home-page .stadium-home-team,
+  .shell-main.stadium-home-page .stadium-demo-badge{
+    display:none!important;
+  }
+  .shell-main.stadium-home-page .stadium-hero{
+    position:absolute!important;
+    inset:12px 18px 12px 18px!important;
+    width:auto!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    border-radius:28px!important;
+    overflow:hidden!important;
+  }
+  .shell-main.stadium-home-page .stadium-webgl-canvas{
+    transform:translateY(0) scale(1.06)!important;
+    transform-origin:50% 52%!important;
+  }
+  .shell-main.stadium-home-page .stadium-state-layer{
+    top:112px!important;
+    left:24px!important;
+    width:min(280px,24vw)!important;
+  }
+  .shell-main.stadium-home-page .stadium-quality-chip{
+    top:22px!important;
+    right:22px!important;
+    opacity:.66!important;
+  }
+  .shell-main.stadium-home-page .stadium-enter-cue{
+    bottom:24px!important;
+  }
+  .shell-main.stadium-home-page .stadium-identity-indicator{
+    bottom:22px!important;
+  }
+}
+
 @media(max-width:560px){
   .shell-main.stadium-home-page{
     position:relative!important;
