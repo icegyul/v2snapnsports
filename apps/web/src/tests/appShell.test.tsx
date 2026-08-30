@@ -19,7 +19,7 @@ describe("design-independent player shell", () => {
     render(<AppShell initialPath="/home" />);
 
     expect(await screen.findByRole("heading", { name: "나의 경기장" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "경기장으로 들어가기" })).toHaveAttribute("href", "/home/approach");
+    expect(screen.getByRole("link", { name: "경기장으로 들어가기" })).toHaveAttribute("href", "/home/full");
   });
 
   it("shows only player and manager on the public role selection route", () => {
