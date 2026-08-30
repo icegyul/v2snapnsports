@@ -1,1 +1,1 @@
-V15.30 browser verification after dropped-frame-safe camera timing
+V15.30 browser verification after yielded camera scheduling and lower evidence contention
