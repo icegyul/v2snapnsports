@@ -1,0 +1,50 @@
+name: Stadium V15.39 Default Full Entry
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1539-default-full-entry.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Activate verified full entry and stabilize audio verifier
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          pages = Path('apps/web/src/features/stadium/PlayerStadiumPages.tsx')
+          text = pages.read_text()
+          replacements = {
+            '<Stadium3DScene mode={home.visualMode} onEnter={() => navigate("/home/approach")} />': '<Stadium3DScene mode={home.visualMode} onEnter={() => navigate("/home/full")} />',
+            '<Link className="surface-link stadium-enter-link" to="/home/approach">경기장으로 들어가기</Link>': '<Link className="surface-link stadium-enter-link" to="/home/full">경기장으로 들어가기</Link>',
+          }
+          for old, new in replacements.items():
+            count = text.count(old)
+            if count != 1:
+              raise SystemExit(f'default full entry token mismatch {count}: {old}')
+            text = text.replace(old, new, 1)
+          pages.write_text(text)
+
+          audio = Path('tools/capture_stadium_audio.mjs')
+          text = audio.read_text()
+          old = '''    await page.getByRole("button", { name: "경기장 사운드 음소거" }).click();\n    await page.waitForSelector(".stadium-audio-dock[data-audio-state='MUTED']", { timeout: 5000 });\n    const muted = await audioState(page);'''
+          new = '''    await page.getByRole("button", { name: "경기장 사운드 음소거" }).click();\n    await page.waitForFunction(() => {\n      const dock = document.querySelector(".stadium-audio-dock");\n      if (!dock || dock.getAttribute("data-audio-state") !== "MUTED") return false;\n      const box = dock.getBoundingClientRect();\n      return box.width >= 44 && box.height >= 40;\n    }, { timeout: 10000 });\n    const muted = await audioState(page);'''
+          if text.count(old) != 1:
+            raise SystemExit('audio muted wait token mismatch')
+          audio.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit activation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/features/stadium/PlayerStadiumPages.tsx tools/capture_stadium_audio.mjs
+          git commit -m "feat: activate verified V15.39 full stadium entry"
+          git push
