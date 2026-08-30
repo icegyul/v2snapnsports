@@ -845,7 +845,7 @@ function addStadiumOpenings(
     new THREE.MeshStandardMaterial({
       color: 0x11161b,
       emissive: 0x1d1308,
-      emissiveIntensity: 0.20,
+      emissiveIntensity: 0.30,
       roughness: 0.88,
       metalness: 0.04,
     }),
@@ -855,7 +855,7 @@ function addStadiumOpenings(
     new THREE.MeshPhysicalMaterial({
       color: 0x243946,
       emissive: 0x07131b,
-      emissiveIntensity: 0.22,
+      emissiveIntensity: 0.38,
       roughness: 0.20,
       metalness: 0.20,
       clearcoat: 0.28,
@@ -867,14 +867,14 @@ function addStadiumOpenings(
     new THREE.MeshStandardMaterial({
       color: 0xffe7b0,
       emissive: 0xffcc7c,
-      emissiveIntensity: 1.7,
+      emissiveIntensity: 2.25,
       roughness: 0.42,
       metalness: 0.04,
     }),
   );
-  const portalGeometry = addDisposable(geometries, new THREE.BoxGeometry(4.8, 2.75, 0.92));
-  const suiteGeometry = addDisposable(geometries, new THREE.BoxGeometry(6.1, 1.82, 0.42));
-  const corridorGeometry = addDisposable(geometries, new THREE.BoxGeometry(3.5, 0.11, 0.10));
+  const portalGeometry = addDisposable(geometries, new THREE.BoxGeometry(4.8, 2.75, 1.42));
+  const suiteGeometry = addDisposable(geometries, new THREE.BoxGeometry(6.1, 1.82, 0.68));
+  const corridorGeometry = addDisposable(geometries, new THREE.BoxGeometry(3.5, 0.16, 0.18));
   for (const [rx, rz, y, count] of [[69, 48.5, 6.0, 7], [88, 62.0, 17.0, 8], [106, 75.0, 28.0, 6]] as const) {
     for (let i = 0; i < count; i += 1) {
       const angle = Math.PI + ((i + 0.5) / count) * Math.PI;
