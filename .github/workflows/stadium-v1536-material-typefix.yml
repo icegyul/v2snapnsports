@@ -1,0 +1,36 @@
+name: Stadium V15.36 Material Type Fix
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1536-material-typefix.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix projection ring material typing
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/three/stadiumWebglV14.ts')
+          text = path.read_text()
+          old = '    projectionRingMaterial.emissiveIntensity = 1.4 + reveal * 2.2;'
+          new = '    (projectionRingMaterial as THREE.MeshStandardMaterial).emissiveIntensity = 1.4 + reveal * 2.2;'
+          if text.count(old) != 1:
+              raise SystemExit(f'V15.36 material typefix anchor mismatch: {text.count(old)}')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit V15.36 material type fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts
+          git commit -m "fix: type V15.36 projection ring material"
+          git push
