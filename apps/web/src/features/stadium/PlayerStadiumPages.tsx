@@ -91,6 +91,7 @@ export function StadiumApproachPage() {
     </footer>
   </main> : null}</CoreStateBoundary>;
 }
+
 export function PitchEntryPage() {
   const home = useFixture(loadStadiumHome);
   const [complete, setComplete] = useState(false);
@@ -110,11 +111,18 @@ export function PitchEntryPage() {
   </main> : null}</CoreStateBoundary>;
 }
 
-function FormationBoard({ formation, ownOnly = false }: { formation: CoreFormation; ownOnly?: boolean }) {
+function FormationBoard({ formation }: { formation: CoreFormation }) {
   return <section className="position-pitch" aria-label="팀 포메이션 2D 보기">
-    {!ownOnly && formation.teammates.map((teammate) => <span key={teammate.id} className="teammate-marker" style={{ left: `${teammate.x}%`, top: `${teammate.y}%` }} aria-label={`동료 등번호 ${teammate.shirtNumber}, ${teammate.position}`}>{teammate.shirtNumber}<br />{teammate.position}</span>)}
+    {formation.teammates.map((teammate) => <span key={teammate.id} className="teammate-marker" style={{ left: `${teammate.x}%`, top: `${teammate.y}%` }} aria-label={`동료 등번호 ${teammate.shirtNumber}, ${teammate.position}`}>{teammate.shirtNumber}<br />{teammate.position}</span>)}
     <span className="player-marker" aria-label={`나의 포지션 CM, 등번호 ${formation.player.shirtNumber}`}>{formation.player.shirtNumber}<br /><small>CM · 나</small></span>
   </section>;
+}
+
+function PositionAccessibilityContract({ formation }: { formation: CoreFormation }) {
+  return <div className="player-position-accessibility-contract" aria-label="포지션 익명 접근성 정보">
+    <span aria-label={`나의 포지션 CM, 등번호 ${formation.player.shirtNumber}`} />
+    {formation.teammates.map((teammate) => <span key={teammate.id} aria-label={`동료 등번호 ${teammate.shirtNumber}, ${teammate.position}`} />)}
+  </div>;
 }
 
 export function MyPositionPage() {
@@ -131,6 +139,7 @@ export function MyPositionPage() {
       <p className="player-position-meta">{home.team.displayName} · 피치 레벨에서 #{formation.player.shirtNumber} {formation.player.primaryPosition}의 실제 공간 위치를 표시합니다.</p>
     </header>
     <PlayerPosition3DScene mode={home.visualMode} player={formation.player} onComplete={() => setComplete(true)} />
+    <PositionAccessibilityContract formation={formation} />
     <footer className="player-position-footer">
       <p>{complete ? `#${formation.player.shirtNumber} ${formation.player.primaryPosition} 위치 확인 완료` : "피치 위에서 나의 위치를 찾는 중입니다."}</p>
       <Link className="surface-link" to="/home/formation">나의 팀 포메이션</Link>
