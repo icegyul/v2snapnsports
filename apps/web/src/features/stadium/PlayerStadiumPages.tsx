@@ -56,7 +56,7 @@ function StadiumExteriorContent({ home }: { home: CoreStadiumHome }) {
         <span>{home.scoreboardLabel}</span>
       </div>
 
-      <Stadium3DScene mode={home.visualMode} onEnter={() => navigate("/home/approach")} />
+      <Stadium3DScene mode={home.visualMode} onEnter={() => navigate("/home/full")} />
 
       <div className="stadium-identity-indicator">
         <span className="stadium-identity-number" aria-hidden="true">{home.player.shirtNumber}</span>
@@ -71,7 +71,7 @@ function StadiumExteriorContent({ home }: { home: CoreStadiumHome }) {
 
     <footer className="stadium-home-footer">
       <p>좌우로 둘러보고 두 손가락으로 확대할 수 있습니다. 위로 밀어도 입장합니다.</p>
-      <Link className="surface-link stadium-enter-link" to="/home/approach">경기장으로 들어가기</Link>
+      <Link className="surface-link stadium-enter-link" to="/home/full">경기장으로 들어가기</Link>
     </footer>
   </main>;
 }

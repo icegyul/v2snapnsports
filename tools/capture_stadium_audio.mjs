@@ -72,7 +72,12 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
     const enabledApproach = await audioState(page);
 
     await page.getByRole("button", { name: "경기장 사운드 음소거" }).click();
-    await page.waitForSelector(".stadium-audio-dock[data-audio-state='MUTED']", { timeout: 5000 });
+    await page.waitForFunction(() => {
+      const dock = document.querySelector(".stadium-audio-dock");
+      if (!dock || dock.getAttribute("data-audio-state") !== "MUTED") return false;
+      const box = dock.getBoundingClientRect();
+      return box.width >= 44 && box.height >= 40;
+    }, { timeout: 10000 });
     const muted = await audioState(page);
 
     await page.getByRole("button", { name: "경기장 사운드 다시 켜기" }).click();
