@@ -1,1 +1,1 @@
-V15.34 verify real connected formation markers after texture contract fix; privacy semantics + desktop/mobile WebGL evidence
+V15.34 rerun after texture type fix and proven Vite/Playwright browser harness alignment
