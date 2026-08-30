@@ -1,1 +1,1 @@
-rerun stadium audio acceptance after canonical href tests update
+rerun stadium audio acceptance on full-entry-aware verifier and builder-test head
