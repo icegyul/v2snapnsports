@@ -113,7 +113,7 @@ for (const result of results) {
     && result.end.complete === "true"
     && result.end.progress === 1
     && result.end.idVisible
-    && result.end.label === "CM · 나"
+    && result.end.label === "중앙 미드필더 · 나"
     && result.frameChangedStartToMid
     && result.frameChangedMidToEnd
     && result.consoleErrors.length === 0;
