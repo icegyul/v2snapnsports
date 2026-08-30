@@ -37,6 +37,10 @@ export interface StadiumRecipe {
   seatColor: number;
   accentColor: number;
   columnStyle: StadiumColumnStyle;
+  seatPattern?: "MONO" | "DUO" | "GRADIENT";
+  facadeProfile?: "SOLID_RIB" | "GLASS_BAND" | "LIGHT_FRAME";
+  lightingProfile?: "DAYLIGHT" | "BALANCED" | "EVENT";
+  environmentProfile?: "URBAN" | "PARK" | "COASTAL" | "CIVIC" | "NIGHT_EVENT";
 }
 
 export const BASE_STADIUM_RECIPE: StadiumRecipe = {
@@ -625,7 +629,15 @@ function addSeatBacks(
       dummy.updateMatrix();
       seats.setMatrixAt(index, dummy.matrix);
       const section = Math.floor(slot / 24);
-      seats.setColorAt(index, section % 13 === 0 ? accentColor : baseColor);
+      const seatPattern = recipe.seatPattern ?? "DUO";
+      const color = seatPattern === "MONO"
+        ? baseColor
+        : seatPattern === "GRADIENT"
+          ? baseColor.clone().lerp(accentColor, 0.12 + 0.72 * ((slot % spec.peoplePerRow) / Math.max(1, spec.peoplePerRow - 1)))
+          : section % 13 === 0
+            ? accentColor
+            : baseColor;
+      seats.setColorAt(index, color);
       index += 1;
     }
   }
@@ -971,20 +983,33 @@ function addExteriorFacade(
   materials: Set<THREE.Material>,
   recipe: StadiumRecipe,
 ): void {
+  const environment = recipe.environmentProfile ?? "CIVIC";
+  const facade = recipe.facadeProfile ?? "GLASS_BAND";
+  const plazaColor = environment === "PARK"
+    ? 0x17221b
+    : environment === "COASTAL"
+      ? 0x142129
+      : environment === "NIGHT_EVENT"
+        ? 0x090d12
+        : environment === "URBAN"
+          ? 0x15191e
+          : 0x151b20;
+  const baseColor = facade === "SOLID_RIB" ? 0x30363c : facade === "LIGHT_FRAME" ? 0x414a51 : 0x343b42;
+  const upperColor = facade === "SOLID_RIB" ? 0x313941 : facade === "LIGHT_FRAME" ? 0x596873 : 0x414d58;
   const plazaMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: 0x151b20, roughness: 0.98, metalness: 0.02 }),
+    new THREE.MeshStandardMaterial({ color: plazaColor, roughness: 0.98, metalness: 0.02 }),
   );
   const baseMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: 0x343b42, roughness: 0.84, metalness: 0.12, side: THREE.DoubleSide }),
+    new THREE.MeshStandardMaterial({ color: baseColor, roughness: facade === "LIGHT_FRAME" ? 0.66 : 0.84, metalness: facade === "LIGHT_FRAME" ? 0.34 : 0.12, side: THREE.DoubleSide }),
   );
   const upperMaterial = addDisposable(
     materials,
     new THREE.MeshPhysicalMaterial({
-      color: 0x414d58,
-      roughness: 0.46,
-      metalness: 0.58,
+      color: upperColor,
+      roughness: facade === "SOLID_RIB" ? 0.58 : 0.46,
+      metalness: facade === "LIGHT_FRAME" ? 0.72 : 0.58,
       clearcoat: 0.10,
       clearcoatRoughness: 0.58,
       side: THREE.DoubleSide,
@@ -993,13 +1018,13 @@ function addExteriorFacade(
   const glassMaterial = addDisposable(
     materials,
     new THREE.MeshPhysicalMaterial({
-      color: 0x17303e,
-      emissive: 0x07131a,
-      emissiveIntensity: 0.44,
-      roughness: 0.18,
-      metalness: 0.18,
+      color: facade === "LIGHT_FRAME" ? 0x24485c : facade === "SOLID_RIB" ? 0x162631 : 0x17303e,
+      emissive: facade === "LIGHT_FRAME" ? recipe.accentColor : 0x07131a,
+      emissiveIntensity: facade === "LIGHT_FRAME" ? 0.18 : 0.44,
+      roughness: facade === "SOLID_RIB" ? 0.30 : 0.18,
+      metalness: facade === "LIGHT_FRAME" ? 0.28 : 0.18,
       transparent: true,
-      opacity: 0.78,
+      opacity: facade === "SOLID_RIB" ? 0.56 : 0.78,
       clearcoat: 0.32,
       clearcoatRoughness: 0.22,
       side: THREE.DoubleSide,
@@ -1007,7 +1032,13 @@ function addExteriorFacade(
   );
   const finMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: 0x929da6, roughness: 0.38, metalness: 0.70 }),
+    new THREE.MeshStandardMaterial({
+      color: facade === "LIGHT_FRAME" ? recipe.accentColor : facade === "SOLID_RIB" ? 0x6f7780 : 0x929da6,
+      emissive: facade === "LIGHT_FRAME" ? recipe.accentColor : 0x000000,
+      emissiveIntensity: facade === "LIGHT_FRAME" ? 0.20 : 0,
+      roughness: facade === "SOLID_RIB" ? 0.52 : 0.38,
+      metalness: 0.70,
+    }),
   );
   const entranceMaterial = addDisposable(
     materials,
@@ -1291,18 +1322,31 @@ export function createStadiumWebglRenderer(
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.02;
+  const lightingProfile = recipe.lightingProfile ?? "BALANCED";
+  renderer.toneMappingExposure = lightingProfile === "DAYLIGHT" ? 0.94 : lightingProfile === "EVENT" ? 1.16 : 1.02;
   renderer.shadowMap.enabled = mode === "FULL";
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x0c141c, 112, 275);
+  const environmentProfile = recipe.environmentProfile ?? "CIVIC";
+  const fogColor = environmentProfile === "PARK"
+    ? 0x0d1a13
+    : environmentProfile === "COASTAL"
+      ? 0x0b1b25
+      : environmentProfile === "NIGHT_EVENT"
+        ? 0x050911
+        : environmentProfile === "URBAN"
+          ? 0x11161b
+          : 0x0c141c;
+  const fogNear = environmentProfile === "NIGHT_EVENT" ? 92 : environmentProfile === "COASTAL" ? 124 : 112;
+  const fogFar = environmentProfile === "PARK" ? 245 : environmentProfile === "NIGHT_EVENT" ? 230 : 275;
+  scene.fog = new THREE.Fog(fogColor, fogNear, fogFar);
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
   const textures = new Set<THREE.Texture>();
   const environmentTexture = makeEnvironmentTexture(textures);
   scene.environment = environmentTexture;
-  scene.environmentIntensity = 0.72;
+  scene.environmentIntensity = environmentProfile === "DAYLIGHT" ? 0.78 : environmentProfile === "NIGHT_EVENT" ? 0.58 : environmentProfile === "COASTAL" ? 0.82 : 0.72;
   const stadium = buildStadium(scene, renderer, mode, recipe, geometries, materials, textures);
   const liveScoreboardTexture = stadium.userData.scoreboardTexture as THREE.Texture | undefined;
 

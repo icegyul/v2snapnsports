@@ -74,6 +74,10 @@ describe("Stadium Builder model", () => {
       seatColor: 0x17344f,
       accentColor: 0x159bd2,
       columnStyle: "y",
+      seatPattern: "DUO",
+      facadeProfile: "GLASS_BAND",
+      lightingProfile: "BALANCED",
+      environmentProfile: "CIVIC",
     });
   });
 

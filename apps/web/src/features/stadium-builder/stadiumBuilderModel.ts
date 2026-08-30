@@ -229,6 +229,10 @@ export function stadiumBuilderDraftToRecipe(draft: StadiumBuilderDraft): Stadium
     seatColor: parseColor(draft.seat.primaryColor, 0x17344f),
     accentColor: parseColor(draft.seat.accentColor, 0x159bd2),
     columnStyle,
+    seatPattern: draft.seat.pattern,
+    facadeProfile: draft.facadeLight.facade,
+    lightingProfile: draft.facadeLight.lighting,
+    environmentProfile: draft.environment.profile,
   };
 }
 
