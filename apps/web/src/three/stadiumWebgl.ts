@@ -20,3 +20,4 @@ import "../features/stadium/stadiumV145ViewportFill.css";
 import "../features/stadium/stadiumV149Cinematic.css";
 export { createStadiumWebglRenderer } from "./stadiumWebglV151";
 export type { StadiumWebglRenderer } from "./stadiumWebglV151";
+export type { StadiumTeamMarker } from "./stadiumWebglV14";
