@@ -1,1 +1,1 @@
-V15.30 desktop and mobile browser approach verification rerun after wrapper compatibility fix
+V15.30 browser approach verification rerun after Buffer lint fix
