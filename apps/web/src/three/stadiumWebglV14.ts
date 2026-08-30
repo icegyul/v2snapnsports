@@ -73,22 +73,22 @@ function makePitchTexture(textures: Set<THREE.Texture>): THREE.Texture {
 
   const stripe = canvas.width / 20;
   for (let i = 0; i < 24; i += 1) {
-    ctx.fillStyle = i % 2 === 0 ? "#1a4c2d" : "#205532";
+    ctx.fillStyle = i % 2 === 0 ? "#183d28" : "#1d472c";
     ctx.fillRect(i * stripe, 0, stripe + 1, canvas.height);
   }
 
   const vignette = ctx.createRadialGradient(525, 340, 40, 525, 340, 660);
-  vignette.addColorStop(0, "rgba(255,255,225,0.045)");
+  vignette.addColorStop(0, "rgba(238,244,222,0.026)");
   vignette.addColorStop(0.56, "rgba(0,0,0,0)");
-  vignette.addColorStop(1, "rgba(0,18,8,0.12)");
+  vignette.addColorStop(1, "rgba(0,12,6,0.18)");
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.globalAlpha = 0.075;
+  ctx.globalAlpha = 0.055;
   for (let i = 0; i < 5200; i += 1) {
     const x = (i * 131) % canvas.width;
     const y = (i * 71 + (i % 17) * 19) % canvas.height;
-    ctx.fillStyle = i % 3 === 0 ? "#b7d39c" : "#071b0c";
+    ctx.fillStyle = i % 3 === 0 ? "#8da77c" : "#0a180e";
     ctx.fillRect(x, y, 1, 1);
   }
   ctx.globalAlpha = 1;
@@ -430,19 +430,19 @@ function addGoal(
 
 function crowdShirt(seed: number, accent: THREE.Color): THREE.Color {
   const value = hash(seed, 4);
-  if (value > 0.965) return accent.clone().multiplyScalar(0.62 + hash(seed, 7) * 0.18);
-  if (value > 0.925) return new THREE.Color(0x553632);
-  if (value > 0.80) return new THREE.Color(0x615f5a);
-  if (value > 0.55) return new THREE.Color(0x474c52);
-  if (value > 0.30) return new THREE.Color(0x343b43);
-  return new THREE.Color(0x1d2329);
+  if (value > 0.985) return accent.clone().multiplyScalar(0.42 + hash(seed, 7) * 0.14);
+  if (value > 0.925) return new THREE.Color(0x40383a);
+  if (value > 0.80) return new THREE.Color(0x53544f);
+  if (value > 0.55) return new THREE.Color(0x41464a);
+  if (value > 0.30) return new THREE.Color(0x30363b);
+  return new THREE.Color(0x20262b);
 }
 
 function crowdSkin(seed: number): THREE.Color {
   const value = hash(seed, 8);
-  if (value > 0.72) return new THREE.Color(0x8f6c59);
-  if (value > 0.40) return new THREE.Color(0x785442);
-  return new THREE.Color(0x5e4337);
+  if (value > 0.72) return new THREE.Color(0x806653);
+  if (value > 0.40) return new THREE.Color(0x6d5142);
+  return new THREE.Color(0x59453b);
 }
 
 function crowdPlacements(spec: TierSpec, recipe: StadiumRecipe): CrowdPlacement[] {
@@ -797,10 +797,10 @@ function addLightGlows(
   }
 }
 function addLighting(scene: THREE.Scene, highQuality: boolean): void {
-  scene.add(new THREE.HemisphereLight(0xc8d9eb, 0x101811, 0.96));
-  scene.add(new THREE.AmbientLight(0xeaf2f7, 0.18));
+  scene.add(new THREE.HemisphereLight(0xc3d2df, 0x101611, 0.84));
+  scene.add(new THREE.AmbientLight(0xdce6ec, 0.15));
 
-  const key = new THREE.DirectionalLight(0xeaf3ff, 1.55);
+  const key = new THREE.DirectionalLight(0xe7eff5, 1.38);
   key.position.set(-48, 72, 24);
   key.castShadow = highQuality;
   if (highQuality) {
@@ -815,7 +815,7 @@ function addLighting(scene: THREE.Scene, highQuality: boolean): void {
   }
   scene.add(key);
 
-  const fill = new THREE.DirectionalLight(0xffe1ad, 0.55);
+  const fill = new THREE.DirectionalLight(0xffdfb0, 0.38);
   fill.position.set(54, 38, -42);
   scene.add(fill);
 
@@ -917,7 +917,7 @@ function buildStadium(
   grassBumpTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const pitchMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ map: grassTexture, bumpMap: grassBumpTexture, bumpScale: 0.038, roughness: 0.91, metalness: 0.0 }),
+    new THREE.MeshStandardMaterial({ map: grassTexture, bumpMap: grassBumpTexture, bumpScale: 0.028, roughness: 0.96, metalness: 0.0 }),
   );
   const concreteMaterial = addDisposable(
     materials,
