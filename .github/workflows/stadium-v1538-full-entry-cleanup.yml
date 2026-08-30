@@ -15,46 +15,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Clean full entry contract and audio route
+      - name: Clean full entry browser verifier
         run: |
           python - <<'PY'
           from pathlib import Path
-
-          full = Path('apps/web/src/features/stadium/FullStadiumJourneyScene.tsx')
-          text = full.read_text()
-          replacements = {
-            'import type { CoreFormation, CoreSpatialHome, CoreStadiumHome, CoreVisualMode } from "../../api/coreProductContracts";': 'import type { CoreFormation, CoreSpatialHome, CoreVisualMode } from "../../api/coreProductContracts";',
-            '  readonly home: CoreStadiumHome;\n': '',
-            'export function FullStadiumJourneyScene({ mode, home, formation, spatial }: FullStadiumJourneySceneProps) {': 'export function FullStadiumJourneyScene({ mode, formation, spatial }: FullStadiumJourneySceneProps) {',
-            '<button className="full-journey-skip" type="button" onClick={finishImmediately}>': '<button className="full-journey-skip" type="button" onClick={finishImmediately} disabled={renderState !== "READY"}>',
-          }
-          for old, new in replacements.items():
-            count = text.count(old)
-            if count != 1:
-              raise SystemExit(f'full entry cleanup token mismatch {count}: {old}')
-            text = text.replace(old, new, 1)
-          full.write_text(text)
-
-          pages = Path('apps/web/src/features/stadium/PlayerStadiumPages.tsx')
-          text = pages.read_text()
-          old = '<FullStadiumJourneyScene mode={home.visualMode} home={home} formation={formation} spatial={spatial} />'
-          new = '<FullStadiumJourneyScene mode={home.visualMode} formation={formation} spatial={spatial} />'
+          path = Path('tools/capture_full_stadium_journey.mjs')
+          text = path.read_text()
+          old = '''      return surface?.getAttribute("data-render-state") === "READY"\n        && button instanceof HTMLButtonElement\n        && !button.disabled;'''
+          new = '''      return surface?.getAttribute("data-render-state") === "READY"\n        && Boolean(button)\n        && !button.hasAttribute("disabled");'''
           if text.count(old) != 1:
-            raise SystemExit('full journey page prop token mismatch')
-          pages.write_text(text.replace(old, new, 1))
-
-          dock = Path('apps/web/src/features/stadium/StadiumAudioDock.tsx')
-          text = dock.read_text()
-          old = '  if (pathname === "/home") return "HOME";\n  if (pathname === "/home/approach") return "APPROACH";'
-          new = '  if (pathname === "/home") return "HOME";\n  if (pathname === "/home/full") return "APPROACH";\n  if (pathname === "/home/approach") return "APPROACH";'
-          if text.count(old) != 1:
-            raise SystemExit('full journey audio route token mismatch')
-          dock.write_text(text.replace(old, new, 1))
+            raise SystemExit('full entry verifier button token mismatch')
+          path.write_text(text.replace(old, new, 1))
           PY
-      - name: Commit cleanup
+      - name: Commit verifier cleanup
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- apps/web/src/features/stadium/FullStadiumJourneyScene.tsx apps/web/src/features/stadium/PlayerStadiumPages.tsx apps/web/src/features/stadium/StadiumAudioDock.tsx
-          git commit -m "fix: clean V15.38 full entry contract"
+          git add -- tools/capture_full_stadium_journey.mjs
+          git commit -m "fix: clean V15.38 full entry verifier"
           git push
