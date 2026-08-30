@@ -1346,7 +1346,7 @@ export function createStadiumWebglRenderer(
   const textures = new Set<THREE.Texture>();
   const environmentTexture = makeEnvironmentTexture(textures);
   scene.environment = environmentTexture;
-  scene.environmentIntensity = environmentProfile === "DAYLIGHT" ? 0.78 : environmentProfile === "NIGHT_EVENT" ? 0.58 : environmentProfile === "COASTAL" ? 0.82 : 0.72;
+  scene.environmentIntensity = lightingProfile === "DAYLIGHT" ? 0.78 : environmentProfile === "NIGHT_EVENT" ? 0.58 : environmentProfile === "COASTAL" ? 0.82 : 0.72;
   const stadium = buildStadium(scene, renderer, mode, recipe, geometries, materials, textures);
   const liveScoreboardTexture = stadium.userData.scoreboardTexture as THREE.Texture | undefined;
 
