@@ -431,11 +431,11 @@ function addGoal(
 function crowdShirt(seed: number, accent: THREE.Color): THREE.Color {
   const value = hash(seed, 4);
   if (value > 0.985) return accent.clone().multiplyScalar(0.42 + hash(seed, 7) * 0.14);
-  if (value > 0.925) return new THREE.Color(0x40383a);
-  if (value > 0.80) return new THREE.Color(0x53544f);
-  if (value > 0.55) return new THREE.Color(0x41464a);
-  if (value > 0.30) return new THREE.Color(0x30363b);
-  return new THREE.Color(0x20262b);
+  if (value > 0.925) return new THREE.Color(0x493b3c);
+  if (value > 0.80) return new THREE.Color(0x50534d);
+  if (value > 0.55) return new THREE.Color(0x454a4e);
+  if (value > 0.30) return new THREE.Color(0x343a3f);
+  return new THREE.Color(0x252b30);
 }
 
 function crowdSkin(seed: number): THREE.Color {
@@ -459,14 +459,14 @@ function crowdPlacements(spec: TierSpec, recipe: StadiumRecipe): CrowdPlacement[
       const seed = row * 10000 + slot;
       const section = Math.floor(slot / 18);
       const sectionNoise = hash(row * 83 + section * 19, 21);
-      const localDensity = Math.max(0.70, Math.min(0.97, recipe.crowdDensity + (sectionNoise - 0.5) * 0.30));
+      const localDensity = Math.max(0.62, Math.min(0.95, recipe.crowdDensity + (sectionNoise - 0.5) * 0.38));
       if (hash(seed, 1) > localDensity) continue;
-      const angle = ((slot + 0.5 + (row % 2) * 0.38) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.026;
-      const radial = (hash(seed, 10) - 0.5) * 0.48;
+      const angle = ((slot + 0.5 + (row % 2) * 0.38) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.052;
+      const radial = (hash(seed, 10) - 0.5) * 0.72;
       const scale = 0.78 + hash(seed, 3) * 0.48;
       result.push({
         x: Math.cos(angle) * (rowX + radial),
-        y: rowY + (hash(seed, 11) - 0.5) * 0.14,
+        y: rowY + (hash(seed, 11) - 0.5) * 0.22,
         z: Math.sin(angle) * (rowZ + radial * 0.72),
         angle,
         scale,
