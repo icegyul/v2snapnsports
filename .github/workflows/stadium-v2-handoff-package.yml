@@ -51,7 +51,7 @@ jobs:
           git status --short > "$ROOT/SOURCE_GIT_STATUS.txt"
           git log -50 --oneline --decorate > "$ROOT/RECENT_50_COMMITS.txt"
 
-          find "$REPO" -type f | sed "s#^$ROOT/##" | LC_ALL=C sort > "$ROOT/FILE_MANIFEST.txt"
+          find "$REPO" -type f -printf '%P\n' | LC_ALL=C sort > "$ROOT/FILE_MANIFEST.txt"
 
           cat > "$ROOT/README_FIRST_KO.md" <<'EOF'
           # SNAPN SPORTS V2 — 3D STADIUM 통합 인수인계 패키지
