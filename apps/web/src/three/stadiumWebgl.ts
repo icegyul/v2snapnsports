@@ -1,4 +1,4 @@
-// V15.13 PBR Base Stadium portrait-camera acceptance verification.
+// V15.15 PBR Base Stadium goal-axis mobile-camera acceptance verification.
 import "../features/stadium/stadiumCinematic.css";
 import "../features/stadium/stadiumFinal.css";
 import "../features/stadium/stadiumPremiumTuning.css";
