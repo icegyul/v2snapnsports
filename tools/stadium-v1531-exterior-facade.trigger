@@ -1,1 +1,1 @@
-V15.31 exterior plaza, concourse glass, upper facade, fins, entrances, and exterior accent rings
+V15.31 exterior facade rerun with standalone patch script
