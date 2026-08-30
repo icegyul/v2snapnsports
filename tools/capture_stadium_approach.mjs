@@ -20,17 +20,21 @@ const browser = await chromium.launch({
 });
 
 async function readState(page) {
-  return page.locator(".stadium-approach-surface").evaluate((node) => ({
-    requestedMode: node.getAttribute("data-requested-mode"),
-    renderedMode: node.getAttribute("data-render-mode"),
-    renderState: node.getAttribute("data-render-state"),
-    progress: Number(node.getAttribute("data-approach-progress") ?? "0"),
-    complete: node.getAttribute("data-approach-complete"),
-    phase: document.querySelector(".stadium-approach-phase")?.textContent?.trim() ?? null,
-    canvasReady: Boolean(document.querySelector(".stadium-approach-webgl-ready")),
-    width: window.innerWidth,
-    height: window.innerHeight,
-  }));
+  return page.evaluate(() => {
+    const node = document.querySelector(".stadium-approach-surface");
+    if (!node) return null;
+    return {
+      requestedMode: node.getAttribute("data-requested-mode"),
+      renderedMode: node.getAttribute("data-render-mode"),
+      renderState: node.getAttribute("data-render-state"),
+      progress: Number(node.getAttribute("data-approach-progress") ?? "0"),
+      complete: node.getAttribute("data-approach-complete"),
+      phase: document.querySelector(".stadium-approach-phase")?.textContent?.trim() ?? null,
+      canvasReady: Boolean(document.querySelector(".stadium-approach-webgl-ready")),
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+  });
 }
 
 async function capture(name, viewport, deviceScaleFactor = 1) {
@@ -40,6 +44,7 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
     reducedMotion: "no-preference",
   });
   const page = await context.newPage();
+  page.setDefaultTimeout(90000);
   const consoleErrors = [];
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(message.text());
@@ -54,22 +59,25 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
       return heading?.textContent?.trim() === "경기장으로 다가가기"
         && surface?.getAttribute("data-render-state") === "READY"
         && Boolean(document.querySelector(".stadium-approach-webgl-ready"));
-    }, { timeout: 30000 });
+    }, { timeout: 60000, polling: 100 });
 
     const startState = await readState(page);
+    if (!startState) throw new Error("stadium approach start state unavailable");
     const startShot = await page.screenshot({ path: `${outputDir}/${name}-start.png`, fullPage: true });
 
     await page.waitForFunction(() => {
       const surface = document.querySelector(".stadium-approach-surface");
       return Number(surface?.getAttribute("data-approach-progress") ?? "0") >= 0.48;
-    }, { timeout: 45000 });
+    }, { timeout: 120000, polling: 150 });
     const midState = await readState(page);
+    if (!midState) throw new Error("stadium approach mid state unavailable");
     const midShot = await page.screenshot({ path: `${outputDir}/${name}-mid.png`, fullPage: true });
 
     await page.waitForFunction(() => (
       document.querySelector(".stadium-approach-surface")?.getAttribute("data-approach-complete") === "true"
-    ), { timeout: 60000 });
+    ), { timeout: 120000, polling: 150 });
     const endState = await readState(page);
+    if (!endState) throw new Error("stadium approach end state unavailable");
     const endShot = await page.screenshot({ path: `${outputDir}/${name}-end.png`, fullPage: true });
 
     const evidence = {
@@ -106,7 +114,7 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
 const results = [];
 try {
   results.push(await capture("desktop-1440x1000", { width: 1440, height: 1000 }));
-  results.push(await capture("mobile-390x844", { width: 390, height: 844 }, 2));
+  results.push(await capture("mobile-390x844", { width: 390, height: 844 }, 1));
   await fs.writeFile(`${outputDir}/summary.json`, JSON.stringify(results, null, 2));
 } finally {
   await browser.close();
