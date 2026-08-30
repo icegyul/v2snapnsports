@@ -1,0 +1,26 @@
+name: Stadium V15.34 Team Formation
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1534-team-formation.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply V15.34 3D team formation
+        run: python tools/apply_v1534_team_formation.py
+      - name: Commit V15.34 team formation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts apps/web/src/three/stadiumWebglV151.ts apps/web/src/features/stadium/PlayerStadiumPages.tsx apps/web/src/features/stadium/TeamFormation3DScene.tsx
+          git commit -m "feat: build V15.34 3D team formation"
+          git push
