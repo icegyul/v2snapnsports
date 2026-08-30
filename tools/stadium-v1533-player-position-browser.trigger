@@ -1,1 +1,1 @@
-V15.33 desktop/mobile browser evidence for 3D CM position ring, beacon and camera reveal
+V15.33 rerun: preserve teammate privacy/accessibility contract while verifying localized 3D player position reveal
