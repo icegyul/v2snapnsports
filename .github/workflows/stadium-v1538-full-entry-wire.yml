@@ -1,0 +1,62 @@
+name: Stadium V15.38 Full Entry Wire
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1538-full-entry-wire.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wire continuous full entry route
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          pages = Path('apps/web/src/features/stadium/PlayerStadiumPages.tsx')
+          text = pages.read_text()
+          old = 'import { DigitalProjectionScene } from "./DigitalProjectionScene";\nimport "./stadium.css";'
+          new = 'import { DigitalProjectionScene } from "./DigitalProjectionScene";\nimport { FullStadiumJourneyScene } from "./FullStadiumJourneyScene";\nimport "./stadium.css";'
+          if text.count(old) != 1:
+              raise SystemExit('full entry import token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = 'import "./digitalProjection.css";\n'
+          new = 'import "./digitalProjection.css";\nimport "./fullStadiumJourney.css";\n'
+          if text.count(old) != 1:
+              raise SystemExit('full entry css token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = '''export function StadiumExteriorPage() {\n  const home = useFixture(loadStadiumHome);\n  return <CoreStateBoundary state={home ? "READY" : "LOADING"}>{home ? <StadiumExteriorContent home={home} /> : null}</CoreStateBoundary>;\n}\n\nexport function StadiumApproachPage() {'''
+          new = '''export function StadiumExteriorPage() {\n  const home = useFixture(loadStadiumHome);\n  return <CoreStateBoundary state={home ? "READY" : "LOADING"}>{home ? <StadiumExteriorContent home={home} /> : null}</CoreStateBoundary>;\n}\n\nexport function FullStadiumJourneyPage() {\n  const home = useFixture(loadStadiumHome);\n  const formation = useFixture(loadFormation);\n  const spatial = useFixture(loadSpatialHome);\n  const ready = Boolean(home && formation && spatial);\n  return <CoreStateBoundary state={ready ? "READY" : "LOADING"}>{home && formation && spatial ? <main className="shell-main full-journey-page">\n    <header className="full-journey-header">\n      <div>\n        <p className="eyebrow">STADIUM EXPERIENCE · FULL ENTRY</p>\n        <h1>경기장 입장</h1>\n      </div>\n      <p className="full-journey-meta">{home.team.displayName} · 외부 접근부터 Spatial Home까지 하나의 3D canvas에서 이어집니다.</p>\n    </header>\n    <FullStadiumJourneyScene mode={home.visualMode} home={home} formation={formation} spatial={spatial} />\n    <footer className="full-journey-footnote">\n      <p>FULL ENTRY · 접근 → 피치 → 프로젝션 → 나 → 포메이션 → Spatial Home</p>\n      {home.source === "SYNTHETIC_FIXTURE" && <p>데모 데이터 · 운영 데이터 연결 전</p>}\n    </footer>\n  </main> : null}</CoreStateBoundary>;\n}\n\nexport function StadiumApproachPage() {'''
+          if text.count(old) != 1:
+              raise SystemExit('full entry page token mismatch')
+          pages.write_text(text.replace(old, new, 1))
+
+          shell = Path('apps/web/src/app/AppShell.tsx')
+          text = shell.read_text()
+          old = 'import { DigitalProjectionPage, MyPositionPage, MyTeamFormationPage, PitchEntryPage, SpatialHomePage, StadiumApproachPage, StadiumExteriorPage } from "../features/stadium/PlayerStadiumPages";'
+          new = 'import { DigitalProjectionPage, FullStadiumJourneyPage, MyPositionPage, MyTeamFormationPage, PitchEntryPage, SpatialHomePage, StadiumApproachPage, StadiumExteriorPage } from "../features/stadium/PlayerStadiumPages";'
+          if text.count(old) != 1:
+              raise SystemExit('AppShell import token mismatch')
+          text = text.replace(old, new, 1)
+          old = '    <Route path="/home" element={<StadiumExteriorPage />} />\n    <Route path="/home/approach" element={<StadiumApproachPage />} />'
+          new = '    <Route path="/home" element={<StadiumExteriorPage />} />\n    <Route path="/home/full" element={<FullStadiumJourneyPage />} />\n    <Route path="/home/approach" element={<StadiumApproachPage />} />'
+          if text.count(old) != 1:
+              raise SystemExit('AppShell route token mismatch')
+          shell.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit full entry route
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/features/stadium/PlayerStadiumPages.tsx apps/web/src/app/AppShell.tsx
+          git commit -m "feat: wire continuous V15.38 stadium full entry route"
+          git push
