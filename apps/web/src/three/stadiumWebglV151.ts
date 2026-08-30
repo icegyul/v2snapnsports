@@ -33,14 +33,14 @@ export function createStadiumWebglRenderer(
       base.resize(width, height, dpr);
     },
     render(orbit: number, _zoom: number) {
-    if (portrait) {
-      base.render(orbit, 1.0);
-      return;
-    }
-    base.render(orbit - 5, 1.0);
-  },
+      if (portrait) {
+        base.render(orbit, 1.0);
+        return;
+      }
+      base.render(orbit - 5, 1.0);
+    },
     renderApproach(progress: number) {
-      base.renderApproach(progress);
+      base.renderApproach?.(progress);
     },
     destroy() {
       base.destroy();
