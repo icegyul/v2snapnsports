@@ -1,0 +1,129 @@
+.pitch-entry-page {
+  display: grid;
+  gap: 18px;
+  min-height: 100%;
+}
+
+.pitch-entry-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.pitch-entry-header h1 {
+  margin: 2px 0 0;
+}
+
+.pitch-entry-meta {
+  max-width: 580px;
+  margin: 0;
+  text-align: right;
+  color: var(--text-secondary, #aeb9c2);
+}
+
+.pitch-entry-surface {
+  position: relative;
+  min-height: clamp(480px, 68vh, 780px);
+  overflow: hidden;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 50% 62%, rgba(24, 102, 54, 0.18), transparent 42%),
+    linear-gradient(180deg, #111820 0%, #081015 100%);
+  box-shadow: inset 0 0 0 1px rgba(190, 216, 232, 0.10), 0 18px 50px rgba(0, 0, 0, 0.26);
+}
+
+.pitch-entry-webgl-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+.pitch-entry-webgl-ready {
+  opacity: 1;
+}
+
+.pitch-entry-hud {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 20px;
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid rgba(222, 238, 247, 0.13);
+  border-radius: 16px;
+  background: rgba(7, 12, 16, 0.62);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+
+.pitch-entry-phase {
+  color: #f1f6f8;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.pitch-entry-track {
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(220, 236, 244, 0.13);
+}
+
+.pitch-entry-track-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  background: linear-gradient(90deg, #5cc6ff, #d9f6ff);
+}
+
+.pitch-entry-steps {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(223, 237, 244, 0.62);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.pitch-entry-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pitch-entry-footer p {
+  margin: 0;
+  color: var(--text-secondary, #aeb9c2);
+}
+
+@media (max-width: 760px) {
+  .pitch-entry-header,
+  .pitch-entry-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pitch-entry-meta {
+    max-width: none;
+    text-align: left;
+  }
+
+  .pitch-entry-surface {
+    min-height: 66vh;
+    border-radius: 22px;
+  }
+
+  .pitch-entry-hud {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+  }
+}
