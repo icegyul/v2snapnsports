@@ -160,5 +160,7 @@
 
   .digital-projection-footer .surface-link {
     width: 100%;
+    margin-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+    scroll-margin-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
   }
 }
