@@ -1,0 +1,185 @@
+.team-formation-page {
+  display: grid;
+  gap: 18px;
+}
+
+.team-formation-header,
+.team-formation-footer {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.team-formation-header h1 {
+  margin: 2px 0 0;
+}
+
+.team-formation-meta,
+.team-formation-footer p {
+  margin: 0;
+  color: var(--text-secondary, #aeb9c2);
+}
+
+.team-formation-meta {
+  max-width: 600px;
+  text-align: right;
+}
+
+.team-formation-3d-surface {
+  position: relative;
+  min-height: clamp(500px, 68vh, 800px);
+  overflow: hidden;
+  border-radius: 28px;
+  background: linear-gradient(180deg, #0d151c, #07110d);
+  box-shadow: inset 0 0 0 1px rgba(203, 230, 242, 0.10), 0 18px 52px rgba(0, 0, 0, 0.27);
+}
+
+.team-formation-3d-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+.team-formation-3d-ready {
+  opacity: 1;
+}
+
+.team-formation-title-chip {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  display: grid;
+  gap: 1px;
+  padding: 9px 11px;
+  border: 1px solid rgba(207, 235, 247, 0.14);
+  border-radius: 14px;
+  background: rgba(6, 13, 17, 0.68);
+  backdrop-filter: blur(10px);
+  color: #edf8fb;
+  pointer-events: none;
+}
+
+.team-formation-title-chip strong {
+  font-size: 18px;
+}
+
+.team-formation-title-chip span {
+  font-size: 11px;
+  color: rgba(226, 241, 247, 0.68);
+}
+
+.team-formation-roster {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+  max-width: min(520px, 58%);
+  pointer-events: none;
+}
+
+.team-formation-roster span {
+  padding: 6px 9px;
+  border: 1px solid rgba(203, 229, 241, 0.12);
+  border-radius: 999px;
+  background: rgba(5, 12, 15, 0.58);
+  color: rgba(225, 239, 246, 0.42);
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.48;
+  transform: translateY(-3px);
+  transition: opacity 240ms ease, transform 240ms ease, color 240ms ease;
+}
+
+.team-formation-roster span.is-visible,
+.team-formation-roster .team-formation-own-chip {
+  opacity: 1;
+  transform: translateY(0);
+  color: #dff6ff;
+}
+
+.team-formation-roster .team-formation-own-chip {
+  border-color: rgba(92, 201, 255, 0.42);
+  background: rgba(8, 40, 55, 0.72);
+}
+
+.team-formation-hud {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 18px;
+  display: grid;
+  gap: 7px;
+  padding: 11px 13px;
+  border: 1px solid rgba(215, 238, 247, 0.13);
+  border-radius: 15px;
+  background: rgba(5, 13, 16, 0.66);
+  backdrop-filter: blur(10px);
+  color: #eef8fb;
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.team-formation-hud > div {
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(213, 236, 245, 0.12);
+}
+
+.team-formation-hud i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  background: linear-gradient(90deg, #45c7ff, #c7f4ff);
+}
+
+@media (max-width: 760px) {
+  .team-formation-page {
+    padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .team-formation-header,
+  .team-formation-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .team-formation-meta {
+    max-width: none;
+    text-align: left;
+  }
+
+  .team-formation-3d-surface {
+    min-height: 67vh;
+    border-radius: 22px;
+  }
+
+  .team-formation-title-chip {
+    left: 12px;
+    top: 12px;
+  }
+
+  .team-formation-roster {
+    left: 12px;
+    right: 12px;
+    top: auto;
+    bottom: 74px;
+    max-width: none;
+    justify-content: flex-start;
+  }
+
+  .team-formation-hud {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+  }
+}
