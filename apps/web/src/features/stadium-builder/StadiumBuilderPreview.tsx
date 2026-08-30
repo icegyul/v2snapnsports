@@ -13,6 +13,7 @@ export function StadiumBuilderPreview({ draft }: StadiumBuilderPreviewProps) {
   const rendererRef = useRef<StadiumWebglRenderer | null>(null);
   const [previewState, setPreviewState] = useState<PreviewState>("INITIALIZING");
   const [orbit, setOrbit] = useState(0);
+  const orbitRef = useRef(0);
   const dragStartRef = useRef<number | null>(null);
   const orbitStartRef = useRef(0);
 
@@ -20,6 +21,7 @@ export function StadiumBuilderPreview({ draft }: StadiumBuilderPreviewProps) {
     const canvas = canvasRef.current;
     rendererRef.current?.destroy();
     rendererRef.current = null;
+    setPreviewState("INITIALIZING");
     if (!canvas) return;
 
     let renderer: StadiumWebglRenderer | null = null;
@@ -38,7 +40,7 @@ export function StadiumBuilderPreview({ draft }: StadiumBuilderPreviewProps) {
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
       renderer?.resize(rect.width, rect.height, window.devicePixelRatio || 1);
-      renderer?.render(orbit, 1);
+      renderer?.render(orbitRef.current, 1);
     };
     resize();
 
@@ -59,12 +61,13 @@ export function StadiumBuilderPreview({ draft }: StadiumBuilderPreviewProps) {
   }, [draft]);
 
   useEffect(() => {
+    orbitRef.current = orbit;
     rendererRef.current?.render(orbit, 1);
   }, [orbit]);
 
   const pointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     dragStartRef.current = event.clientX;
-    orbitStartRef.current = orbit;
+    orbitStartRef.current = orbitRef.current;
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
@@ -75,7 +78,9 @@ export function StadiumBuilderPreview({ draft }: StadiumBuilderPreviewProps) {
 
   const pointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
     dragStartRef.current = null;
-    event.currentTarget.releasePointerCapture(event.pointerId);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
   };
 
   return (
