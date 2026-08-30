@@ -21,10 +21,6 @@ function useFixture<T>(load: () => Promise<T>) {
   return value;
 }
 
-function StaticScene({ label }: { label: string }) {
-  return <section className="stadium-surface" aria-label={`${label} STATIC 2D 대체 보기`}><div className="stadium-axis" /><div className="pitch-outline"><span>STATIC · 2D</span></div></section>;
-}
-
 function StadiumExteriorContent({ home }: { home: CoreStadiumHome }) {
   const navigate = useNavigate();
   const schedule = home.nextMatch.availability === "AVAILABLE"
