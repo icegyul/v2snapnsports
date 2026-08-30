@@ -158,7 +158,7 @@ export function MyTeamFormationPage() {
     <TeamFormation3DScene mode={home.visualMode} formation={formation} onComplete={() => setComplete(true)} />
     <footer className="team-formation-footer">
       <p>{complete ? `현재 연결된 ${formation.teammates.length + 1}명의 3D 위치 표시 완료` : "나의 위치를 기준으로 연결된 동료 위치를 펼치는 중입니다."}</p>
-      <Link className="surface-link" to="/home/team">나의 팀 공간으로</Link>
+      <Link className="surface-link team-formation-next-link" to="/home/team">나의 팀 공간으로</Link>
     </footer>
   </main> : null}</CoreStateBoundary>;
 }
