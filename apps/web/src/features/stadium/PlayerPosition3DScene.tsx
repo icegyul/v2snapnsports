@@ -14,7 +14,19 @@ type RenderState = "INITIALIZING" | "READY" | "FALLBACK";
 type PitchCoordinate = Readonly<{ x: number; z: number }>;
 
 function coordinateForPosition(position: string): PitchCoordinate {
-  switch (position.toUpperCase()) {
+  const normalized = position.trim().toUpperCase();
+  if (position.includes("골키퍼")) return { x: -45, z: 0 };
+  if (position.includes("왼쪽 풀백")) return { x: -28, z: -23 };
+  if (position.includes("오른쪽 풀백")) return { x: -28, z: 23 };
+  if (position.includes("수비형 미드필더")) return { x: -14, z: 0 };
+  if (position.includes("중앙 미드필더")) return { x: 0, z: 0 };
+  if (position.includes("공격형 미드필더")) return { x: 16, z: 0 };
+  if (position.includes("왼쪽 윙")) return { x: 24, z: -25 };
+  if (position.includes("오른쪽 윙")) return { x: 24, z: 25 };
+  if (position.includes("스트라이커") || position.includes("공격수")) return { x: 38, z: 0 };
+  if (position.includes("센터백") || position.includes("중앙 수비수")) return { x: -30, z: 0 };
+
+  switch (normalized) {
     case "GK": return { x: -45, z: 0 };
     case "LB": return { x: -28, z: -23 };
     case "LCB": return { x: -30, z: -10 };
