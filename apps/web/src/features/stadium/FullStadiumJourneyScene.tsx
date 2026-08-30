@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import type { CoreFormation, CoreSpatialHome, CoreStadiumHome, CoreVisualMode } from "../../api/coreProductContracts";
+import type { CoreFormation, CoreSpatialHome, CoreVisualMode } from "../../api/coreProductContracts";
 import { nextStadiumMode } from "../../three/stadiumScene";
 import { createStadiumWebglRenderer, type StadiumTeamMarker, type StadiumWebglRenderer } from "../../three/stadiumWebgl";
 import { playStadiumAudioCue, type StadiumAudioCue } from "./stadiumAudioDirector";
 
 interface FullStadiumJourneySceneProps {
   readonly mode: CoreVisualMode;
-  readonly home: CoreStadiumHome;
   readonly formation: CoreFormation;
   readonly spatial: CoreSpatialHome;
 }
@@ -101,7 +100,7 @@ function stageLabel(stage: JourneyStage): string {
   }
 }
 
-export function FullStadiumJourneyScene({ mode, home, formation, spatial }: FullStadiumJourneySceneProps) {
+export function FullStadiumJourneyScene({ mode, formation, spatial }: FullStadiumJourneySceneProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rendererRef = useRef<StadiumWebglRenderer | null>(null);
   const timerRef = useRef<number | null>(null);
@@ -321,7 +320,7 @@ export function FullStadiumJourneyScene({ mode, home, formation, spatial }: Full
       </div>
 
       {!spatialReady && (
-        <button className="full-journey-skip" type="button" onClick={finishImmediately}>
+        <button className="full-journey-skip" type="button" onClick={finishImmediately} disabled={renderState !== "READY"}>
           빠른 입장
         </button>
       )}

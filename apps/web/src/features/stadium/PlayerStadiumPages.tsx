@@ -94,7 +94,7 @@ export function FullStadiumJourneyPage() {
       </div>
       <p className="full-journey-meta">{home.team.displayName} · 외부 접근부터 Spatial Home까지 하나의 3D canvas에서 이어집니다.</p>
     </header>
-    <FullStadiumJourneyScene mode={home.visualMode} home={home} formation={formation} spatial={spatial} />
+    <FullStadiumJourneyScene mode={home.visualMode} formation={formation} spatial={spatial} />
     <footer className="full-journey-footnote">
       <p>FULL ENTRY · 접근 → 피치 → 프로젝션 → 나 → 포메이션 → Spatial Home</p>
       {home.source === "SYNTHETIC_FIXTURE" && <p>데모 데이터 · 운영 데이터 연결 전</p>}

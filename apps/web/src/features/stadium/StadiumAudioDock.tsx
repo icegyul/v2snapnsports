@@ -13,6 +13,7 @@ import "./stadiumAudio.css";
 
 function cueForPath(pathname: string): StadiumAudioCue | null {
   if (pathname === "/home") return "HOME";
+  if (pathname === "/home/full") return "APPROACH";
   if (pathname === "/home/approach") return "APPROACH";
   if (pathname === "/home/enter") return "PITCH";
   if (pathname === "/home/projection") return "PROJECTION";
