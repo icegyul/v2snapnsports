@@ -24,6 +24,7 @@ async function readState(page) {
     requestedMode: node.getAttribute("data-requested-mode"),
     renderedMode: node.getAttribute("data-render-mode"),
     renderState: node.getAttribute("data-render-state"),
+    progress: Number(node.getAttribute("data-approach-progress") ?? "0"),
     complete: node.getAttribute("data-approach-complete"),
     phase: document.querySelector(".stadium-approach-phase")?.textContent?.trim() ?? null,
     canvasReady: Boolean(document.querySelector(".stadium-approach-webgl-ready")),
@@ -33,7 +34,11 @@ async function readState(page) {
 }
 
 async function capture(name, viewport, deviceScaleFactor = 1) {
-  const context = await browser.newContext({ viewport, deviceScaleFactor });
+  const context = await browser.newContext({
+    viewport,
+    deviceScaleFactor,
+    reducedMotion: "no-preference",
+  });
   const page = await context.newPage();
   const consoleErrors = [];
   page.on("console", (message) => {
@@ -42,7 +47,7 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
   page.on("pageerror", (error) => consoleErrors.push(error.stack ?? error.message));
 
   try {
-    await page.goto(`${appBaseUrl}/home/approach`, { waitUntil: "networkidle" });
+    await page.goto(`${appBaseUrl}/home/approach`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => {
       const heading = document.querySelector(".stadium-approach-header h1");
       const surface = document.querySelector(".stadium-approach-surface");
@@ -51,18 +56,19 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
         && Boolean(document.querySelector(".stadium-approach-webgl-ready"));
     }, { timeout: 30000 });
 
-    await page.waitForTimeout(220);
     const startState = await readState(page);
     const startShot = await page.screenshot({ path: `${outputDir}/${name}-start.png`, fullPage: true });
 
-    await page.waitForTimeout(1900);
+    await page.waitForFunction(() => {
+      const surface = document.querySelector(".stadium-approach-surface");
+      return Number(surface?.getAttribute("data-approach-progress") ?? "0") >= 0.48;
+    }, { timeout: 45000 });
     const midState = await readState(page);
     const midShot = await page.screenshot({ path: `${outputDir}/${name}-mid.png`, fullPage: true });
 
     await page.waitForFunction(() => (
       document.querySelector(".stadium-approach-surface")?.getAttribute("data-approach-complete") === "true"
-    ), { timeout: 10000 });
-    await page.waitForTimeout(160);
+    ), { timeout: 60000 });
     const endState = await readState(page);
     const endShot = await page.screenshot({ path: `${outputDir}/${name}-end.png`, fullPage: true });
 
@@ -110,7 +116,11 @@ for (const result of results) {
   const valid = result.startState.renderState === "READY"
     && result.startState.renderedMode !== "STATIC"
     && result.startState.canvasReady
+    && result.startState.progress < 0.48
+    && result.midState.progress >= 0.48
+    && result.midState.progress < 1
     && result.endState.complete === "true"
+    && result.endState.progress === 1
     && result.endState.phase === "경기장 내부 진입"
     && result.frameChangedStartToMid
     && result.frameChangedMidToEnd
