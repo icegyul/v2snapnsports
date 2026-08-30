@@ -1,4 +1,4 @@
-name: Stadium V15.13 Portrait Camera
+name: Stadium V15.15 Goal-Axis Camera
 
 on:
   push:
@@ -15,40 +15,110 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Reframe portrait stadium camera
+      - name: Rebuild portrait camera on pitch goal axis
         run: |
           python - <<'PY'
           from pathlib import Path
+
           path = Path('apps/web/src/three/stadiumWebglV14.ts')
           text = path.read_text()
-          replacements = {
-              '    const radius = (portrait ? 52 : 38) / zoom;': '    const radius = (portrait ? 68 : 38) / zoom;',
-              '    const height = (portrait ? 35 : 25) / zoom;': '    const height = (portrait ? 34 : 25) / zoom;',
-              '    camera.fov = portrait ? 70 : 58;': '    camera.fov = portrait ? 58 : 58;',
-              '    const target = portrait ? new THREE.Vector3(0, 18.4, -6.4) : new THREE.Vector3(0, 13.4, -5.4);': '    const target = portrait ? new THREE.Vector3(0, 8.5, -5.2) : new THREE.Vector3(0, 13.4, -5.4);',
-          }
-          for old, new in replacements.items():
-              if old not in text:
-                  raise SystemExit(f'V15.13 camera token not found: {old}')
-              text = text.replace(old, new, 1)
-          path.write_text(text)
+          old = '''  const render = (orbit: number, zoom0: number) => {
+            const portrait = cssWidth / cssHeight < 0.82;
+            const zoom = Math.min(1.10, Math.max(0.86, zoom0));
+            const angle = ((portrait ? 24 : 18) + orbit * (portrait ? 0.12 : 0.18)) * Math.PI / 180;
+            const radius = (portrait ? 68 : 38) / zoom;
+            const height = (portrait ? 34 : 25) / zoom;
+            camera.fov = portrait ? 58 : 58;
+            camera.aspect = cssWidth / cssHeight;
+            camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
+            const target = portrait ? new THREE.Vector3(0, 8.5, -5.2) : new THREE.Vector3(0, 13.4, -5.4);
+            camera.lookAt(target);
+            camera.updateProjectionMatrix();
+            stadium.rotation.y = portrait ? 0 : -0.015;
+            renderer.render(scene, camera);
+          };'''
+          new = '''  const render = (orbit: number, zoom0: number) => {
+            const portrait = cssWidth / cssHeight < 0.82;
+            camera.aspect = cssWidth / cssHeight;
+
+            if (portrait) {
+              // Mobile acceptance camera: inside the pitch, just ahead of the goal line,
+              // looking lengthwise through the stadium. This avoids seating/column intrusion
+              // and uses a wide optical field instead of a 2D canvas crop.
+              const angle = (90 + orbit * 0.04) * Math.PI / 180;
+              const radius = 44;
+              camera.fov = 82;
+              camera.zoom = 0.62;
+              camera.position.set(Math.sin(angle) * radius, 30.5, Math.cos(angle) * radius);
+              camera.lookAt(new THREE.Vector3(-6, 6.0, 0));
+              camera.updateProjectionMatrix();
+              stadium.rotation.y = 0;
+              renderer.render(scene, camera);
+              return;
+            }
+
+            const zoom = Math.min(1.10, Math.max(0.86, zoom0));
+            const angle = (18 + orbit * 0.18) * Math.PI / 180;
+            const radius = 38 / zoom;
+            const height = 25 / zoom;
+            camera.fov = 58;
+            camera.zoom = 1;
+            camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
+            camera.lookAt(new THREE.Vector3(0, 13.4, -5.4));
+            camera.updateProjectionMatrix();
+            stadium.rotation.y = -0.015;
+            renderer.render(scene, camera);
+          };'''
+          if old not in text:
+              raise SystemExit('V15.15 V14 render block not found')
+          path.write_text(text.replace(old, new, 1))
           PY
-      - name: Balance mobile canvas framing
+      - name: Remove portrait wrapper camera distortion
         run: |
           python - <<'PY'
           from pathlib import Path
-          path = Path('apps/web/src/features/stadium/stadiumV149Cinematic.css')
+
+          path = Path('apps/web/src/three/stadiumWebglV151.ts')
           text = path.read_text()
-          old = '    transform:translateY(-5%) scale(1.10)!important;'
-          new = '    transform:translateY(-8%) scale(1.04)!important;'
+          old = '''    render(orbit: number, _zoom: number) {
+              if (portrait) {
+                // V15.14: keep the mobile camera physically farther from the pitch.
+                // The underlying PBR camera scales its radius/height by 1 / zoom,
+                // so pinning the lowest supported zoom removes the oversized centre circle
+                // without introducing a 2D crop or stretching the render.
+                base.render(orbit - 34, 0.86);
+                return;
+              }
+              base.render(orbit - 5, 1.0);
+            },'''
+          new = '''    render(orbit: number, _zoom: number) {
+              if (portrait) {
+                base.render(orbit, 1.0);
+                return;
+              }
+              base.render(orbit - 5, 1.0);
+            },'''
           if old not in text:
-              raise SystemExit('V15.13 mobile transform target not found')
+              raise SystemExit('V15.15 wrapper block not found')
           path.write_text(text.replace(old, new, 1))
           PY
-      - name: Commit V15.13 portrait camera
+      - name: Neutralize mobile CSS crop
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('apps/web/src/features/stadium/stadiumV149Cinematic.css')
+          text = path.read_text()
+          old = '    transform:translateY(-8%) scale(1.04)!important;'
+          new = '    transform:translateY(-1%) scale(1.00)!important;'
+          if old not in text:
+              raise SystemExit('V15.15 mobile canvas transform not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit V15.15 goal-axis camera
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- apps/web/src/three/stadiumWebglV14.ts apps/web/src/features/stadium/stadiumV149Cinematic.css
-          git commit -m "feat: reframe V15.13 portrait stadium camera"
+          git add -- apps/web/src/three/stadiumWebglV14.ts apps/web/src/three/stadiumWebglV151.ts apps/web/src/features/stadium/stadiumV149Cinematic.css
+          git commit -m "feat: add V15.15 goal-axis mobile stadium camera"
           git push
