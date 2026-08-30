@@ -1,4 +1,4 @@
-// V15.22b PBR Base Stadium mobile-final-framing acceptance verification.
+// V15.23 PBR Base Stadium material-realism acceptance verification.
 import "../features/stadium/stadiumCinematic.css";
 import "../features/stadium/stadiumFinal.css";
 import "../features/stadium/stadiumPremiumTuning.css";
