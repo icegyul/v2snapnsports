@@ -440,9 +440,9 @@ function crowdShirt(seed: number, accent: THREE.Color): THREE.Color {
 
 function crowdSkin(seed: number): THREE.Color {
   const value = hash(seed, 8);
-  if (value > 0.72) return new THREE.Color(0x806653);
-  if (value > 0.40) return new THREE.Color(0x6d5142);
-  return new THREE.Color(0x59453b);
+  if (value > 0.72) return new THREE.Color(0x695242);
+  if (value > 0.40) return new THREE.Color(0x584338);
+  return new THREE.Color(0x473730);
 }
 
 function crowdPlacements(spec: TierSpec, recipe: StadiumRecipe): CrowdPlacement[] {
@@ -486,8 +486,8 @@ function addCrowd(
   recipe: StadiumRecipe,
 ): void {
   const placements = crowdPlacements(spec, recipe);
-  const bodyGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.22, 0.25, 0.60, 6, 1));
-  const headGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.128, 8, 5));
+  const bodyGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.20, 0.16, 0.68, 6, 1));
+  const headGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.098, 7, 4));
   const bodyMaterial = addDisposable(
     materials,
     new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.90, metalness: 0.0 }),
@@ -503,14 +503,14 @@ function addCrowd(
   placements.forEach((placement, index) => {
     dummy.position.set(placement.x, placement.y, placement.z);
     dummy.rotation.set(0, -placement.angle + Math.PI / 2, 0);
-    dummy.scale.set(placement.scale, placement.scale, placement.scale);
+    dummy.scale.set(placement.scale * 0.82, placement.scale, placement.scale * 0.82);
     dummy.updateMatrix();
     bodies.setMatrixAt(index, dummy.matrix);
     bodies.setColorAt(index, placement.shirt);
 
-    dummy.position.set(placement.x, placement.y + 0.43 * placement.scale, placement.z);
+    dummy.position.set(placement.x, placement.y + 0.405 * placement.scale, placement.z);
     dummy.rotation.set(0, 0, 0);
-    dummy.scale.setScalar(placement.scale);
+    dummy.scale.setScalar(placement.scale * 0.92);
     dummy.updateMatrix();
     heads.setMatrixAt(index, dummy.matrix);
     heads.setColorAt(index, placement.skin);
@@ -519,9 +519,9 @@ function addCrowd(
   heads.instanceMatrix.needsUpdate = true;
   if (bodies.instanceColor) bodies.instanceColor.needsUpdate = true;
   if (heads.instanceColor) heads.instanceColor.needsUpdate = true;
-  bodies.castShadow = true;
+  bodies.castShadow = false;
   bodies.receiveShadow = true;
-  heads.castShadow = true;
+  heads.castShadow = false;
   heads.receiveShadow = true;
   group.add(bodies, heads);
 }
