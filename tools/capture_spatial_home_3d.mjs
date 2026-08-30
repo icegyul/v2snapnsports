@@ -37,6 +37,7 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
       const surface = document.querySelector(".spatial-home-3d-surface");
       return heading?.textContent?.trim() === "나의 팀 공간"
         && surface?.getAttribute("data-render-state") === "READY"
+        && surface?.getAttribute("data-live-scoreboard") === "true"
         && Boolean(document.querySelector(".spatial-home-3d-ready"));
     }, { timeout: 30000 });
 
@@ -46,6 +47,8 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
       renderState: node.getAttribute("data-render-state"),
       anchorCount: Number(node.getAttribute("data-spatial-anchor-count") ?? "-1"),
       teammateCount: Number(node.getAttribute("data-formation-teammate-count") ?? "-1"),
+      liveScoreboard: node.getAttribute("data-live-scoreboard"),
+      scoreboardLabelAttribute: node.getAttribute("data-scoreboard-label"),
       canvasReady: Boolean(document.querySelector(".spatial-home-3d-ready")),
       modeChip: document.querySelector(".spatial-home-mode-chip")?.textContent?.trim() ?? null,
       scoreboard: document.querySelector(".spatial-home-scoreboard strong")?.textContent?.trim() ?? null,
@@ -114,6 +117,8 @@ for (const result of results) {
     && result.state.canvasReady
     && result.state.anchorCount === 5
     && result.state.teammateCount === 3
+    && result.state.liveScoreboard === "true"
+    && result.state.scoreboardLabelAttribute === "데모 팀 상태 · 일정 확인 필요"
     && result.state.modeChip?.includes("LIVE 3D")
     && result.state.scoreboard === "데모 팀 상태 · 일정 확인 필요"
     && result.state.bodyText.includes("다음 훈련 · 데모 일정")
