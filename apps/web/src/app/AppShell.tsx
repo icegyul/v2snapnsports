@@ -2,6 +2,7 @@ import { Link, MemoryRouter, Navigate, Route, Routes, useLocation } from "react-
 import { RouteStatePanel } from "../components/RouteStatePanel";
 import { DigitalProjectionPage, FullStadiumJourneyPage, MyPositionPage, MyTeamFormationPage, PitchEntryPage, SpatialHomePage, StadiumApproachPage, StadiumExteriorPage } from "../features/stadium/PlayerStadiumPages";
 import { StadiumAudioDock } from "../features/stadium/StadiumAudioDock";
+import { StadiumBuilderPage } from "../features/stadium-builder/StadiumBuilderPage";
 import { CommunityPage, VideoPage } from "../features/product/RemainingProductPages";
 import { Pack02CareerPassportPage, Pack02CareerSeasonPage, Pack02OpportunityPage, Pack02PortfolioPage, Pack02TeamCommunicationPage } from "../features/pack02/Pack02Pages";
 import { AgentWorkspacePage, AnalystWorkspacePage, ClubDirectorWorkspacePage, CoachWorkspacePage, ManagerHomePage, RefereeWorkspacePage, TeamManagerWorkspacePage } from "../features/pack03/ManagerWorkspacePages";
@@ -47,6 +48,7 @@ function AppRoutes() {
     <Route path="/home/position" element={<MyPositionPage />} />
     <Route path="/home/formation" element={<MyTeamFormationPage />} />
     <Route path="/home/team" element={<SpatialHomePage />} />
+    <Route path="/home/builder" element={<StadiumBuilderPage />} />
     <Route path="/stadium" element={<Navigate replace to="/home" />} />
     <Route path="/signup/role" element={<RoleSelect />} />
     <Route path="/login" element={<GenericShell title="로그인" />} />
