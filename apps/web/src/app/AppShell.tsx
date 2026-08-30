@@ -1,6 +1,7 @@
 import { Link, MemoryRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { RouteStatePanel } from "../components/RouteStatePanel";
 import { DigitalProjectionPage, MyPositionPage, MyTeamFormationPage, PitchEntryPage, SpatialHomePage, StadiumApproachPage, StadiumExteriorPage } from "../features/stadium/PlayerStadiumPages";
+import { StadiumAudioDock } from "../features/stadium/StadiumAudioDock";
 import { CommunityPage, VideoPage } from "../features/product/RemainingProductPages";
 import { Pack02CareerPassportPage, Pack02CareerSeasonPage, Pack02OpportunityPage, Pack02PortfolioPage, Pack02TeamCommunicationPage } from "../features/pack02/Pack02Pages";
 import { AgentWorkspacePage, AnalystWorkspacePage, ClubDirectorWorkspacePage, CoachWorkspacePage, ManagerHomePage, RefereeWorkspacePage, TeamManagerWorkspacePage } from "../features/pack03/ManagerWorkspacePages";
@@ -35,6 +36,7 @@ function GenericShell({ title }: { title: string }) { return <main className="sh
 function AppRoutes() {
   const location = useLocation();
   const isPublic = location.pathname === "/login" || location.pathname === "/signup/role" || location.pathname.startsWith("/invite/guardian/");
+  const isStadiumExperience = !isPublic && (location.pathname === "/home" || location.pathname.startsWith("/home/"));
   return <div className="app-shell"><Routes>
     <Route path="/" element={<Navigate replace to="/home" />} />
     <Route path="/home" element={<StadiumExteriorPage />} />
@@ -84,7 +86,7 @@ function AppRoutes() {
     <Route path="/player/me/career" element={<Pack02CareerPassportPage />} />
     <Route path="/player/me/career/season/:seasonId" element={<Pack02CareerSeasonPage />} />
     <Route path="*" element={<GenericShell title="찾을 수 없는 화면" />} />
-  </Routes>{!isPublic && <BottomNavigation />}</div>;
+  </Routes>{isStadiumExperience && <StadiumAudioDock />}{!isPublic && <BottomNavigation />}</div>;
 }
 
 export function AppShell({ initialPath = "/home" }: { initialPath?: string }) {
