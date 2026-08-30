@@ -1140,12 +1140,12 @@ export function createStadiumWebglRenderer(
     // Mobile acceptance camera: inside the pitch, just ahead of the goal line,
     // looking lengthwise through the stadium. This avoids seating/column intrusion
     // and uses a wide optical field instead of a 2D canvas crop.
-    const angle = (72 + orbit * 0.04) * Math.PI / 180;
-    const radius = 56;
-    camera.fov = 72;
-    camera.zoom = 0.74;
-    camera.position.set(Math.sin(angle) * radius, 32.0, Math.cos(angle) * radius);
-    camera.lookAt(new THREE.Vector3(-4, 10.0, -4));
+    const angle = (68 + orbit * 0.04) * Math.PI / 180;
+    const radius = 63;
+    camera.fov = 68;
+    camera.zoom = 0.80;
+    camera.position.set(Math.sin(angle) * radius, 30.5, Math.cos(angle) * radius);
+    camera.lookAt(new THREE.Vector3(-2, 11.5, -7));
     camera.updateProjectionMatrix();
     stadium.rotation.y = 0;
     renderer.render(scene, camera);
