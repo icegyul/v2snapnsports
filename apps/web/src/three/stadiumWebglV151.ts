@@ -32,7 +32,7 @@ export function createStadiumWebglRenderer(
       portrait = width / Math.max(1, height) < 0.82;
       base.resize(width, height, dpr);
     },
-    render(orbit: number, zoom: number) {
+    render(orbit: number, _zoom: number) {
       if (portrait) {
         // V15.14: keep the mobile camera physically farther from the pitch.
         // The underlying PBR camera scales its radius/height by 1 / zoom,
