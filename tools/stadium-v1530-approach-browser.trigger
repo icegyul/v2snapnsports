@@ -1,1 +1,1 @@
-V15.30 browser approach verification rerun after Buffer lint fix
+V15.30 browser approach verification rerun with /v2 route
