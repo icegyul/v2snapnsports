@@ -51,6 +51,9 @@ export function createStadiumWebglRenderer(
     renderTeamFormation(progress: number, ownX: number, ownZ: number, teammates) {
       base.renderTeamFormation?.(progress, ownX, ownZ, teammates);
     },
+    renderDigitalProjection(progress: number) {
+      base.renderDigitalProjection?.(progress);
+    },
     destroy() {
       base.destroy();
     },

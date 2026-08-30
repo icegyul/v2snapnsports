@@ -16,6 +16,7 @@ export interface StadiumWebglRenderer {
   renderPitchEntry?(progress: number): void;
   renderPlayerPosition?(progress: number, x: number, z: number): void;
   renderTeamFormation?(progress: number, ownX: number, ownZ: number, teammates: readonly StadiumTeamMarker[]): void;
+  renderDigitalProjection?(progress: number): void;
   destroy(): void;
 }
 
@@ -1395,6 +1396,69 @@ export function createStadiumWebglRenderer(
     });
   };
 
+  const projectionRoot = new THREE.Group();
+  projectionRoot.visible = false;
+  stadium.add(projectionRoot);
+  const projectionRingMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      color: 0x75dcff,
+      emissive: 0x27bfff,
+      emissiveIntensity: 2.4,
+      roughness: 0.30,
+      metalness: 0.12,
+      transparent: true,
+      opacity: 0.0,
+      depthWrite: false,
+    }),
+  );
+  const projectionBeamMaterial = addDisposable(
+    materials,
+    new THREE.MeshBasicMaterial({
+      color: 0x8ee7ff,
+      transparent: true,
+      opacity: 0.0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+    }),
+  );
+  const projectionDiscMaterial = addDisposable(
+    materials,
+    new THREE.MeshBasicMaterial({
+      color: 0x159bd2,
+      transparent: true,
+      opacity: 0.0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+    }),
+  );
+  for (const radius of [4.5, 8.0, 12.5]) {
+    const ringGeometry = addDisposable(geometries, new THREE.TorusGeometry(radius, 0.065, 6, 72));
+    const ring = new THREE.Mesh(ringGeometry, projectionRingMaterial);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = 0.14 + radius * 0.006;
+    projectionRoot.add(ring);
+  }
+  const projectionDiscGeometry = addDisposable(geometries, new THREE.CircleGeometry(10.8, 72));
+  const projectionDisc = new THREE.Mesh(projectionDiscGeometry, projectionDiscMaterial);
+  projectionDisc.rotation.x = -Math.PI / 2;
+  projectionDisc.position.y = 0.10;
+  projectionRoot.add(projectionDisc);
+  const projectionBeamGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.06, 0.28, 8.5, 10, 1, true));
+  for (let i = 0; i < 8; i += 1) {
+    const angle = (i / 8) * TAU;
+    const beam = new THREE.Mesh(projectionBeamGeometry, projectionBeamMaterial);
+    beam.position.set(Math.cos(angle) * 8.2, 4.3, Math.sin(angle) * 8.2);
+    projectionRoot.add(beam);
+  }
+  const projectionCoreGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.3, 2.4, 10.5, 28, 1, true));
+  const projectionCore = new THREE.Mesh(projectionCoreGeometry, projectionBeamMaterial);
+  projectionCore.position.y = 5.3;
+  projectionRoot.add(projectionCore);
+  projectionRoot.scale.setScalar(0.001);
+
   const camera = new THREE.PerspectiveCamera(54, 1, 0.18, 380);
   let cssWidth = 1;
   let cssHeight = 1;
@@ -1636,6 +1700,46 @@ export function createStadiumWebglRenderer(
     renderer.render(scene, camera);
   };
 
+  const renderDigitalProjection = (progress0: number) => {
+    const progress = THREE.MathUtils.clamp(progress0, 0, 1);
+    const eased = progress * progress * (3 - 2 * progress);
+    const portrait = cssWidth / cssHeight < 0.82;
+    camera.aspect = cssWidth / cssHeight;
+    camera.zoom = 1;
+
+    positionMarker.visible = false;
+    teamFormationRoot.visible = false;
+    projectionRoot.visible = progress > 0.02;
+    const reveal = THREE.MathUtils.smoothstep(progress, 0.04, 0.72);
+    projectionRoot.scale.setScalar(Math.max(0.001, THREE.MathUtils.lerp(0.34, 1.0, reveal)));
+    projectionRoot.rotation.y = (1 - eased) * -0.16;
+    projectionRingMaterial.opacity = 0.10 + reveal * 0.72;
+    projectionBeamMaterial.opacity = 0.04 + reveal * 0.32;
+    projectionDiscMaterial.opacity = 0.015 + reveal * 0.11;
+    projectionRingMaterial.emissiveIntensity = 1.4 + reveal * 2.2;
+    projectionRoot.children.forEach((child, index) => {
+      if (index < 3) child.rotation.z = progress * (0.16 + index * 0.08) * (index % 2 == 0 ? 1 : -1);
+    });
+
+    const start = portrait
+      ? new THREE.Vector3(1.8, 2.45, 30.5)
+      : new THREE.Vector3(5.8, 2.25, 29.5);
+    const focus = portrait
+      ? new THREE.Vector3(24, 16.5, 33)
+      : new THREE.Vector3(31, 14.5, 30);
+    const startTarget = new THREE.Vector3(0, 1.1, -16);
+    const focusTarget = new THREE.Vector3(0, 3.0, 0);
+    camera.position.lerpVectors(start, focus, eased);
+    const lookTarget = new THREE.Vector3().lerpVectors(startTarget, focusTarget, eased);
+    camera.lookAt(lookTarget);
+    camera.fov = portrait
+      ? THREE.MathUtils.lerp(69, 61, eased)
+      : THREE.MathUtils.lerp(66, 57, eased);
+    camera.updateProjectionMatrix();
+    stadium.rotation.y = -0.015;
+    renderer.render(scene, camera);
+  };
+
   const triangleCount = countTriangles(stadium);
 
   const destroy = () => {
@@ -1646,5 +1750,5 @@ export function createStadiumWebglRenderer(
     renderer.forceContextLoss();
   };
 
-  return { triangleCount, resize, render, renderApproach, renderPitchEntry, renderPlayerPosition, renderTeamFormation, destroy };
+  return { triangleCount, resize, render, renderApproach, renderPitchEntry, renderPlayerPosition, renderTeamFormation, renderDigitalProjection, destroy };
 }

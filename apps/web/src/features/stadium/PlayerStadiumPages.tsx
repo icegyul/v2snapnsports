@@ -9,12 +9,14 @@ import { PitchEntryScene } from "./PitchEntryScene";
 import { PlayerPosition3DScene } from "./PlayerPosition3DScene";
 import { TeamFormation3DScene } from "./TeamFormation3DScene";
 import { SpatialHome3DScene } from "./SpatialHome3DScene";
+import { DigitalProjectionScene } from "./DigitalProjectionScene";
 import "./stadium.css";
 import "./stadiumApproach.css";
 import "./pitchEntry.css";
 import "./playerPosition3D.css";
 import "./teamFormation3D.css";
 import "./spatialHome3D.css";
+import "./digitalProjection.css";
 
 const adapter = new FixtureCoreProductAdapter();
 const loadStadiumHome = () => adapter.getStadiumHome();
@@ -110,6 +112,27 @@ export function PitchEntryPage() {
     <PitchEntryScene mode={home.visualMode} onComplete={() => setComplete(true)} />
     <footer className="pitch-entry-footer">
       <p>{complete ? "3D 카메라가 피치 레벨에 도착했습니다." : "경기장 내부에서 피치로 내려가는 중입니다."}</p>
+      <Link className="surface-link" to="/home/projection">디지털 프로젝션 보기</Link>
+    </footer>
+  </main> : null}</CoreStateBoundary>;
+}
+
+export function DigitalProjectionPage() {
+  const home = useFixture(loadStadiumHome);
+  const formation = useFixture(loadFormation);
+  const [complete, setComplete] = useState(false);
+  const ready = Boolean(home && formation);
+  return <CoreStateBoundary state={ready ? "READY" : "LOADING"}>{home && formation ? <main className="shell-main digital-projection-page">
+    <header className="digital-projection-header">
+      <div>
+        <p className="eyebrow">STADIUM EXPERIENCE · DIGITAL PROJECTION</p>
+        <h1>디지털 프로젝션</h1>
+      </div>
+      <p className="digital-projection-meta">{home.team.displayName} · 실제 피치 위에 현재 연결된 선수·포메이션·팀 상태 레이어를 투영합니다.</p>
+    </header>
+    <DigitalProjectionScene mode={home.visualMode} home={home} formation={formation} onComplete={() => setComplete(true)} />
+    <footer className="digital-projection-footer">
+      <p>{complete ? "3D 디지털 레이어 투영 완료" : "피치 위에 현재 데이터 레이어를 투영하는 중입니다."}</p>
       <Link className="surface-link" to="/home/position">나의 포지션 보기</Link>
     </footer>
   </main> : null}</CoreStateBoundary>;
