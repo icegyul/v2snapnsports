@@ -1,1 +1,1 @@
-V15.38 clean unused full-entry prop, disable premature quick-entry, and map /home/full to APPROACH audio cue
+V15.38 clean browser verifier lint by replacing HTMLButtonElement global check with disabled-attribute geometry-safe check
