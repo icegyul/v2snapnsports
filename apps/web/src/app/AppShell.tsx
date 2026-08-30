@@ -1,6 +1,6 @@
 import { Link, MemoryRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { RouteStatePanel } from "../components/RouteStatePanel";
-import { DigitalProjectionPage, MyPositionPage, MyTeamFormationPage, PitchEntryPage, SpatialHomePage, StadiumApproachPage, StadiumExteriorPage } from "../features/stadium/PlayerStadiumPages";
+import { DigitalProjectionPage, FullStadiumJourneyPage, MyPositionPage, MyTeamFormationPage, PitchEntryPage, SpatialHomePage, StadiumApproachPage, StadiumExteriorPage } from "../features/stadium/PlayerStadiumPages";
 import { StadiumAudioDock } from "../features/stadium/StadiumAudioDock";
 import { CommunityPage, VideoPage } from "../features/product/RemainingProductPages";
 import { Pack02CareerPassportPage, Pack02CareerSeasonPage, Pack02OpportunityPage, Pack02PortfolioPage, Pack02TeamCommunicationPage } from "../features/pack02/Pack02Pages";
@@ -40,6 +40,7 @@ function AppRoutes() {
   return <div className="app-shell"><Routes>
     <Route path="/" element={<Navigate replace to="/home" />} />
     <Route path="/home" element={<StadiumExteriorPage />} />
+    <Route path="/home/full" element={<FullStadiumJourneyPage />} />
     <Route path="/home/approach" element={<StadiumApproachPage />} />
     <Route path="/home/enter" element={<PitchEntryPage />} />
     <Route path="/home/projection" element={<DigitalProjectionPage />} />

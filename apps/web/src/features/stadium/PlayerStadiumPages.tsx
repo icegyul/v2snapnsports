@@ -10,6 +10,7 @@ import { PlayerPosition3DScene } from "./PlayerPosition3DScene";
 import { TeamFormation3DScene } from "./TeamFormation3DScene";
 import { SpatialHome3DScene } from "./SpatialHome3DScene";
 import { DigitalProjectionScene } from "./DigitalProjectionScene";
+import { FullStadiumJourneyScene } from "./FullStadiumJourneyScene";
 import "./stadium.css";
 import "./stadiumApproach.css";
 import "./pitchEntry.css";
@@ -17,6 +18,7 @@ import "./playerPosition3D.css";
 import "./teamFormation3D.css";
 import "./spatialHome3D.css";
 import "./digitalProjection.css";
+import "./fullStadiumJourney.css";
 
 const adapter = new FixtureCoreProductAdapter();
 const loadStadiumHome = () => adapter.getStadiumHome();
@@ -77,6 +79,27 @@ function StadiumExteriorContent({ home }: { home: CoreStadiumHome }) {
 export function StadiumExteriorPage() {
   const home = useFixture(loadStadiumHome);
   return <CoreStateBoundary state={home ? "READY" : "LOADING"}>{home ? <StadiumExteriorContent home={home} /> : null}</CoreStateBoundary>;
+}
+
+export function FullStadiumJourneyPage() {
+  const home = useFixture(loadStadiumHome);
+  const formation = useFixture(loadFormation);
+  const spatial = useFixture(loadSpatialHome);
+  const ready = Boolean(home && formation && spatial);
+  return <CoreStateBoundary state={ready ? "READY" : "LOADING"}>{home && formation && spatial ? <main className="shell-main full-journey-page">
+    <header className="full-journey-header">
+      <div>
+        <p className="eyebrow">STADIUM EXPERIENCE · FULL ENTRY</p>
+        <h1>경기장 입장</h1>
+      </div>
+      <p className="full-journey-meta">{home.team.displayName} · 외부 접근부터 Spatial Home까지 하나의 3D canvas에서 이어집니다.</p>
+    </header>
+    <FullStadiumJourneyScene mode={home.visualMode} home={home} formation={formation} spatial={spatial} />
+    <footer className="full-journey-footnote">
+      <p>FULL ENTRY · 접근 → 피치 → 프로젝션 → 나 → 포메이션 → Spatial Home</p>
+      {home.source === "SYNTHETIC_FIXTURE" && <p>데모 데이터 · 운영 데이터 연결 전</p>}
+    </footer>
+  </main> : null}</CoreStateBoundary>;
 }
 
 export function StadiumApproachPage() {
