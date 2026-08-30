@@ -42,6 +42,9 @@ export function createStadiumWebglRenderer(
     renderApproach(progress: number) {
       base.renderApproach?.(progress);
     },
+    renderPitchEntry(progress: number) {
+      base.renderPitchEntry?.(progress);
+    },
     destroy() {
       base.destroy();
     },

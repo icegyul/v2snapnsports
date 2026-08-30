@@ -5,8 +5,10 @@ import { FixtureCoreProductAdapter } from "../../adapters/fixtureCoreProductAdap
 import { CoreStateBoundary } from "../../components/CoreStateBoundary";
 import { Stadium3DScene } from "./Stadium3DScene";
 import { StadiumApproachScene } from "./StadiumApproachScene";
+import { PitchEntryScene } from "./PitchEntryScene";
 import "./stadium.css";
 import "./stadiumApproach.css";
+import "./pitchEntry.css";
 
 const adapter = new FixtureCoreProductAdapter();
 const loadStadiumHome = () => adapter.getStadiumHome();
@@ -91,7 +93,24 @@ export function StadiumApproachPage() {
     </footer>
   </main> : null}</CoreStateBoundary>;
 }
-export function PitchEntryPage() { return <main className="shell-main"><p className="eyebrow">STADIUM EXPERIENCE · PITCH ENTRY</p><h1>피치 진입</h1><StaticScene label="피치 진입" /><Link className="surface-link" to="/home/position">나의 포지션 보기</Link></main>; }
+export function PitchEntryPage() {
+  const home = useFixture(loadStadiumHome);
+  const [complete, setComplete] = useState(false);
+  return <CoreStateBoundary state={home ? "READY" : "LOADING"}>{home ? <main className="shell-main pitch-entry-page">
+    <header className="pitch-entry-header">
+      <div>
+        <p className="eyebrow">STADIUM EXPERIENCE · PITCH ENTRY</p>
+        <h1>피치 진입</h1>
+      </div>
+      <p className="pitch-entry-meta">{home.team.displayName} · 상단 bowl 시점에서 터치라인을 지나 실제 피치 레벨까지 내려갑니다.</p>
+    </header>
+    <PitchEntryScene mode={home.visualMode} onComplete={() => setComplete(true)} />
+    <footer className="pitch-entry-footer">
+      <p>{complete ? "3D 카메라가 피치 레벨에 도착했습니다." : "경기장 내부에서 피치로 내려가는 중입니다."}</p>
+      <Link className="surface-link" to="/home/position">나의 포지션 보기</Link>
+    </footer>
+  </main> : null}</CoreStateBoundary>;
+}
 
 function FormationBoard({ formation, ownOnly = false }: { formation: CoreFormation; ownOnly?: boolean }) {
   return <section className="position-pitch" aria-label="팀 포메이션 2D 보기">

@@ -6,6 +6,7 @@ export interface StadiumWebglRenderer {
   resize(width: number, height: number, dpr: number): void;
   render(orbit: number, zoom: number): void;
   renderApproach?(progress: number): void;
+  renderPitchEntry?(progress: number): void;
   destroy(): void;
 }
 
@@ -1332,6 +1333,51 @@ export function createStadiumWebglRenderer(
     renderer.render(scene, camera);
   };
 
+  const renderPitchEntry = (progress0: number) => {
+    const progress = THREE.MathUtils.clamp(progress0, 0, 1);
+    const eased = progress * progress * (3 - 2 * progress);
+    const portrait = cssWidth / cssHeight < 0.82;
+    camera.aspect = cssWidth / cssHeight;
+    camera.zoom = 1;
+
+    const bowl = portrait
+      ? new THREE.Vector3(49, 32, 59)
+      : new THREE.Vector3(43, 27, 49);
+    const touchline = portrait
+      ? new THREE.Vector3(19, 10.5, 39)
+      : new THREE.Vector3(22, 9.5, 36);
+    const pitch = portrait
+      ? new THREE.Vector3(1.8, 2.45, 30.5)
+      : new THREE.Vector3(5.8, 2.25, 29.5);
+
+    const bowlTarget = new THREE.Vector3(-2, 9, -18);
+    const touchlineTarget = new THREE.Vector3(0, 3.4, -5);
+    const pitchTarget = new THREE.Vector3(0, 1.1, -16);
+    const cameraPosition = new THREE.Vector3();
+    const lookTarget = new THREE.Vector3();
+
+    if (eased < 0.52) {
+      const t = eased / 0.52;
+      const local = t * t * (3 - 2 * t);
+      cameraPosition.lerpVectors(bowl, touchline, local);
+      lookTarget.lerpVectors(bowlTarget, touchlineTarget, local);
+    } else {
+      const t = (eased - 0.52) / 0.48;
+      const local = t * t * (3 - 2 * t);
+      cameraPosition.lerpVectors(touchline, pitch, local);
+      lookTarget.lerpVectors(touchlineTarget, pitchTarget, local);
+    }
+
+    camera.fov = portrait
+      ? THREE.MathUtils.lerp(63, 69, eased)
+      : THREE.MathUtils.lerp(58, 66, eased);
+    camera.position.copy(cameraPosition);
+    camera.lookAt(lookTarget);
+    camera.updateProjectionMatrix();
+    stadium.rotation.y = -0.015;
+    renderer.render(scene, camera);
+  };
+
   const triangleCount = countTriangles(stadium);
 
   const destroy = () => {
@@ -1342,5 +1388,5 @@ export function createStadiumWebglRenderer(
     renderer.forceContextLoss();
   };
 
-  return { triangleCount, resize, render, renderApproach, destroy };
+  return { triangleCount, resize, render, renderApproach, renderPitchEntry, destroy };
 }
