@@ -1,1 +1,1 @@
-rerun stadium audio acceptance after muted-state geometry wait fix
+rerun stadium audio acceptance after canonical href tests update
