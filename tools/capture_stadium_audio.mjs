@@ -88,8 +88,14 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
     const dockAbsentOutsideStadium = await page.locator(".stadium-audio-dock").count() === 0;
 
     await page.locator(".bottom-navigation a[href='/home']").click();
-    await page.waitForSelector(".stadium-audio-dock[data-audio-state='MUTED']", { timeout: 15000 });
+    await page.waitForFunction(() => {
+      const dock = document.querySelector(".stadium-audio-dock");
+      if (!dock || dock.getAttribute("data-audio-state") !== "MUTED") return false;
+      const box = dock.getBoundingClientRect();
+      return box.width >= 44 && box.height >= 40;
+    }, { timeout: 15000 });
     const returnedHome = await audioState(page);
+    const returnedDockRect = await rect(page.locator(".stadium-audio-dock"));
 
     await page.screenshot({ path: `${outputDir}/${name}.png`, fullPage: true });
     const evidence = {
@@ -102,6 +108,7 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
       unmuted,
       returnedHome,
       dockRect,
+      returnedDockRect,
       navRect,
       dockClearOfNav,
       dockAbsentOutsideStadium,
@@ -153,6 +160,8 @@ for (const result of results) {
     && result.unmuted.cueCount === 3
     && result.dockAbsentOutsideStadium
     && result.returnedHome.state === "MUTED"
+    && result.returnedDockRect.width >= 44
+    && result.returnedDockRect.height >= 40
     && result.dockClearOfNav
     && result.dockRect.width >= 44
     && result.dockRect.height >= 42
