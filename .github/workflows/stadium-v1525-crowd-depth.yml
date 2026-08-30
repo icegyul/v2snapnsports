@@ -1,0 +1,48 @@
+name: Stadium V15.25 Crowd Depth
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1525-crowd-depth.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Break up procedural crowd repetition
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/three/stadiumWebglV14.ts')
+          text = path.read_text()
+          replacements = {
+              'const localDensity = Math.max(0.70, Math.min(0.97, recipe.crowdDensity + (sectionNoise - 0.5) * 0.30));': 'const localDensity = Math.max(0.62, Math.min(0.95, recipe.crowdDensity + (sectionNoise - 0.5) * 0.38));',
+              'const angle = ((slot + 0.5 + (row % 2) * 0.38) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.026;': 'const angle = ((slot + 0.5 + (row % 2) * 0.38) / spec.peoplePerRow) * TAU + (hash(seed, 2) - 0.5) * 0.052;',
+              'const radial = (hash(seed, 10) - 0.5) * 0.48;': 'const radial = (hash(seed, 10) - 0.5) * 0.72;',
+              'y: rowY + (hash(seed, 11) - 0.5) * 0.14,': 'y: rowY + (hash(seed, 11) - 0.5) * 0.22,',
+              'if (value > 0.925) return new THREE.Color(0x40383a);': 'if (value > 0.925) return new THREE.Color(0x493b3c);',
+              'if (value > 0.80) return new THREE.Color(0x53544f);': 'if (value > 0.80) return new THREE.Color(0x50534d);',
+              'if (value > 0.55) return new THREE.Color(0x41464a);': 'if (value > 0.55) return new THREE.Color(0x454a4e);',
+              'if (value > 0.30) return new THREE.Color(0x30363b);': 'if (value > 0.30) return new THREE.Color(0x343a3f);',
+              'return new THREE.Color(0x20262b);': 'return new THREE.Color(0x252b30);',
+          }
+          for old, new in replacements.items():
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'V15.25 expected one token, found {count}: {old}')
+              text = text.replace(old, new, 1)
+          path.write_text(text)
+          PY
+      - name: Commit V15.25 crowd depth
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts
+          git commit -m "feat: deepen V15.25 stadium crowd distribution"
+          git push
