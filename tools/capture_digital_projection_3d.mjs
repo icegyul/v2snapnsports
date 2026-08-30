@@ -30,6 +30,13 @@ async function state(page) {
   }));
 }
 
+async function rect(locator) {
+  return locator.evaluate((node) => {
+    const box = node.getBoundingClientRect();
+    return { top: box.top, bottom: box.bottom, left: box.left, right: box.right, width: box.width, height: box.height };
+  });
+}
+
 async function capture(name, viewport, deviceScaleFactor = 1) {
   const context = await browser.newContext({ viewport, deviceScaleFactor, reducedMotion: "no-preference" });
   const page = await context.newPage();
@@ -62,15 +69,28 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
       document.querySelector(".digital-projection-surface")?.getAttribute("data-projection-complete") === "true"
     ), { timeout: 100000, polling: 300 });
     const end = await state(page);
+
+    const nextLink = page.locator(".digital-projection-footer a");
+    await nextLink.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(120);
+    const nextHref = await nextLink.getAttribute("href");
+    const nextRect = await rect(nextLink);
+    const navRect = await rect(page.locator(".bottom-navigation"));
+    const nextCtaClear = nextRect.height >= 44
+      && nextRect.width >= 44
+      && nextRect.bottom <= navRect.top - 4;
+
     const endShot = await page.screenshot({ path: `${outputDir}/${name}-end.png`, fullPage: true });
 
-    const nextHref = await page.locator(".digital-projection-footer a").getAttribute("href");
     const evidence = {
       name,
       start,
       mid,
       end,
       nextHref,
+      nextRect,
+      navRect,
+      nextCtaClear,
       frameChangedStartToMid: Buffer.compare(startShot, midShot) !== 0,
       frameChangedMidToEnd: Buffer.compare(midShot, endShot) !== 0,
       consoleErrors,
@@ -117,6 +137,7 @@ for (const result of results) {
     && result.end.detail.includes("데모 팀 상태 · 일정 확인 필요")
     && result.end.hud === "프로젝션 준비 완료"
     && result.nextHref === "/home/position"
+    && result.nextCtaClear
     && !result.end.bodyText.includes("Fixture Player")
     && result.frameChangedStartToMid
     && result.frameChangedMidToEnd
