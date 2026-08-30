@@ -1,4 +1,4 @@
-// V15.21 PBR Base Stadium portrait-bowl acceptance verification.
+// V15.22b PBR Base Stadium mobile-final-framing acceptance verification.
 import "../features/stadium/stadiumCinematic.css";
 import "../features/stadium/stadiumFinal.css";
 import "../features/stadium/stadiumPremiumTuning.css";
