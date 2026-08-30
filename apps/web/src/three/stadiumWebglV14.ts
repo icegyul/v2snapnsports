@@ -1133,20 +1133,37 @@ export function createStadiumWebglRenderer(
   };
 
   const render = (orbit: number, zoom0: number) => {
-    const portrait = cssWidth / cssHeight < 0.82;
-    const zoom = Math.min(1.10, Math.max(0.86, zoom0));
-    const angle = ((portrait ? 24 : 18) + orbit * (portrait ? 0.12 : 0.18)) * Math.PI / 180;
-    const radius = (portrait ? 68 : 38) / zoom;
-    const height = (portrait ? 34 : 25) / zoom;
-    camera.fov = portrait ? 58 : 58;
-    camera.aspect = cssWidth / cssHeight;
-    camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
-    const target = portrait ? new THREE.Vector3(0, 8.5, -5.2) : new THREE.Vector3(0, 13.4, -5.4);
-    camera.lookAt(target);
+  const portrait = cssWidth / cssHeight < 0.82;
+  camera.aspect = cssWidth / cssHeight;
+
+  if (portrait) {
+    // Mobile acceptance camera: inside the pitch, just ahead of the goal line,
+    // looking lengthwise through the stadium. This avoids seating/column intrusion
+    // and uses a wide optical field instead of a 2D canvas crop.
+    const angle = (90 + orbit * 0.04) * Math.PI / 180;
+    const radius = 44;
+    camera.fov = 82;
+    camera.zoom = 0.62;
+    camera.position.set(Math.sin(angle) * radius, 30.5, Math.cos(angle) * radius);
+    camera.lookAt(new THREE.Vector3(-6, 6.0, 0));
     camera.updateProjectionMatrix();
-    stadium.rotation.y = portrait ? 0 : -0.015;
+    stadium.rotation.y = 0;
     renderer.render(scene, camera);
-  };
+    return;
+  }
+
+  const zoom = Math.min(1.10, Math.max(0.86, zoom0));
+  const angle = (18 + orbit * 0.18) * Math.PI / 180;
+  const radius = 38 / zoom;
+  const height = 25 / zoom;
+  camera.fov = 58;
+  camera.zoom = 1;
+  camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
+  camera.lookAt(new THREE.Vector3(0, 13.4, -5.4));
+  camera.updateProjectionMatrix();
+  stadium.rotation.y = -0.015;
+  renderer.render(scene, camera);
+};
 
   const triangleCount = countTriangles(stadium);
 

@@ -75,7 +75,7 @@
     border-radius:24px!important;
   }
   .shell-main.stadium-home-page .stadium-webgl-canvas{
-    transform:translateY(-8%) scale(1.04)!important;
+    transform:translateY(-1%) scale(1.00)!important;
     transform-origin:50% 50%!important;
     filter:saturate(.91) contrast(1.10) brightness(.99) drop-shadow(0 20px 34px rgba(0,0,0,.46))!important;
   }
