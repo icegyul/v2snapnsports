@@ -1,1 +1,1 @@
-V15.37 acceptance revalidation on latest live-scoreboard head; verify no autoplay, HOME and APPROACH cues, mute/unmute lifecycle, stadium-only dock, and mobile clearance
+V15.37 rerun after robust returned-MUTED DOM geometry verification; verify no autoplay, HOME/APPROACH cues, mute/unmute, stadium-only dock, persisted muted state, and mobile clearance
