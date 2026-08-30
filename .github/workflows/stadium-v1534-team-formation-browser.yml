@@ -1,0 +1,48 @@
+name: Stadium V15.34 Team Formation Browser Verify
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1534-team-formation-browser.trigger
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test -- --reporter=dot
+      - run: npm run build
+      - name: Install Chromium renderer
+        run: npx playwright install --with-deps chromium
+      - name: Start production preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/stadium-v1534-preview.log 2>&1 &
+          echo $! > /tmp/stadium-v1534-preview.pid
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:4173/v2/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/stadium-v1534-preview.log
+          exit 1
+      - name: Capture 3D team formation sequence
+        run: node tools/capture_team_formation_3d.mjs
+      - name: Upload team formation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stadium-team-formation-evidence
+          path: output/stadium-team-formation-evidence
+          if-no-files-found: error
+          retention-days: 14
