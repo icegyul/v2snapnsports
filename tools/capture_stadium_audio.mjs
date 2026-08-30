@@ -60,7 +60,7 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
     }, { timeout: 15000 });
     const enabledHome = await audioState(page);
 
-    await page.locator("a.stadium-enter-link").click();
+    await page.getByRole("button", { name: "경기장을 눌러 입장하세요" }).click();
     await page.waitForFunction(() => {
       const heading = document.querySelector(".stadium-approach-header h1");
       const dock = document.querySelector(".stadium-audio-dock");
