@@ -7,6 +7,7 @@ export interface StadiumWebglRenderer {
   render(orbit: number, zoom: number): void;
   renderApproach?(progress: number): void;
   renderPitchEntry?(progress: number): void;
+  renderPlayerPosition?(progress: number, x: number, z: number): void;
   destroy(): void;
 }
 
@@ -1240,6 +1241,66 @@ export function createStadiumWebglRenderer(
   scene.environmentIntensity = 0.72;
   const stadium = buildStadium(scene, renderer, mode, recipe, geometries, materials, textures);
 
+  const positionMarker = new THREE.Group();
+  positionMarker.visible = false;
+  stadium.add(positionMarker);
+
+  const markerRingMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      color: recipe.accentColor,
+      emissive: recipe.accentColor,
+      emissiveIntensity: 3.2,
+      roughness: 0.25,
+      metalness: 0.18,
+      transparent: true,
+      opacity: 0.92,
+    }),
+  );
+  const markerBeaconMaterial = addDisposable(
+    materials,
+    new THREE.MeshBasicMaterial({
+      color: 0x8cddff,
+      transparent: true,
+      opacity: 0.22,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+  );
+  const markerBodyMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      color: 0xdcebf1,
+      emissive: recipe.accentColor,
+      emissiveIntensity: 0.52,
+      roughness: 0.58,
+      metalness: 0.08,
+    }),
+  );
+  const markerRingGeometry = addDisposable(geometries, new THREE.TorusGeometry(1.7, 0.085, 8, 48));
+  const markerRingOuterGeometry = addDisposable(geometries, new THREE.TorusGeometry(2.35, 0.045, 6, 48));
+  const markerBeaconGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.34, 1.65, 5.4, 24, 1, true));
+  const markerBodyGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.25, 0.20, 1.05, 8));
+  const markerHeadGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.20, 10, 7));
+
+  const markerRing = new THREE.Mesh(markerRingGeometry, markerRingMaterial);
+  markerRing.rotation.x = Math.PI / 2;
+  markerRing.position.y = 0.10;
+  positionMarker.add(markerRing);
+  const markerRingOuter = new THREE.Mesh(markerRingOuterGeometry, markerRingMaterial);
+  markerRingOuter.rotation.x = Math.PI / 2;
+  markerRingOuter.position.y = 0.08;
+  positionMarker.add(markerRingOuter);
+  const markerBeacon = new THREE.Mesh(markerBeaconGeometry, markerBeaconMaterial);
+  markerBeacon.position.y = 2.72;
+  positionMarker.add(markerBeacon);
+  const markerBody = new THREE.Mesh(markerBodyGeometry, markerBodyMaterial);
+  markerBody.position.y = 0.78;
+  positionMarker.add(markerBody);
+  const markerHead = new THREE.Mesh(markerHeadGeometry, markerBodyMaterial);
+  markerHead.position.y = 1.47;
+  positionMarker.add(markerHead);
+
   const camera = new THREE.PerspectiveCamera(54, 1, 0.18, 380);
   let cssWidth = 1;
   let cssHeight = 1;
@@ -1378,6 +1439,44 @@ export function createStadiumWebglRenderer(
     renderer.render(scene, camera);
   };
 
+  const renderPlayerPosition = (progress0: number, x0: number, z0: number) => {
+    const progress = THREE.MathUtils.clamp(progress0, 0, 1);
+    const eased = progress * progress * (3 - 2 * progress);
+    const portrait = cssWidth / cssHeight < 0.82;
+    const x = THREE.MathUtils.clamp(x0, -47, 47);
+    const z = THREE.MathUtils.clamp(z0, -29, 29);
+    camera.aspect = cssWidth / cssHeight;
+    camera.zoom = 1;
+
+    const start = portrait
+      ? new THREE.Vector3(1.8, 2.45, 30.5)
+      : new THREE.Vector3(5.8, 2.25, 29.5);
+    const end = portrait
+      ? new THREE.Vector3(x + 10.5, 9.2, z + 20.5)
+      : new THREE.Vector3(x + 15.5, 7.4, z + 21.0);
+    const startTarget = new THREE.Vector3(0, 1.1, -16);
+    const endTarget = new THREE.Vector3(x, 1.1, z);
+    const local = eased * eased * (3 - 2 * eased);
+
+    camera.position.lerpVectors(start, end, local);
+    const lookTarget = new THREE.Vector3().lerpVectors(startTarget, endTarget, local);
+    camera.lookAt(lookTarget);
+    camera.fov = portrait
+      ? THREE.MathUtils.lerp(69, 62, local)
+      : THREE.MathUtils.lerp(66, 58, local);
+    camera.updateProjectionMatrix();
+
+    positionMarker.position.set(x, 0.03, z);
+    positionMarker.visible = progress > 0.22;
+    const reveal = THREE.MathUtils.smoothstep(progress, 0.22, 0.72);
+    const pulse = 1 + Math.sin(progress * Math.PI * 4) * 0.035 * reveal;
+    positionMarker.scale.setScalar(Math.max(0.001, reveal * pulse));
+    markerRing.rotation.z = progress * 1.2;
+    markerRingOuter.rotation.z = -progress * 0.75;
+    stadium.rotation.y = -0.015;
+    renderer.render(scene, camera);
+  };
+
   const triangleCount = countTriangles(stadium);
 
   const destroy = () => {
@@ -1388,5 +1487,5 @@ export function createStadiumWebglRenderer(
     renderer.forceContextLoss();
   };
 
-  return { triangleCount, resize, render, renderApproach, renderPitchEntry, destroy };
+  return { triangleCount, resize, render, renderApproach, renderPitchEntry, renderPlayerPosition, destroy };
 }

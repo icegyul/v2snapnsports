@@ -6,9 +6,11 @@ import { CoreStateBoundary } from "../../components/CoreStateBoundary";
 import { Stadium3DScene } from "./Stadium3DScene";
 import { StadiumApproachScene } from "./StadiumApproachScene";
 import { PitchEntryScene } from "./PitchEntryScene";
+import { PlayerPosition3DScene } from "./PlayerPosition3DScene";
 import "./stadium.css";
 import "./stadiumApproach.css";
 import "./pitchEntry.css";
+import "./playerPosition3D.css";
 
 const adapter = new FixtureCoreProductAdapter();
 const loadStadiumHome = () => adapter.getStadiumHome();
@@ -117,7 +119,23 @@ function FormationBoard({ formation, ownOnly = false }: { formation: CoreFormati
 
 export function MyPositionPage() {
   const formation = useFixture(loadFormation);
-  return <CoreStateBoundary state={formation ? "READY" : "LOADING"}><main className="shell-main"><p className="eyebrow">MY POSITION</p><h1>나의 포지션</h1>{formation && <FormationBoard formation={formation} />}<p className="meta">본인 marker는 double ring과 라벨로 구분합니다. 동료는 등번호와 포지션만 표시합니다.</p><Link className="surface-link" to="/home/formation">나의 팀 포메이션</Link></main></CoreStateBoundary>;
+  const home = useFixture(loadStadiumHome);
+  const [complete, setComplete] = useState(false);
+  const ready = Boolean(formation && home);
+  return <CoreStateBoundary state={ready ? "READY" : "LOADING"}>{formation && home ? <main className="shell-main player-position-page">
+    <header className="player-position-header">
+      <div>
+        <p className="eyebrow">MY POSITION · 3D REVEAL</p>
+        <h1>나의 포지션</h1>
+      </div>
+      <p className="player-position-meta">{home.team.displayName} · 피치 레벨에서 #{formation.player.shirtNumber} {formation.player.primaryPosition}의 실제 공간 위치를 표시합니다.</p>
+    </header>
+    <PlayerPosition3DScene mode={home.visualMode} player={formation.player} onComplete={() => setComplete(true)} />
+    <footer className="player-position-footer">
+      <p>{complete ? `#${formation.player.shirtNumber} ${formation.player.primaryPosition} 위치 확인 완료` : "피치 위에서 나의 위치를 찾는 중입니다."}</p>
+      <Link className="surface-link" to="/home/formation">나의 팀 포메이션</Link>
+    </footer>
+  </main> : null}</CoreStateBoundary>;
 }
 
 export function MyTeamFormationPage() {
