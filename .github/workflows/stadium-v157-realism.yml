@@ -22,15 +22,16 @@ jobs:
           path = Path('apps/web/src/three/stadiumWebglV14.ts')
           text = path.read_text()
           replacements = {
-              '              const radius = 44;': '              const radius = 48;',
-              '              camera.fov = 82;': '              camera.fov = 80;',
-              '              camera.zoom = 0.62;': '              camera.zoom = 0.72;',
-              '              camera.position.set(Math.sin(angle) * radius, 30.5, Math.cos(angle) * radius);': '              camera.position.set(Math.sin(angle) * radius, 26.0, Math.cos(angle) * radius);',
-              '              camera.lookAt(new THREE.Vector3(-6, 6.0, 0));': '              camera.lookAt(new THREE.Vector3(-6, 11.0, 0));',
+              'const radius = 44;': 'const radius = 48;',
+              'camera.fov = 82;': 'camera.fov = 80;',
+              'camera.zoom = 0.62;': 'camera.zoom = 0.72;',
+              'camera.position.set(Math.sin(angle) * radius, 30.5, Math.cos(angle) * radius);': 'camera.position.set(Math.sin(angle) * radius, 26.0, Math.cos(angle) * radius);',
+              'camera.lookAt(new THREE.Vector3(-6, 6.0, 0));': 'camera.lookAt(new THREE.Vector3(-6, 11.0, 0));',
           }
           for old, new in replacements.items():
-              if old not in text:
-                  raise SystemExit(f'V15.16 token not found: {old}')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'V15.16 expected one token, found {count}: {old}')
               text = text.replace(old, new, 1)
           path.write_text(text)
           PY
