@@ -151,8 +151,8 @@ async function captureQuickEntry() {
       const surface = document.querySelector(".full-journey-surface");
       const button = document.querySelector(".full-journey-skip");
       return surface?.getAttribute("data-render-state") === "READY"
-        && button instanceof HTMLButtonElement
-        && !button.disabled;
+        && Boolean(button)
+        && !button.hasAttribute("disabled");
     }, { timeout: 30000 });
     await page.getByRole("button", { name: "빠른 입장" }).click();
     await page.waitForFunction(() => (
