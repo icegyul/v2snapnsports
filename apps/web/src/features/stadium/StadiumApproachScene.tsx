@@ -107,10 +107,15 @@ export function StadiumApproachScene({ mode, onComplete }: StadiumApproachSceneP
       onCompleteRef.current?.();
     } else {
       const durationMs = 4300;
-      const start = performance.now();
+      const maxFrameDeltaMs = 50;
+      let elapsedMs = 0;
+      let previousFrameAt: number | null = null;
       let lastPublished = -1;
       const tick = (now: number) => {
-        const nextProgress = clamp01((now - start) / durationMs);
+        const rawDelta = previousFrameAt === null ? 1000 / 60 : now - previousFrameAt;
+        previousFrameAt = now;
+        elapsedMs += Math.min(maxFrameDeltaMs, Math.max(0, rawDelta));
+        const nextProgress = clamp01(elapsedMs / durationMs);
         progressRef.current = nextProgress;
         renderApproach(nextProgress);
         if (nextProgress === 1 || nextProgress - lastPublished >= 0.025) {
@@ -149,6 +154,7 @@ export function StadiumApproachScene({ mode, onComplete }: StadiumApproachSceneP
       data-requested-mode={mode}
       data-render-mode={effectiveMode}
       data-render-state={renderState}
+      data-approach-progress={progress.toFixed(3)}
       data-approach-complete={progress >= 1 ? "true" : "false"}
     >
       <span className="stadium-approach-world" aria-hidden="true">
