@@ -1,1 +1,1 @@
-rerun default full entry acceptance after canonical href tests update
+rerun default home to full-entry acceptance on current builder-test head
