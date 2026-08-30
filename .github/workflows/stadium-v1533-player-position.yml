@@ -1,0 +1,26 @@
+name: Stadium V15.33 Player Position
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1533-player-position.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply V15.33 3D player position
+        run: python tools/patch_v1533_player_position.py
+      - name: Commit V15.33 player position
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts apps/web/src/three/stadiumWebglV151.ts apps/web/src/features/stadium/PlayerStadiumPages.tsx
+          git commit -m "feat: build V15.33 3D player position reveal"
+          git push

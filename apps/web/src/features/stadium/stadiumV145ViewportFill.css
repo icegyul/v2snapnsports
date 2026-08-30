@@ -1,0 +1,31 @@
+.shell-main.stadium-home-page{
+  height:calc(100dvh - 64px)!important;
+  min-height:calc(100dvh - 64px)!important;
+  grid-template-rows:auto minmax(0,1fr)!important;
+  overflow:hidden!important;
+}
+.shell-main.stadium-home-page .stadium-hero{
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  align-self:stretch!important;
+}
+.shell-main.stadium-home-page .stadium-webgl-canvas{
+  width:100%!important;
+  height:100%!important;
+  min-height:100%!important;
+  top:0!important;
+  bottom:auto!important;
+  transform:translateY(-1.5%) scale(1.02)!important;
+  transform-origin:50% 50%!important;
+  filter:saturate(.96) contrast(1.06) brightness(1.01) drop-shadow(0 18px 30px rgba(0,0,0,.42))!important;
+}
+@media(max-width:560px){
+  .shell-main.stadium-home-page{
+    grid-template-rows:62px minmax(0,1fr)!important;
+  }
+  .shell-main.stadium-home-page .stadium-webgl-canvas{
+    transform:translate(-.5%,-2%) scale(1.02)!important;
+    transform-origin:50% 50%!important;
+  }
+}

@@ -1,0 +1,43 @@
+name: Stadium V15.28 Grass Surface
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1528-grass-surface.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refine pitch micro texture
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/three/stadiumWebglV14.ts')
+          text = path.read_text()
+          replacements = {
+              'ctx.fillStyle = i % 2 === 0 ? "#183d28" : "#1d472c";': 'ctx.fillStyle = i % 2 === 0 ? "#193f29" : "#1e492e";',
+              'ctx.globalAlpha = 0.055;': 'ctx.globalAlpha = 0.090;',
+              'ctx.fillRect(x, y, 1, 1);': 'ctx.fillRect(x, y, 1, i % 5 === 0 ? 2 : 1);',
+              'bumpMap: grassBumpTexture, bumpScale: 0.028, roughness: 0.96, metalness: 0.0': 'bumpMap: grassBumpTexture, bumpScale: 0.045, roughness: 0.93, metalness: 0.0',
+          }
+          for old, new in replacements.items():
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'V15.28 expected one token, found {count}: {old}')
+              text = text.replace(old, new, 1)
+          path.write_text(text)
+          PY
+      - name: Commit V15.28 grass surface
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts
+          git commit -m "feat: refine V15.28 stadium grass surface"
+          git push

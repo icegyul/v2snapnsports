@@ -1,0 +1,17 @@
+name: Stadium V14 Camera Manual
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Explain frozen camera workflow
+        run: |
+          echo "Automatic V14 camera mutation is frozen."
+          echo "Base Stadium camera changes must be committed and visually verified explicitly."

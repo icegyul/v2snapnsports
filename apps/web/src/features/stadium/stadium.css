@@ -1,0 +1,468 @@
+.stadium-home-page {
+  width: min(100%, 1180px);
+  max-width: 1180px;
+  min-height: calc(100dvh - 64px);
+  padding: max(18px, env(safe-area-inset-top)) clamp(16px, 4vw, 40px) 24px;
+  gap: 14px;
+  align-content: start;
+}
+
+.stadium-home-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 84px;
+  padding: 0 2px;
+}
+
+.stadium-home-header h1 {
+  margin: 2px 0 0;
+  font-size: clamp(30px, 7vw, 52px);
+  line-height: 0.96;
+  letter-spacing: -0.045em;
+}
+
+.stadium-home-kicker,
+.stadium-home-team,
+.stadium-home-footer p {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.stadium-home-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.stadium-home-team {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.stadium-demo-badge {
+  flex: 0 0 auto;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-surface);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.stadium-hero {
+  position: relative;
+  min-height: clamp(470px, 63dvh, 690px);
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid var(--color-border-strong);
+  border-radius: clamp(22px, 5vw, 34px);
+  background: #11171a;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.34);
+}
+
+.stadium-hero::after {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(18, 20, 22, 0.16) 0%, transparent 23%, transparent 68%, rgba(18, 20, 22, 0.72) 100%),
+    radial-gradient(ellipse at 50% 72%, transparent 36%, rgba(3, 5, 6, 0.22) 100%);
+}
+
+.shell-main .stadium-interaction-surface {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  display: block;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.shell-main .stadium-interaction-surface:active {
+  cursor: grabbing;
+}
+
+.shell-main .stadium-interaction-surface:focus-visible {
+  outline: 3px solid var(--color-accent-focus);
+  outline-offset: -5px;
+}
+
+.stadium-world,
+.stadium-webgl-canvas,
+.stadium-static-fallback {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.stadium-world {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 70% 18%, rgba(244, 246, 247, 0.10), transparent 22%),
+    radial-gradient(ellipse at 50% 68%, rgba(87, 113, 95, 0.18), transparent 38%),
+    linear-gradient(180deg, #20282c 0%, #171d20 41%, #111618 72%, #0d1113 100%);
+}
+
+.stadium-sky-glow {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  width: 82%;
+  height: 40%;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: radial-gradient(ellipse, rgba(240, 244, 242, 0.10), transparent 67%);
+  filter: blur(16px);
+}
+
+.stadium-ground-glow {
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  width: 88%;
+  height: 29%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.08) 0 28%, rgba(0, 0, 0, 0.60) 72%, transparent 73%);
+  filter: blur(4px);
+}
+
+.stadium-webgl-canvas {
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 360ms ease;
+}
+
+.stadium-webgl-canvas.stadium-webgl-ready {
+  opacity: 1;
+}
+
+.stadium-static-fallback {
+  z-index: 1;
+  inset: 25% 4% 11%;
+  transform: perspective(900px) rotateX(58deg) rotateZ(-1deg);
+  transform-style: preserve-3d;
+  opacity: 1;
+  transition: opacity 260ms ease;
+}
+
+.stadium-static-fallback.stadium-static-hidden {
+  opacity: 0;
+}
+
+.stadium-static-shadow {
+  position: absolute;
+  inset: 20% 1% 4%;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.58);
+  filter: blur(18px);
+  transform: translateZ(-22px) translateY(26px);
+}
+
+.stadium-static-shell {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: inset 0 0 0 1px rgba(244, 246, 247, 0.08), 0 12px 0 rgba(8, 11, 12, 0.48);
+}
+
+.stadium-static-shell-outer {
+  width: 94%;
+  height: 76%;
+  border: clamp(16px, 5vw, 34px) solid #353c41;
+  background: #151a1d;
+  transform: translate(-50%, -50%) translateZ(8px);
+}
+
+.stadium-static-shell-mid {
+  width: 78%;
+  height: 62%;
+  border: clamp(12px, 4vw, 28px) solid #282d31;
+  background: transparent;
+  transform: translate(-50%, -50%) translateZ(22px);
+}
+
+.stadium-static-shell-inner {
+  width: 64%;
+  height: 50%;
+  border: clamp(9px, 3vw, 20px) solid #454c50;
+  background: transparent;
+  transform: translate(-50%, -50%) translateZ(34px);
+}
+
+.stadium-static-pitch {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52%;
+  height: 34%;
+  transform: translate(-50%, -50%) translateZ(48px);
+  border: 2px solid rgba(244, 246, 247, 0.72);
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 10%, rgba(0, 0, 0, 0.035) 10% 20%),
+    #174d2b;
+  box-shadow: 0 0 32px rgba(25, 92, 51, 0.18);
+}
+
+.stadium-static-halfway {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: rgba(244, 246, 247, 0.72);
+}
+
+.stadium-static-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 22%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(244, 246, 247, 0.72);
+  border-radius: 50%;
+}
+
+.stadium-quality-chip {
+  position: absolute;
+  z-index: 4;
+  top: 18px;
+  right: 18px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid rgba(244, 246, 247, 0.12);
+  border-radius: 999px;
+  background: rgba(18, 20, 22, 0.52);
+  color: rgba(244, 246, 247, 0.68);
+  backdrop-filter: blur(12px);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.stadium-state-layer,
+.stadium-identity-indicator,
+.stadium-enter-cue {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.stadium-state-layer {
+  top: 18px;
+  left: 18px;
+  width: min(68%, 310px);
+  display: grid;
+  gap: 3px;
+  padding: 12px 14px;
+  border: 1px solid rgba(244, 246, 247, 0.12);
+  border-radius: 14px;
+  background: rgba(18, 20, 22, 0.72);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(14px);
+}
+
+.stadium-state-label {
+  color: var(--color-text-secondary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.stadium-state-layer strong {
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: clamp(13px, 3.6vw, 16px);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stadium-state-layer > span:last-child {
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stadium-identity-indicator {
+  left: 18px;
+  bottom: 22px;
+  max-width: calc(100% - 36px);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px 7px 7px;
+  border: 1px solid rgba(98, 211, 109, 0.34);
+  border-radius: 999px;
+  background: rgba(18, 20, 22, 0.78);
+  color: var(--color-text-primary);
+  backdrop-filter: blur(14px);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.stadium-identity-number {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 2px double var(--color-accent-pitch);
+  border-radius: 50%;
+  color: var(--color-text-primary);
+  box-shadow: 0 0 0 4px rgba(98, 211, 109, 0.10);
+}
+
+.stadium-enter-cue {
+  right: 18px;
+  bottom: 23px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: rgba(244, 246, 247, 0.72);
+  font-size: 11px;
+}
+
+.stadium-enter-arrow {
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(98, 211, 109, 0.58);
+  border-radius: 50%;
+  color: var(--color-accent-pitch);
+  font-size: 14px;
+}
+
+.stadium-home-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 2px;
+}
+
+.stadium-home-footer p {
+  max-width: 620px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.stadium-enter-link {
+  flex: 0 0 auto;
+  padding-inline: 16px;
+  font-size: 12px;
+}
+
+@media (max-width: 560px) {
+  .stadium-home-page {
+    padding-inline: 12px;
+    gap: 10px;
+  }
+
+  .stadium-home-header {
+    padding-inline: 4px;
+  }
+
+  .stadium-hero {
+    min-height: clamp(470px, 66dvh, 590px);
+  }
+
+  .stadium-state-layer {
+    top: 14px;
+    left: 14px;
+    width: min(72%, 280px);
+  }
+
+  .stadium-quality-chip {
+    top: 14px;
+    right: 14px;
+    padding-inline: 8px;
+  }
+
+  .stadium-identity-indicator {
+    left: 14px;
+    bottom: 16px;
+    max-width: calc(100% - 28px);
+  }
+
+  .stadium-enter-cue {
+    right: 14px;
+    bottom: 68px;
+  }
+
+  .stadium-home-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .stadium-enter-link {
+    width: 100%;
+  }
+}
+
+@media (min-width: 900px) {
+  .stadium-home-page {
+    padding-top: 28px;
+  }
+
+  .stadium-hero {
+    min-height: min(68dvh, 700px);
+  }
+
+  .stadium-state-layer {
+    top: 24px;
+    left: 24px;
+  }
+
+  .stadium-quality-chip {
+    top: 24px;
+    right: 24px;
+  }
+
+  .stadium-identity-indicator {
+    left: 24px;
+    bottom: 28px;
+  }
+
+  .stadium-enter-cue {
+    right: 24px;
+    bottom: 30px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stadium-webgl-canvas,
+  .stadium-static-fallback {
+    transition: none;
+  }
+}

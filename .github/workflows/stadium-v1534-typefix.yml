@@ -1,0 +1,36 @@
+name: Stadium V15.34 Type Fix
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1534-typefix.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix team label texture contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/three/stadiumWebglV14.ts')
+          text = path.read_text()
+          old = 'const makeTeamLabelTexture = (shirtNumber: string, position: string): THREE.CanvasTexture => {'
+          new = 'const makeTeamLabelTexture = (shirtNumber: string, position: string): THREE.Texture => {'
+          if text.count(old) != 1:
+              raise SystemExit(f'V15.34 typefix anchor mismatch: {text.count(old)}')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit V15.34 type fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts
+          git commit -m "fix: align V15.34 team label texture type"
+          git push

@@ -1,0 +1,44 @@
+name: Stadium V15.27 Mobile Elevated Bowl
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1527-mobile-elevated-bowl.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Elevate portrait stadium camera
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/three/stadiumWebglV14.ts')
+          text = path.read_text()
+          replacements = {
+              'const radius = 63;': 'const radius = 72;',
+              'camera.fov = 68;': 'camera.fov = 66;',
+              'camera.zoom = 0.80;': 'camera.zoom = 0.88;',
+              'camera.position.set(Math.sin(angle) * radius, 30.5, Math.cos(angle) * radius);': 'camera.position.set(Math.sin(angle) * radius, 39.0, Math.cos(angle) * radius);',
+              'camera.lookAt(new THREE.Vector3(-2, 11.5, -7));': 'camera.lookAt(new THREE.Vector3(-2, 11.0, -8));',
+          }
+          for old, new in replacements.items():
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'V15.27 expected one token, found {count}: {old}')
+              text = text.replace(old, new, 1)
+          path.write_text(text)
+          PY
+      - name: Commit V15.27 mobile elevated bowl
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts
+          git commit -m "feat: elevate V15.27 mobile stadium bowl camera"
+          git push

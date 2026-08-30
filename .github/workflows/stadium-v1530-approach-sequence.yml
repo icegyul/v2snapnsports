@@ -1,0 +1,73 @@
+name: Stadium V15.30 3D Approach Sequence
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1530-approach-sequence.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extend renderer and replace static approach page
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          renderer_path = Path('apps/web/src/three/stadiumWebglV14.ts')
+          text = renderer_path.read_text()
+          old = '  render(orbit: number, zoom: number): void;\n  destroy(): void;'
+          new = '  render(orbit: number, zoom: number): void;\n  renderApproach(progress: number): void;\n  destroy(): void;'
+          if text.count(old) != 1:
+              raise SystemExit('V15.30 renderer interface token mismatch')
+          text = text.replace(old, new, 1)
+
+          anchor = '''};\n\n  const triangleCount = countTriangles(stadium);'''
+          approach = '''};\n\n  const renderApproach = (progress0: number) => {\n    const progress = THREE.MathUtils.clamp(progress0, 0, 1);\n    const eased = progress * progress * (3 - 2 * progress);\n    const portrait = cssWidth / cssHeight < 0.82;\n    camera.aspect = cssWidth / cssHeight;\n    camera.zoom = 1;\n\n    const outside = portrait\n      ? new THREE.Vector3(78, 76, 178)\n      : new THREE.Vector3(136, 67, 158);\n    const rim = portrait\n      ? new THREE.Vector3(58, 49, 101)\n      : new THREE.Vector3(76, 47, 96);\n    const inside = portrait\n      ? new THREE.Vector3(49, 32, 59)\n      : new THREE.Vector3(43, 27, 49);\n\n    const outsideTarget = new THREE.Vector3(0, 18, -4);\n    const rimTarget = new THREE.Vector3(0, 15, -8);\n    const insideTarget = new THREE.Vector3(-2, 9, -18);\n    const cameraPosition = new THREE.Vector3();\n    const lookTarget = new THREE.Vector3();\n\n    if (eased < 0.46) {\n      const t = eased / 0.46;\n      const local = t * t * (3 - 2 * t);\n      cameraPosition.lerpVectors(outside, rim, local);\n      lookTarget.lerpVectors(outsideTarget, rimTarget, local);\n    } else {\n      const t = (eased - 0.46) / 0.54;\n      const local = t * t * (3 - 2 * t);\n      cameraPosition.lerpVectors(rim, inside, local);\n      lookTarget.lerpVectors(rimTarget, insideTarget, local);\n    }\n\n    camera.fov = portrait\n      ? THREE.MathUtils.lerp(53, 63, eased)\n      : THREE.MathUtils.lerp(46, 58, eased);\n    camera.position.copy(cameraPosition);\n    camera.lookAt(lookTarget);\n    camera.updateProjectionMatrix();\n    stadium.rotation.y = THREE.MathUtils.lerp(-0.055, -0.015, eased);\n    renderer.render(scene, camera);\n  };\n\n  const triangleCount = countTriangles(stadium);'''
+          if text.count(anchor) != 1:
+              raise SystemExit('V15.30 renderer insertion anchor mismatch')
+          text = text.replace(anchor, approach, 1)
+          old = '  return { triangleCount, resize, render, destroy };'
+          new = '  return { triangleCount, resize, render, renderApproach, destroy };'
+          if text.count(old) != 1:
+              raise SystemExit('V15.30 renderer return token mismatch')
+          text = text.replace(old, new, 1)
+          renderer_path.write_text(text)
+
+          wrapper_path = Path('apps/web/src/three/stadiumWebglV151.ts')
+          text = wrapper_path.read_text()
+          old = '''    destroy() {\n      base.destroy();\n    },'''
+          new = '''    renderApproach(progress: number) {\n      base.renderApproach(progress);\n    },\n    destroy() {\n      base.destroy();\n    },'''
+          if text.count(old) != 1:
+              raise SystemExit('V15.30 V151 wrapper token mismatch')
+          text = text.replace(old, new, 1)
+          wrapper_path.write_text(text)
+
+          pages_path = Path('apps/web/src/features/stadium/PlayerStadiumPages.tsx')
+          text = pages_path.read_text()
+          old = 'import { Stadium3DScene } from "./Stadium3DScene";\nimport "./stadium.css";'
+          new = 'import { Stadium3DScene } from "./Stadium3DScene";\nimport { StadiumApproachScene } from "./StadiumApproachScene";\nimport "./stadium.css";\nimport "./stadiumApproach.css";'
+          if text.count(old) != 1:
+              raise SystemExit('V15.30 page import token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = 'export function StadiumApproachPage() { return <main className="shell-main"><p className="eyebrow">STADIUM EXPERIENCE · ZOOM</p><h1>경기장으로 다가가기</h1><StaticScene label="경기장 접근" /><Link className="surface-link" to="/home/enter">피치로 들어가기</Link></main>; }'
+          new = '''export function StadiumApproachPage() {\n  const home = useFixture(loadStadiumHome);\n  const [complete, setComplete] = useState(false);\n  return <CoreStateBoundary state={home ? "READY" : "LOADING"}>{home ? <main className="shell-main stadium-approach-page">\n    <header className="stadium-approach-header">\n      <div>\n        <p className="eyebrow">STADIUM EXPERIENCE · APPROACH</p>\n        <h1>경기장으로 다가가기</h1>\n      </div>\n      <p className="stadium-approach-meta">{home.team.displayName} · 외곽에서 지붕 상부를 지나 실제 3D bowl 내부로 접근합니다.</p>\n    </header>\n    <StadiumApproachScene mode={home.visualMode} onComplete={() => setComplete(true)} />\n    <footer className="stadium-approach-footer">\n      <p>{complete ? "3D 카메라가 경기장 내부에 도착했습니다." : "외부 시점에서 경기장 내부로 이동 중입니다."}</p>\n      <Link className="surface-link stadium-approach-enter-link" to="/home/enter">피치로 들어가기</Link>\n    </footer>\n  </main> : null}</CoreStateBoundary>;\n}'''
+          if text.count(old) != 1:
+              raise SystemExit('V15.30 static approach page token mismatch')
+          text = text.replace(old, new, 1)
+          pages_path.write_text(text)
+          PY
+      - name: Commit V15.30 approach sequence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts apps/web/src/three/stadiumWebglV151.ts apps/web/src/features/stadium/PlayerStadiumPages.tsx
+          git commit -m "feat: connect V15.30 real 3D stadium approach sequence"
+          git push

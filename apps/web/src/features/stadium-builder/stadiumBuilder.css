@@ -1,0 +1,337 @@
+.stadium-builder-page {
+  width: min(100%, 1380px);
+  max-width: 1380px;
+  min-height: calc(100dvh - 64px);
+  padding: max(18px, env(safe-area-inset-top)) clamp(14px, 3vw, 36px) 36px;
+  gap: 18px;
+}
+
+.stadium-builder-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.stadium-builder-header h1 { margin-top: 4px; }
+
+.stadium-builder-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stadium-builder-header-actions .surface-link,
+.stadium-builder-header-actions button {
+  min-height: 44px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+.stadium-builder-save {
+  border-color: rgba(69, 199, 255, .58) !important;
+  background: rgba(12, 61, 82, .72) !important;
+}
+
+.stadium-builder-workspace {
+  display: grid;
+  grid-template-columns: minmax(360px, .9fr) minmax(520px, 1.45fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.stadium-builder-editor {
+  display: grid;
+  gap: 12px;
+}
+
+.stadium-builder-steps {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.stadium-builder-steps button {
+  min-width: 0;
+  min-height: 58px;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 2px;
+  padding: 8px 9px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.stadium-builder-steps button span {
+  font-size: 9px;
+  letter-spacing: .08em;
+  opacity: .55;
+}
+
+.stadium-builder-steps button.is-active {
+  border-color: rgba(69, 199, 255, .64);
+  background: rgba(8, 42, 58, .78);
+  color: #edf9fd;
+}
+
+.stadium-builder-steps button.is-complete {
+  border-color: rgba(91, 180, 142, .34);
+}
+
+.stadium-builder-step-panel,
+.stadium-builder-validator {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 20px;
+  background: var(--color-bg-surface);
+}
+
+.stadium-builder-step-title {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stadium-builder-step-title span,
+.stadium-builder-validator > div span {
+  color: var(--color-text-secondary);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+
+.stadium-builder-step-title h2 { margin: 0; font-size: 24px; }
+
+.stadium-builder-control-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.stadium-builder-control-grid label,
+.stadium-builder-control-grid fieldset {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.stadium-builder-control-grid label > span,
+.stadium-builder-control-grid legend {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.stadium-builder-control-grid select,
+.stadium-builder-control-grid input[type="range"] {
+  width: 100%;
+}
+
+.stadium-builder-control-grid select {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 12px;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  font: inherit;
+}
+
+.stadium-builder-control-grid input[type="color"] {
+  width: 100%;
+  height: 46px;
+  padding: 4px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 12px;
+  background: var(--color-bg-elevated);
+}
+
+.stadium-builder-segmented {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.stadium-builder-segmented button.is-active {
+  border-color: rgba(69, 199, 255, .62);
+  background: rgba(12, 53, 70, .82);
+}
+
+.stadium-builder-family-description,
+.stadium-builder-help {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 2px solid rgba(83, 195, 238, .46);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.stadium-builder-step-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.stadium-builder-step-nav button {
+  min-width: 96px;
+}
+
+.stadium-builder-validator {
+  gap: 8px;
+  padding: 14px 16px;
+}
+
+.stadium-builder-validator > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stadium-builder-validator p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.stadium-builder-validator.is-valid { border-color: rgba(91, 190, 142, .32); }
+.stadium-builder-validator.has-errors { border-color: rgba(234, 105, 105, .50); }
+.stadium-builder-validator .is-error { color: #ffb0aa; }
+.stadium-builder-validator .is-warning { color: #f4cd8b; }
+
+.stadium-builder-save-message {
+  min-height: 20px;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+
+.stadium-builder-preview-panel {
+  position: sticky;
+  top: 16px;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 24px;
+  background: #0c1216;
+  box-shadow: 0 22px 60px rgba(0,0,0,.28);
+}
+
+.stadium-builder-preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 4px;
+}
+
+.stadium-builder-preview-head > div { display: grid; gap: 1px; }
+.stadium-builder-preview-head span { color: #83939c; font-size: 9px; font-weight: 800; letter-spacing: .12em; }
+.stadium-builder-preview-head strong { color: #edf8fb; font-size: 13px; }
+
+.stadium-builder-preview-state {
+  padding: 5px 8px;
+  border: 1px solid rgba(93, 201, 245, .20);
+  border-radius: 999px;
+}
+
+.stadium-builder-preview-state[data-preview-state="READY"] { color: #8ee0ff; border-color: rgba(73, 199, 249, .48); }
+
+.stadium-builder-preview-stage {
+  position: relative;
+  min-height: clamp(500px, 68dvh, 760px);
+  overflow: hidden;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #182128, #07100d);
+  cursor: grab;
+  touch-action: none;
+}
+
+.stadium-builder-preview-stage:active { cursor: grabbing; }
+
+.stadium-builder-preview-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.stadium-builder-preview-canvas.is-ready { opacity: 1; }
+
+.stadium-builder-preview-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 5px;
+  padding: 24px;
+  color: #dbe7ec;
+  text-align: center;
+}
+
+.stadium-builder-preview-fallback span { color: #8e9ba2; font-size: 11px; }
+
+.stadium-builder-preview-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: rgba(4, 10, 13, .62);
+  color: rgba(226, 240, 246, .70);
+  font-size: 9px;
+  pointer-events: none;
+}
+
+.stadium-builder-preview-meta {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 0;
+}
+
+.stadium-builder-preview-meta > div {
+  display: grid;
+  gap: 2px;
+  padding: 8px 9px;
+  border: 1px solid rgba(205, 232, 242, .08);
+  border-radius: 10px;
+  background: rgba(255,255,255,.025);
+}
+
+.stadium-builder-preview-meta dt { color: #6f818b; font-size: 8px; font-weight: 800; letter-spacing: .12em; }
+.stadium-builder-preview-meta dd { margin: 0; color: #dce9ee; font-size: 10px; }
+
+@media (max-width: 1050px) {
+  .stadium-builder-workspace { grid-template-columns: 1fr; }
+  .stadium-builder-preview-panel { position: relative; top: auto; grid-row: 1; }
+  .stadium-builder-preview-stage { min-height: 52dvh; }
+}
+
+@media (max-width: 760px) {
+  .stadium-builder-page {
+    padding: max(12px, env(safe-area-inset-top)) 10px calc(110px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .stadium-builder-header { align-items: flex-start; flex-direction: column; }
+  .stadium-builder-header-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .stadium-builder-header-actions .surface-link { grid-column: span 2; }
+  .stadium-builder-steps { grid-template-columns: repeat(4, 1fr); }
+  .stadium-builder-preview-stage { min-height: 54dvh; }
+  .stadium-builder-preview-meta { grid-template-columns: repeat(2, 1fr); }
+  .stadium-builder-step-panel { padding: 14px; }
+}

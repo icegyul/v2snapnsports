@@ -1,0 +1,36 @@
+name: Stadium V15.38 Full Entry Cleanup
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1538-full-entry-cleanup.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Clean full entry browser verifier
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('tools/capture_full_stadium_journey.mjs')
+          text = path.read_text()
+          old = '''      return surface?.getAttribute("data-render-state") === "READY"\n        && button instanceof HTMLButtonElement\n        && !button.disabled;'''
+          new = '''      return surface?.getAttribute("data-render-state") === "READY"\n        && Boolean(button)\n        && !button.hasAttribute("disabled");'''
+          if text.count(old) != 1:
+            raise SystemExit('full entry verifier button token mismatch')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit verifier cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- tools/capture_full_stadium_journey.mjs
+          git commit -m "fix: clean V15.38 full entry verifier"
+          git push

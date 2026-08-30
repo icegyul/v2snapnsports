@@ -1,0 +1,45 @@
+name: Stadium V15.24 Mobile Bowl Balance
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1524-mobile-bowl-balance.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rebalance portrait camera for stadium scale
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/three/stadiumWebglV14.ts')
+          text = path.read_text()
+          replacements = {
+              'const angle = (72 + orbit * 0.04) * Math.PI / 180;': 'const angle = (68 + orbit * 0.04) * Math.PI / 180;',
+              'const radius = 56;': 'const radius = 63;',
+              'camera.fov = 72;': 'camera.fov = 68;',
+              'camera.zoom = 0.74;': 'camera.zoom = 0.80;',
+              'camera.position.set(Math.sin(angle) * radius, 32.0, Math.cos(angle) * radius);': 'camera.position.set(Math.sin(angle) * radius, 30.5, Math.cos(angle) * radius);',
+              'camera.lookAt(new THREE.Vector3(-4, 10.0, -4));': 'camera.lookAt(new THREE.Vector3(-2, 11.5, -7));',
+          }
+          for old, new in replacements.items():
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'V15.24 expected one token, found {count}: {old}')
+              text = text.replace(old, new, 1)
+          path.write_text(text)
+          PY
+      - name: Commit V15.24 portrait camera balance
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts
+          git commit -m "feat: balance V15.24 mobile stadium bowl framing"
+          git push

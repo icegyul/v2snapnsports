@@ -1,0 +1,36 @@
+name: Stadium Builder Visual Fix
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-builder-visual-fix.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix Builder visual profile semantics
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/three/stadiumWebglV14.ts')
+          text = path.read_text()
+          old = 'scene.environmentIntensity = environmentProfile === "DAYLIGHT" ? 0.78 : environmentProfile === "NIGHT_EVENT" ? 0.58 : environmentProfile === "COASTAL" ? 0.82 : 0.72;'
+          new = 'scene.environmentIntensity = lightingProfile === "DAYLIGHT" ? 0.78 : environmentProfile === "NIGHT_EVENT" ? 0.58 : environmentProfile === "COASTAL" ? 0.82 : 0.72;'
+          if text.count(old) != 1:
+            raise SystemExit('environment intensity semantic token mismatch')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit semantic fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts
+          git commit -m "fix: align Builder environment intensity with lighting profile"
+          git push

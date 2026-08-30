@@ -1,0 +1,98 @@
+name: Stadium Builder Visual Runtime
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-builder-visual-runtime.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply Builder visual recipe extensions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          renderer = Path('apps/web/src/three/stadiumWebglV14.ts')
+          text = renderer.read_text()
+
+          old = '''export interface StadiumRecipe {\n  tierCount: 1 | 2 | 3;\n  roofCoverage: number;\n  crowdDensity: number;\n  seatColor: number;\n  accentColor: number;\n  columnStyle: StadiumColumnStyle;\n}'''
+          new = '''export interface StadiumRecipe {\n  tierCount: 1 | 2 | 3;\n  roofCoverage: number;\n  crowdDensity: number;\n  seatColor: number;\n  accentColor: number;\n  columnStyle: StadiumColumnStyle;\n  seatPattern?: "MONO" | "DUO" | "GRADIENT";\n  facadeProfile?: "SOLID_RIB" | "GLASS_BAND" | "LIGHT_FRAME";\n  lightingProfile?: "DAYLIGHT" | "BALANCED" | "EVENT";\n  environmentProfile?: "URBAN" | "PARK" | "COASTAL" | "CIVIC" | "NIGHT_EVENT";\n}'''
+          if text.count(old) != 1:
+            raise SystemExit('recipe interface token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = '''      const section = Math.floor(slot / 24);\n      seats.setColorAt(index, section % 13 === 0 ? accentColor : baseColor);'''
+          new = '''      const section = Math.floor(slot / 24);\n      const seatPattern = recipe.seatPattern ?? "DUO";\n      const color = seatPattern === "MONO"\n        ? baseColor\n        : seatPattern === "GRADIENT"\n          ? baseColor.clone().lerp(accentColor, 0.12 + 0.72 * ((slot % spec.peoplePerRow) / Math.max(1, spec.peoplePerRow - 1)))\n          : section % 13 === 0\n            ? accentColor\n            : baseColor;\n      seats.setColorAt(index, color);'''
+          if text.count(old) != 1:
+            raise SystemExit('seat pattern token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = '''  const plazaMaterial = addDisposable(\n    materials,\n    new THREE.MeshStandardMaterial({ color: 0x151b20, roughness: 0.98, metalness: 0.02 }),\n  );\n  const baseMaterial = addDisposable(\n    materials,\n    new THREE.MeshStandardMaterial({ color: 0x343b42, roughness: 0.84, metalness: 0.12, side: THREE.DoubleSide }),\n  );\n  const upperMaterial = addDisposable(\n    materials,\n    new THREE.MeshPhysicalMaterial({\n      color: 0x414d58,\n      roughness: 0.46,\n      metalness: 0.58,'''
+          new = '''  const environment = recipe.environmentProfile ?? "CIVIC";\n  const facade = recipe.facadeProfile ?? "GLASS_BAND";\n  const plazaColor = environment === "PARK"\n    ? 0x17221b\n    : environment === "COASTAL"\n      ? 0x142129\n      : environment === "NIGHT_EVENT"\n        ? 0x090d12\n        : environment === "URBAN"\n          ? 0x15191e\n          : 0x151b20;\n  const baseColor = facade === "SOLID_RIB" ? 0x30363c : facade === "LIGHT_FRAME" ? 0x414a51 : 0x343b42;\n  const upperColor = facade === "SOLID_RIB" ? 0x313941 : facade === "LIGHT_FRAME" ? 0x596873 : 0x414d58;\n  const plazaMaterial = addDisposable(\n    materials,\n    new THREE.MeshStandardMaterial({ color: plazaColor, roughness: 0.98, metalness: 0.02 }),\n  );\n  const baseMaterial = addDisposable(\n    materials,\n    new THREE.MeshStandardMaterial({ color: baseColor, roughness: facade === "LIGHT_FRAME" ? 0.66 : 0.84, metalness: facade === "LIGHT_FRAME" ? 0.34 : 0.12, side: THREE.DoubleSide }),\n  );\n  const upperMaterial = addDisposable(\n    materials,\n    new THREE.MeshPhysicalMaterial({\n      color: upperColor,\n      roughness: facade === "SOLID_RIB" ? 0.58 : 0.46,\n      metalness: facade === "LIGHT_FRAME" ? 0.72 : 0.58,'''
+          if text.count(old) != 1:
+            raise SystemExit('facade material token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = '''      color: 0x17303e,\n      emissive: 0x07131a,\n      emissiveIntensity: 0.44,\n      roughness: 0.18,\n      metalness: 0.18,\n      transparent: true,\n      opacity: 0.78,'''
+          new = '''      color: facade === "LIGHT_FRAME" ? 0x24485c : facade === "SOLID_RIB" ? 0x162631 : 0x17303e,\n      emissive: facade === "LIGHT_FRAME" ? recipe.accentColor : 0x07131a,\n      emissiveIntensity: facade === "LIGHT_FRAME" ? 0.18 : 0.44,\n      roughness: facade === "SOLID_RIB" ? 0.30 : 0.18,\n      metalness: facade === "LIGHT_FRAME" ? 0.28 : 0.18,\n      transparent: true,\n      opacity: facade === "SOLID_RIB" ? 0.56 : 0.78,'''
+          if text.count(old) != 1:
+            raise SystemExit('facade glass token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = '''  const finMaterial = addDisposable(\n    materials,\n    new THREE.MeshStandardMaterial({ color: 0x929da6, roughness: 0.38, metalness: 0.70 }),\n  );'''
+          new = '''  const finMaterial = addDisposable(\n    materials,\n    new THREE.MeshStandardMaterial({\n      color: facade === "LIGHT_FRAME" ? recipe.accentColor : facade === "SOLID_RIB" ? 0x6f7780 : 0x929da6,\n      emissive: facade === "LIGHT_FRAME" ? recipe.accentColor : 0x000000,\n      emissiveIntensity: facade === "LIGHT_FRAME" ? 0.20 : 0,\n      roughness: facade === "SOLID_RIB" ? 0.52 : 0.38,\n      metalness: 0.70,\n    }),\n  );'''
+          if text.count(old) != 1:
+            raise SystemExit('fin material token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = '''  renderer.toneMapping = THREE.ACESFilmicToneMapping;\n  renderer.toneMappingExposure = 1.02;\n  renderer.shadowMap.enabled = mode === "FULL";'''
+          new = '''  renderer.toneMapping = THREE.ACESFilmicToneMapping;\n  const lightingProfile = recipe.lightingProfile ?? "BALANCED";\n  renderer.toneMappingExposure = lightingProfile === "DAYLIGHT" ? 0.94 : lightingProfile === "EVENT" ? 1.16 : 1.02;\n  renderer.shadowMap.enabled = mode === "FULL";'''
+          if text.count(old) != 1:
+            raise SystemExit('lighting exposure token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = '''  const scene = new THREE.Scene();\n  scene.fog = new THREE.Fog(0x0c141c, 112, 275);\n  const geometries = new Set<THREE.BufferGeometry>();'''
+          new = '''  const scene = new THREE.Scene();\n  const environmentProfile = recipe.environmentProfile ?? "CIVIC";\n  const fogColor = environmentProfile === "PARK"\n    ? 0x0d1a13\n    : environmentProfile === "COASTAL"\n      ? 0x0b1b25\n      : environmentProfile === "NIGHT_EVENT"\n        ? 0x050911\n        : environmentProfile === "URBAN"\n          ? 0x11161b\n          : 0x0c141c;\n  const fogNear = environmentProfile === "NIGHT_EVENT" ? 92 : environmentProfile === "COASTAL" ? 124 : 112;\n  const fogFar = environmentProfile === "PARK" ? 245 : environmentProfile === "NIGHT_EVENT" ? 230 : 275;\n  scene.fog = new THREE.Fog(fogColor, fogNear, fogFar);\n  const geometries = new Set<THREE.BufferGeometry>();'''
+          if text.count(old) != 1:
+            raise SystemExit('environment fog token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = '''  scene.environment = environmentTexture;\n  scene.environmentIntensity = 0.72;'''
+          new = '''  scene.environment = environmentTexture;\n  scene.environmentIntensity = environmentProfile === "DAYLIGHT" ? 0.78 : environmentProfile === "NIGHT_EVENT" ? 0.58 : environmentProfile === "COASTAL" ? 0.82 : 0.72;'''
+          if text.count(old) != 1:
+            raise SystemExit('environment intensity token mismatch')
+          text = text.replace(old, new, 1)
+
+          renderer.write_text(text)
+
+          model = Path('apps/web/src/features/stadium-builder/stadiumBuilderModel.ts')
+          text = model.read_text()
+          old = '''  return {\n    tierCount: draft.bowl.tierCount,\n    roofCoverage: draft.roof.coverage,\n    crowdDensity: draft.seat.fillDensity,\n    seatColor: parseColor(draft.seat.primaryColor, 0x17344f),\n    accentColor: parseColor(draft.seat.accentColor, 0x159bd2),\n    columnStyle,\n  };'''
+          new = '''  return {\n    tierCount: draft.bowl.tierCount,\n    roofCoverage: draft.roof.coverage,\n    crowdDensity: draft.seat.fillDensity,\n    seatColor: parseColor(draft.seat.primaryColor, 0x17344f),\n    accentColor: parseColor(draft.seat.accentColor, 0x159bd2),\n    columnStyle,\n    seatPattern: draft.seat.pattern,\n    facadeProfile: draft.facadeLight.facade,\n    lightingProfile: draft.facadeLight.lighting,\n    environmentProfile: draft.environment.profile,\n  };'''
+          if text.count(old) != 1:
+            raise SystemExit('builder recipe conversion token mismatch')
+          model.write_text(text.replace(old, new, 1))
+
+          test = Path('apps/web/src/tests/stadiumBuilderModel.test.ts')
+          text = test.read_text()
+          old = '''      accentColor: 0x159bd2,\n      columnStyle: "y",\n    });'''
+          new = '''      accentColor: 0x159bd2,\n      columnStyle: "y",\n      seatPattern: "DUO",\n      facadeProfile: "GLASS_BAND",\n      lightingProfile: "BALANCED",\n      environmentProfile: "CIVIC",\n    });'''
+          if text.count(old) != 1:
+            raise SystemExit('builder recipe test token mismatch')
+          test.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit Builder visual runtime
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts apps/web/src/features/stadium-builder/stadiumBuilderModel.ts apps/web/src/tests/stadiumBuilderModel.test.ts
+          git commit -m "feat: connect Builder visual profiles to Three.js runtime"
+          git push

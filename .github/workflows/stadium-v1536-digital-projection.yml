@@ -1,0 +1,26 @@
+name: Stadium V15.36 Digital Projection
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1536-digital-projection.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply V15.36 digital projection
+        run: python tools/apply_v1536_digital_projection.py
+      - name: Commit V15.36 digital projection
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts apps/web/src/three/stadiumWebglV151.ts apps/web/src/features/stadium/PlayerStadiumPages.tsx apps/web/src/app/AppShell.tsx
+          git commit -m "feat: build V15.36 3D digital projection"
+          git push
