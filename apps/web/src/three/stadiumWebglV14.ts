@@ -5,7 +5,7 @@ export interface StadiumWebglRenderer {
   readonly triangleCount: number;
   resize(width: number, height: number, dpr: number): void;
   render(orbit: number, zoom: number): void;
-  renderApproach(progress: number): void;
+  renderApproach?(progress: number): void;
   destroy(): void;
 }
 
