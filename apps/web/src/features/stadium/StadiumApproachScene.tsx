@@ -18,6 +18,7 @@ export function StadiumApproachScene({ mode, onComplete }: StadiumApproachSceneP
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rendererRef = useRef<StadiumWebglRenderer | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const animationTimerRef = useRef<number | null>(null);
   const progressRef = useRef(0);
   const onCompleteRef = useRef(onComplete);
   const [effectiveMode, setEffectiveMode] = useState<CoreVisualMode>(mode);
@@ -38,12 +39,21 @@ export function StadiumApproachScene({ mode, onComplete }: StadiumApproachSceneP
 
   useEffect(() => {
     const canvas = canvasRef.current;
+
+    const stopAnimation = () => {
+      if (animationFrameRef.current !== null) {
+        window.cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      if (animationTimerRef.current !== null) {
+        window.clearTimeout(animationTimerRef.current);
+        animationTimerRef.current = null;
+      }
+    };
+
     rendererRef.current?.destroy();
     rendererRef.current = null;
-    if (animationFrameRef.current !== null) {
-      window.cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
+    stopAnimation();
 
     if (!canvas || effectiveMode === "STATIC") {
       setRenderState("FALLBACK");
@@ -80,10 +90,7 @@ export function StadiumApproachScene({ mode, onComplete }: StadiumApproachSceneP
 
     const handleContextLost = (event: Event) => {
       event.preventDefault();
-      if (animationFrameRef.current !== null) {
-        window.cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
+      stopAnimation();
       rendererRef.current?.destroy();
       rendererRef.current = null;
       setRenderState("INITIALIZING");
@@ -107,11 +114,21 @@ export function StadiumApproachScene({ mode, onComplete }: StadiumApproachSceneP
       onCompleteRef.current?.();
     } else {
       const durationMs = 4300;
-      const maxFrameDeltaMs = 50;
+      const maxFrameDeltaMs = 120;
+      const frameYieldMs = 28;
       let elapsedMs = 0;
       let previousFrameAt: number | null = null;
       let lastPublished = -1;
+
+      const scheduleNextFrame = () => {
+        animationTimerRef.current = window.setTimeout(() => {
+          animationTimerRef.current = null;
+          animationFrameRef.current = window.requestAnimationFrame(tick);
+        }, frameYieldMs);
+      };
+
       const tick = (now: number) => {
+        animationFrameRef.current = null;
         const rawDelta = previousFrameAt === null ? 1000 / 60 : now - previousFrameAt;
         previousFrameAt = now;
         elapsedMs += Math.min(maxFrameDeltaMs, Math.max(0, rawDelta));
@@ -123,12 +140,12 @@ export function StadiumApproachScene({ mode, onComplete }: StadiumApproachSceneP
           setProgress(nextProgress);
         }
         if (nextProgress < 1) {
-          animationFrameRef.current = window.requestAnimationFrame(tick);
+          scheduleNextFrame();
         } else {
-          animationFrameRef.current = null;
           onCompleteRef.current?.();
         }
       };
+
       animationFrameRef.current = window.requestAnimationFrame(tick);
     }
 
@@ -136,10 +153,7 @@ export function StadiumApproachScene({ mode, onComplete }: StadiumApproachSceneP
       canvas.removeEventListener("webglcontextlost", handleContextLost);
       observer?.disconnect();
       window.removeEventListener("resize", resize);
-      if (animationFrameRef.current !== null) {
-        window.cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
+      stopAnimation();
       renderer?.destroy();
       if (rendererRef.current === renderer) rendererRef.current = null;
     };
