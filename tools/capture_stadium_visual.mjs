@@ -27,17 +27,20 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
 
   try {
     await page.goto(baseUrl, { waitUntil: "networkidle" });
-    const heading = page.locator(".stadium-home-header h1");
-    await heading.waitFor({ state: "attached", timeout: 15000 });
-    const headingText = (await heading.textContent())?.trim();
-    if (headingText !== "나의 경기장") {
-      throw new Error(`unexpected stadium heading: ${headingText ?? "<missing>"}`);
-    }
-    await page.locator(".stadium-webgl-canvas").waitFor({ state: "visible", timeout: 15000 });
-    await page.waitForTimeout(1500);
+    await page.waitForFunction(() => {
+      const heading = document.querySelector(".stadium-home-header h1");
+      const surface = document.querySelector(".stadium-interaction-surface");
+      const canvas = document.querySelector(".stadium-webgl-canvas");
+      return heading?.textContent?.trim() === "나의 경기장"
+        && surface?.getAttribute("data-render-state") === "READY"
+        && Boolean(canvas)
+        && Boolean(document.querySelector(".stadium-webgl-ready"));
+    }, { timeout: 30000 });
+    await page.waitForTimeout(1200);
     const state = await page.locator(".stadium-interaction-surface").evaluate((node) => ({
       requestedMode: node.getAttribute("data-requested-mode"),
-      renderedMode: node.getAttribute("data-rendered-mode"),
+      renderedMode: node.getAttribute("data-render-mode"),
+      renderState: node.getAttribute("data-render-state"),
       canvasReady: Boolean(document.querySelector(".stadium-webgl-ready")),
       width: window.innerWidth,
       height: window.innerHeight,
@@ -75,7 +78,7 @@ try {
 }
 
 for (const result of results) {
-  if (!result.state.canvasReady || result.state.renderedMode === "STATIC") {
+  if (!result.state.canvasReady || result.state.renderedMode === "STATIC" || result.state.renderState !== "READY") {
     console.error(`stadium visual verification failed for ${result.name}`, result);
     process.exitCode = 1;
   }
