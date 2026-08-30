@@ -53,9 +53,7 @@ export function StadiumAudioDock() {
 
   const toggle = async () => {
     if (snapshot.state === "LOCKED") {
-      const next = await enableStadiumAudio();
-      const cue = cueForPath(location.pathname);
-      if (next.state === "ENABLED" && cue) playStadiumAudioCue(cue);
+      await enableStadiumAudio();
       return;
     }
     if (snapshot.state === "ENABLED") {
