@@ -12,10 +12,16 @@ export function StadiumBuilderPreview({ draft }: StadiumBuilderPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rendererRef = useRef<StadiumWebglRenderer | null>(null);
   const [previewState, setPreviewState] = useState<PreviewState>("INITIALIZING");
+  const [renderDraft, setRenderDraft] = useState<StadiumBuilderDraft>(draft);
   const [orbit, setOrbit] = useState(0);
   const orbitRef = useRef(0);
   const dragStartRef = useRef<number | null>(null);
   const orbitStartRef = useRef(0);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setRenderDraft(draft), 180);
+    return () => window.clearTimeout(timer);
+  }, [draft]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -26,7 +32,7 @@ export function StadiumBuilderPreview({ draft }: StadiumBuilderPreviewProps) {
 
     let renderer: StadiumWebglRenderer | null = null;
     try {
-      renderer = createStadiumWebglRenderer(canvas, "FULL", stadiumBuilderDraftToRecipe(draft));
+      renderer = createStadiumWebglRenderer(canvas, "FULL", stadiumBuilderDraftToRecipe(renderDraft));
     } catch {
       renderer = null;
     }
@@ -58,7 +64,7 @@ export function StadiumBuilderPreview({ draft }: StadiumBuilderPreviewProps) {
       renderer?.destroy();
       if (rendererRef.current === renderer) rendererRef.current = null;
     };
-  }, [draft]);
+  }, [renderDraft]);
 
   useEffect(() => {
     orbitRef.current = orbit;
@@ -84,7 +90,7 @@ export function StadiumBuilderPreview({ draft }: StadiumBuilderPreviewProps) {
   };
 
   return (
-    <section className="stadium-builder-preview-panel" aria-label="경기장 Builder 3D 미리보기">
+    <section className="stadium-builder-preview-panel" aria-label="경기장 Builder 3D 미리보기" data-rendered-preset={renderDraft.selectedPresetId}>
       <div className="stadium-builder-preview-head">
         <div>
           <span>LIVE PREVIEW</span>
@@ -100,12 +106,13 @@ export function StadiumBuilderPreview({ draft }: StadiumBuilderPreviewProps) {
         onPointerCancel={pointerUp}
       >
         <canvas ref={canvasRef} className={`stadium-builder-preview-canvas ${previewState === "READY" ? "is-ready" : ""}`} />
-        {previewState !== "READY" && (
+        {previewState === "FALLBACK" && (
           <div className="stadium-builder-preview-fallback">
             <strong>3D 미리보기를 사용할 수 없습니다.</strong>
             <span>설정값과 저장 기능은 계속 사용할 수 있습니다.</span>
           </div>
         )}
+        {previewState === "INITIALIZING" && <div className="stadium-builder-preview-loading">3D 미리보기 업데이트 중</div>}
         <div className="stadium-builder-preview-hint">드래그해서 경기장을 둘러보세요</div>
       </div>
       <dl className="stadium-builder-preview-meta">
