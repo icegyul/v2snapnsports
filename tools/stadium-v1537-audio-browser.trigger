@@ -1,1 +1,1 @@
-V15.37 rerun using actual visible stadium interaction surface; verify no autoplay, one cue per route, mute lifecycle and dock clearance
+V15.37 acceptance revalidation on latest live-scoreboard head; verify no autoplay, HOME and APPROACH cues, mute/unmute lifecycle, stadium-only dock, and mobile clearance
