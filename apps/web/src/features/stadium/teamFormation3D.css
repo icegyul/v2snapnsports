@@ -144,13 +144,21 @@
 
 @media (max-width: 760px) {
   .team-formation-page {
-    padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px));
   }
 
   .team-formation-header,
   .team-formation-footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .team-formation-footer {
+    padding-bottom: 56px;
+  }
+
+  .team-formation-next-link {
+    width: 100%;
   }
 
   .team-formation-meta {
