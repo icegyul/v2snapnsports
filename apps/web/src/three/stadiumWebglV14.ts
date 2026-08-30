@@ -1339,7 +1339,7 @@ export function createStadiumWebglRenderer(
   const teammateHeadGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.16, 8, 6));
   let teamMarkerSignature = "";
 
-  const makeTeamLabelTexture = (shirtNumber: string, position: string): THREE.CanvasTexture => {
+  const makeTeamLabelTexture = (shirtNumber: string, position: string): THREE.Texture => {
     const labelCanvas = document.createElement("canvas");
     labelCanvas.width = 256;
     labelCanvas.height = 96;
