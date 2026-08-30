@@ -55,6 +55,7 @@ export function SpatialHome3DScene({ mode, spatial, formation }: SpatialHome3DSc
   const rendererRef = useRef<StadiumWebglRenderer | null>(null);
   const [effectiveMode, setEffectiveMode] = useState<CoreVisualMode>(mode);
   const [renderState, setRenderState] = useState<RenderState>(mode === "STATIC" ? "FALLBACK" : "INITIALIZING");
+  const [scoreboardLive, setScoreboardLive] = useState(false);
 
   const own = useMemo(() => ownCoordinate(formation.player.primaryPosition), [formation.player.primaryPosition]);
   const teammateMarkers = useMemo<readonly StadiumTeamMarker[]>(() => formation.teammates.map((teammate) => {
@@ -69,6 +70,7 @@ export function SpatialHome3DScene({ mode, spatial, formation }: SpatialHome3DSc
   useEffect(() => {
     setEffectiveMode(mode);
     setRenderState(mode === "STATIC" ? "FALLBACK" : "INITIALIZING");
+    setScoreboardLive(false);
   }, [mode]);
 
   useEffect(() => {
@@ -96,6 +98,13 @@ export function SpatialHome3DScene({ mode, spatial, formation }: SpatialHome3DSc
     }
 
     const renderSpatialHome = renderer.renderTeamFormation.bind(renderer);
+    renderer.updateScoreboard?.({
+      headline: spatial.scoreboardLabel,
+      formation: formation.shapeLabel,
+      training: spatial.nextTraining.label,
+      match: spatial.nextMatch.label,
+    });
+    setScoreboardLive(Boolean(renderer.updateScoreboard));
     rendererRef.current = renderer;
     setRenderState("READY");
 
@@ -130,7 +139,7 @@ export function SpatialHome3DScene({ mode, spatial, formation }: SpatialHome3DSc
       renderer?.destroy();
       if (rendererRef.current === renderer) rendererRef.current = null;
     };
-  }, [effectiveMode, own.x, own.z, teammateMarkers]);
+  }, [effectiveMode, formation.shapeLabel, own.x, own.z, spatial.nextMatch.label, spatial.nextTraining.label, spatial.scoreboardLabel, teammateMarkers]);
 
   return (
     <section
@@ -141,6 +150,8 @@ export function SpatialHome3DScene({ mode, spatial, formation }: SpatialHome3DSc
       data-render-state={renderState}
       data-spatial-anchor-count={spatial.anchors.length}
       data-formation-teammate-count={formation.teammates.length}
+      data-live-scoreboard={scoreboardLive ? "true" : "false"}
+      data-scoreboard-label={spatial.scoreboardLabel}
     >
       <canvas ref={canvasRef} className={`spatial-home-3d-canvas ${renderState === "READY" ? "spatial-home-3d-ready" : ""}`} />
       {renderState === "FALLBACK" && <div className="spatial-home-static-field" aria-hidden="true" />}

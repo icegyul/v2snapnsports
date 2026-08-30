@@ -54,6 +54,9 @@ export function createStadiumWebglRenderer(
     renderDigitalProjection(progress: number) {
       base.renderDigitalProjection?.(progress);
     },
+    updateScoreboard(state) {
+      base.updateScoreboard?.(state);
+    },
     destroy() {
       base.destroy();
     },

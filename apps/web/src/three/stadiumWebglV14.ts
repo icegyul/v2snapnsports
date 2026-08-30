@@ -8,6 +8,13 @@ export interface StadiumTeamMarker {
   readonly position: string;
 }
 
+export interface StadiumScoreboardState {
+  readonly headline: string;
+  readonly formation: string;
+  readonly training: string;
+  readonly match: string;
+}
+
 export interface StadiumWebglRenderer {
   readonly triangleCount: number;
   resize(width: number, height: number, dpr: number): void;
@@ -17,6 +24,7 @@ export interface StadiumWebglRenderer {
   renderPlayerPosition?(progress: number, x: number, z: number): void;
   renderTeamFormation?(progress: number, ownX: number, ownZ: number, teammates: readonly StadiumTeamMarker[]): void;
   renderDigitalProjection?(progress: number): void;
+  updateScoreboard?(state: StadiumScoreboardState): void;
   destroy(): void;
 }
 
@@ -237,6 +245,52 @@ function makeEnvironmentTexture(textures: Set<THREE.Texture>): THREE.Texture {
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
+
+function clampScoreboardText(value: string, maxLength: number): string {
+  const clean = value.replace(/\s+/g, " ").trim();
+  return clean.length <= maxLength ? clean : `${clean.slice(0, Math.max(1, maxLength - 1))}…`;
+}
+
+function paintLiveScoreboardTexture(texture: THREE.Texture, state: StadiumScoreboardState): void {
+  const canvas = texture.image as HTMLCanvasElement | undefined;
+  const ctx = canvas?.getContext?.("2d");
+  if (!canvas || !ctx) return;
+
+  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, "#06101b");
+  gradient.addColorStop(0.48, "#0a3456");
+  gradient.addColorStop(1, "#06101b");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = "rgba(93,198,255,.88)";
+  ctx.lineWidth = 6;
+  ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#78d1ff";
+  ctx.font = "700 28px Arial, sans-serif";
+  ctx.fillText("SNAPN SPORTS · TEAM STATE", 44, 54);
+
+  ctx.fillStyle = "#effaff";
+  ctx.font = "700 43px Arial, sans-serif";
+  ctx.fillText(clampScoreboardText(state.headline, 32), 44, 112);
+
+  ctx.fillStyle = "#8edcff";
+  ctx.font = "700 28px Arial, sans-serif";
+  ctx.fillText(`FORMATION  ${clampScoreboardText(state.formation, 14)}`, 44, 158);
+
+  ctx.fillStyle = "rgba(239,250,255,.80)";
+  ctx.font = "600 24px Arial, sans-serif";
+  ctx.fillText(`TRAINING  ${clampScoreboardText(state.training, 34)}`, 44, 210);
+  ctx.fillText(`MATCH     ${clampScoreboardText(state.match, 34)}`, 44, 252);
+
+  ctx.textAlign = "right";
+  ctx.fillStyle = "rgba(126,214,255,.72)";
+  ctx.font = "700 20px Arial, sans-serif";
+  ctx.fillText("LIVE SPATIAL HOME", canvas.width - 44, 292);
+  texture.needsUpdate = true;
+}
+
 function makeAdBoardTexture(textures: Set<THREE.Texture>): THREE.Texture {
   const canvas = document.createElement("canvas");
   canvas.width = 1536;
@@ -1095,6 +1149,7 @@ function buildStadium(
 
   const scoreboardTexture = makeScoreboardTexture(textures);
   scoreboardTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  group.userData.scoreboardTexture = scoreboardTexture;
   const scoreboardMaterial = addDisposable(
     materials,
     new THREE.MeshStandardMaterial({
@@ -1249,6 +1304,7 @@ export function createStadiumWebglRenderer(
   scene.environment = environmentTexture;
   scene.environmentIntensity = 0.72;
   const stadium = buildStadium(scene, renderer, mode, recipe, geometries, materials, textures);
+  const liveScoreboardTexture = stadium.userData.scoreboardTexture as THREE.Texture | undefined;
 
   const positionMarker = new THREE.Group();
   positionMarker.visible = false;
@@ -1740,6 +1796,11 @@ export function createStadiumWebglRenderer(
     renderer.render(scene, camera);
   };
 
+  const updateScoreboard = (state: StadiumScoreboardState) => {
+    if (!liveScoreboardTexture) return;
+    paintLiveScoreboardTexture(liveScoreboardTexture, state);
+  };
+
   const triangleCount = countTriangles(stadium);
 
   const destroy = () => {
@@ -1750,5 +1811,5 @@ export function createStadiumWebglRenderer(
     renderer.forceContextLoss();
   };
 
-  return { triangleCount, resize, render, renderApproach, renderPitchEntry, renderPlayerPosition, renderTeamFormation, renderDigitalProjection, destroy };
+  return { triangleCount, resize, render, renderApproach, renderPitchEntry, renderPlayerPosition, renderTeamFormation, renderDigitalProjection, updateScoreboard, destroy };
 }
