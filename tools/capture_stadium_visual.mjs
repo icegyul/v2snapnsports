@@ -27,7 +27,12 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
 
   try {
     await page.goto(baseUrl, { waitUntil: "networkidle" });
-    await page.getByRole("heading", { name: "나의 경기장" }).waitFor({ timeout: 15000 });
+    const heading = page.locator(".stadium-home-header h1");
+    await heading.waitFor({ state: "attached", timeout: 15000 });
+    const headingText = (await heading.textContent())?.trim();
+    if (headingText !== "나의 경기장") {
+      throw new Error(`unexpected stadium heading: ${headingText ?? "<missing>"}`);
+    }
     await page.locator(".stadium-webgl-canvas").waitFor({ state: "visible", timeout: 15000 });
     await page.waitForTimeout(1500);
     const state = await page.locator(".stadium-interaction-surface").evaluate((node) => ({
