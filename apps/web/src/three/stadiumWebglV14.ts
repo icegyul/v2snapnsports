@@ -1716,7 +1716,7 @@ export function createStadiumWebglRenderer(
     projectionRingMaterial.opacity = 0.10 + reveal * 0.72;
     projectionBeamMaterial.opacity = 0.04 + reveal * 0.32;
     projectionDiscMaterial.opacity = 0.015 + reveal * 0.11;
-    projectionRingMaterial.emissiveIntensity = 1.4 + reveal * 2.2;
+    (projectionRingMaterial as THREE.MeshStandardMaterial).emissiveIntensity = 1.4 + reveal * 2.2;
     projectionRoot.children.forEach((child, index) => {
       if (index < 3) child.rotation.z = progress * (0.16 + index * 0.08) * (index % 2 == 0 ? 1 : -1);
     });
