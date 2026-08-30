@@ -900,6 +900,125 @@ function addStadiumOpenings(
   }
 }
 
+function addExteriorFacade(
+  group: THREE.Group,
+  geometries: Set<THREE.BufferGeometry>,
+  materials: Set<THREE.Material>,
+  recipe: StadiumRecipe,
+): void {
+  const plazaMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({ color: 0x151b20, roughness: 0.98, metalness: 0.02 }),
+  );
+  const baseMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({ color: 0x343b42, roughness: 0.84, metalness: 0.12, side: THREE.DoubleSide }),
+  );
+  const upperMaterial = addDisposable(
+    materials,
+    new THREE.MeshPhysicalMaterial({
+      color: 0x414d58,
+      roughness: 0.46,
+      metalness: 0.58,
+      clearcoat: 0.10,
+      clearcoatRoughness: 0.58,
+      side: THREE.DoubleSide,
+    }),
+  );
+  const glassMaterial = addDisposable(
+    materials,
+    new THREE.MeshPhysicalMaterial({
+      color: 0x17303e,
+      emissive: 0x07131a,
+      emissiveIntensity: 0.44,
+      roughness: 0.18,
+      metalness: 0.18,
+      transparent: true,
+      opacity: 0.78,
+      clearcoat: 0.32,
+      clearcoatRoughness: 0.22,
+      side: THREE.DoubleSide,
+    }),
+  );
+  const finMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({ color: 0x929da6, roughness: 0.38, metalness: 0.70 }),
+  );
+  const entranceMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      color: 0x17212a,
+      emissive: 0x78cfff,
+      emissiveIntensity: 0.42,
+      roughness: 0.28,
+      metalness: 0.18,
+    }),
+  );
+  const accentMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      color: recipe.accentColor,
+      emissive: recipe.accentColor,
+      emissiveIntensity: 1.6,
+      roughness: 0.34,
+      metalness: 0.28,
+    }),
+  );
+
+  const plazaGeometry = addDisposable(geometries, new THREE.PlaneGeometry(310, 230));
+  const plaza = new THREE.Mesh(plazaGeometry, plazaMaterial);
+  plaza.rotation.x = -Math.PI / 2;
+  plaza.position.y = -0.18;
+  plaza.receiveShadow = true;
+  group.add(plaza);
+
+  const lowerWall = new THREE.Mesh(
+    ellipseWallGeometry(geometries, 119.0, 84.4, 0.6, 10.4, 192),
+    baseMaterial,
+  );
+  lowerWall.castShadow = true;
+  lowerWall.receiveShadow = true;
+  group.add(lowerWall);
+
+  const glassBand = new THREE.Mesh(
+    ellipseWallGeometry(geometries, 120.3, 85.3, 10.4, 17.2, 192),
+    glassMaterial,
+  );
+  glassBand.castShadow = true;
+  group.add(glassBand);
+
+  const upperWall = new THREE.Mesh(
+    ellipseWallGeometry(geometries, 121.5, 86.2, 17.2, 32.8, 192),
+    upperMaterial,
+  );
+  upperWall.castShadow = true;
+  upperWall.receiveShadow = true;
+  group.add(upperWall);
+
+  addEllipticRing(group, geometries, accentMaterial, 120.4, 85.4, 10.55, 0.16);
+  addEllipticRing(group, geometries, finMaterial, 121.6, 86.3, 17.25, 0.14);
+  addEllipticRing(group, geometries, finMaterial, 121.8, 86.5, 32.9, 0.20);
+
+  const finGeometry = addDisposable(geometries, new THREE.BoxGeometry(0.32, 15.2, 1.45));
+  for (let i = 0; i < 64; i += 1) {
+    const angle = (i / 64) * TAU;
+    const fin = new THREE.Mesh(finGeometry, finMaterial);
+    fin.position.set(Math.cos(angle) * 122.0, 24.9, Math.sin(angle) * 86.7);
+    fin.rotation.y = -angle + Math.PI / 2;
+    fin.castShadow = true;
+    group.add(fin);
+  }
+
+  const entranceGeometry = addDisposable(geometries, new THREE.BoxGeometry(5.8, 3.5, 1.1));
+  for (let i = 0; i < 12; i += 1) {
+    const angle = (i / 12) * TAU;
+    const entrance = new THREE.Mesh(entranceGeometry, entranceMaterial);
+    entrance.position.set(Math.cos(angle) * 119.6, 3.0, Math.sin(angle) * 84.9);
+    entrance.rotation.y = -angle + Math.PI / 2;
+    group.add(entrance);
+  }
+}
+
 function buildStadium(
   scene: THREE.Scene,
   renderer: THREE.WebGLRenderer,
@@ -1035,6 +1154,8 @@ function buildStadium(
       group.add(panel);
     }
   }
+  addExteriorFacade(group, geometries, materials, recipe);
+
   const tiers: TierSpec[] = [
     { innerX: 58.0, innerZ: 40.6, outerX: 76.2, outerZ: 53.5, y0: 0.72, y1: 10.0, rows: 17, peoplePerRow: 420 },
     { innerX: 79.0, innerZ: 55.8, outerX: 95.5, outerZ: 67.5, y0: 11.5, y1: 21.6, rows: 16, peoplePerRow: 470 },
