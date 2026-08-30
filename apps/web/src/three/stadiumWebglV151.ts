@@ -48,6 +48,9 @@ export function createStadiumWebglRenderer(
     renderPlayerPosition(progress: number, x: number, z: number) {
       base.renderPlayerPosition?.(progress, x, z);
     },
+    renderTeamFormation(progress: number, ownX: number, ownZ: number, teammates) {
+      base.renderTeamFormation?.(progress, ownX, ownZ, teammates);
+    },
     destroy() {
       base.destroy();
     },

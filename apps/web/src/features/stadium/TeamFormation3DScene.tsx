@@ -190,7 +190,7 @@ export function TeamFormation3DScene({ mode, formation, onComplete }: TeamFormat
         ))}
       </div>
       <div className="team-formation-hud">
-        <span>{progress < 0.35 ? "나의 위치 기준 설정" : progress < 0.82 ? "동료 포지션 펼치는 중" : "현재 연결 포메이션 완성"}</span>
+        <span>{progress < 0.35 ? "나의 위치 기준 설정" : progress < 0.82 ? "동료 포지션 펼치는 중" : "현재 연결 데이터 표시 완료"}</span>
         <div><i style={{ transform: `scaleX(${progress})` }} /></div>
       </div>
     </section>

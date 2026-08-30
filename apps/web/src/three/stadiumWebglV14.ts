@@ -1,6 +1,13 @@
 import * as THREE from "three";
 import type { CoreVisualMode } from "../api/coreProductContracts";
 
+export interface StadiumTeamMarker {
+  readonly x: number;
+  readonly z: number;
+  readonly shirtNumber: string;
+  readonly position: string;
+}
+
 export interface StadiumWebglRenderer {
   readonly triangleCount: number;
   resize(width: number, height: number, dpr: number): void;
@@ -8,6 +15,7 @@ export interface StadiumWebglRenderer {
   renderApproach?(progress: number): void;
   renderPitchEntry?(progress: number): void;
   renderPlayerPosition?(progress: number, x: number, z: number): void;
+  renderTeamFormation?(progress: number, ownX: number, ownZ: number, teammates: readonly StadiumTeamMarker[]): void;
   destroy(): void;
 }
 
@@ -1301,6 +1309,92 @@ export function createStadiumWebglRenderer(
   markerHead.position.y = 1.47;
   positionMarker.add(markerHead);
 
+  const teamFormationRoot = new THREE.Group();
+  teamFormationRoot.visible = false;
+  stadium.add(teamFormationRoot);
+  const teammateRingMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      color: 0x8ea8b6,
+      emissive: 0x31586d,
+      emissiveIntensity: 1.15,
+      roughness: 0.52,
+      metalness: 0.16,
+      transparent: true,
+      opacity: 0.82,
+    }),
+  );
+  const teammateBodyMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      color: 0xaebbc2,
+      emissive: 0x1a3948,
+      emissiveIntensity: 0.38,
+      roughness: 0.66,
+      metalness: 0.05,
+    }),
+  );
+  const teammateRingGeometry = addDisposable(geometries, new THREE.TorusGeometry(1.08, 0.055, 6, 36));
+  const teammateBodyGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.20, 0.17, 0.88, 7));
+  const teammateHeadGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.16, 8, 6));
+  let teamMarkerSignature = "";
+
+  const makeTeamLabelTexture = (shirtNumber: string, position: string): THREE.CanvasTexture => {
+    const labelCanvas = document.createElement("canvas");
+    labelCanvas.width = 256;
+    labelCanvas.height = 96;
+    const ctx = labelCanvas.getContext("2d");
+    if (!ctx) throw new Error("stadium team marker canvas unavailable");
+    ctx.clearRect(0, 0, 256, 96);
+    ctx.fillStyle = "rgba(4,12,16,.78)";
+    ctx.beginPath();
+    ctx.roundRect(14, 13, 228, 70, 20);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(185,226,244,.35)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = "#e9f7fc";
+    ctx.font = "700 30px Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`#${shirtNumber} · ${position}`, 128, 57);
+    const texture = addDisposable(textures, new THREE.CanvasTexture(labelCanvas));
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  };
+
+  const rebuildTeamMarkers = (markers: readonly StadiumTeamMarker[]) => {
+    while (teamFormationRoot.children.length > 0) teamFormationRoot.remove(teamFormationRoot.children[0]);
+    markers.forEach((marker, index) => {
+      const root = new THREE.Group();
+      root.position.set(marker.x, 0.03, marker.z);
+      root.userData.revealIndex = index;
+
+      const ring = new THREE.Mesh(teammateRingGeometry, teammateRingMaterial);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = 0.075;
+      root.add(ring);
+
+      const body = new THREE.Mesh(teammateBodyGeometry, teammateBodyMaterial);
+      body.position.y = 0.68;
+      root.add(body);
+      const head = new THREE.Mesh(teammateHeadGeometry, teammateBodyMaterial);
+      head.position.y = 1.25;
+      root.add(head);
+
+      const labelTexture = makeTeamLabelTexture(marker.shirtNumber, marker.position);
+      const labelMaterial = addDisposable(
+        materials,
+        new THREE.SpriteMaterial({ map: labelTexture, transparent: true, depthWrite: false }),
+      );
+      const label = new THREE.Sprite(labelMaterial as THREE.SpriteMaterial);
+      label.position.y = 2.25;
+      label.scale.set(4.8, 1.8, 1);
+      root.add(label);
+      root.scale.setScalar(0.001);
+      teamFormationRoot.add(root);
+    });
+  };
+
   const camera = new THREE.PerspectiveCamera(54, 1, 0.18, 380);
   let cssWidth = 1;
   let cssHeight = 1;
@@ -1477,6 +1571,71 @@ export function createStadiumWebglRenderer(
     renderer.render(scene, camera);
   };
 
+  const renderTeamFormation = (progress0: number, ownX0: number, ownZ0: number, teammates: readonly StadiumTeamMarker[]) => {
+    const progress = THREE.MathUtils.clamp(progress0, 0, 1);
+    const eased = progress * progress * (3 - 2 * progress);
+    const portrait = cssWidth / cssHeight < 0.82;
+    const ownX = THREE.MathUtils.clamp(ownX0, -47, 47);
+    const ownZ = THREE.MathUtils.clamp(ownZ0, -29, 29);
+    const safeMarkers = teammates.map((marker) => ({
+      ...marker,
+      x: THREE.MathUtils.clamp(marker.x, -47, 47),
+      z: THREE.MathUtils.clamp(marker.z, -29, 29),
+    }));
+    const signature = safeMarkers.map((marker) => `${marker.shirtNumber}:${marker.position}:${marker.x.toFixed(2)}:${marker.z.toFixed(2)}`).join("|");
+    if (signature !== teamMarkerSignature) {
+      teamMarkerSignature = signature;
+      rebuildTeamMarkers(safeMarkers);
+    }
+
+    let centerX = ownX;
+    let centerZ = ownZ;
+    if (safeMarkers.length > 0) {
+      centerX = (ownX + safeMarkers.reduce((sum, marker) => sum + marker.x, 0)) / (safeMarkers.length + 1);
+      centerZ = (ownZ + safeMarkers.reduce((sum, marker) => sum + marker.z, 0)) / (safeMarkers.length + 1);
+    }
+
+    camera.aspect = cssWidth / cssHeight;
+    camera.zoom = 1;
+    const start = portrait
+      ? new THREE.Vector3(ownX + 10.5, 9.2, ownZ + 20.5)
+      : new THREE.Vector3(ownX + 15.5, 7.4, ownZ + 21.0);
+    const overview = portrait
+      ? new THREE.Vector3(centerX + 37, 45, centerZ + 63)
+      : new THREE.Vector3(centerX + 52, 39, centerZ + 54);
+    const startTarget = new THREE.Vector3(ownX, 1.1, ownZ);
+    const overviewTarget = new THREE.Vector3(centerX, 0.8, centerZ);
+    camera.position.lerpVectors(start, overview, eased);
+    const lookTarget = new THREE.Vector3().lerpVectors(startTarget, overviewTarget, eased);
+    camera.lookAt(lookTarget);
+    camera.fov = portrait
+      ? THREE.MathUtils.lerp(62, 57, eased)
+      : THREE.MathUtils.lerp(58, 52, eased);
+    camera.updateProjectionMatrix();
+
+    positionMarker.position.set(ownX, 0.03, ownZ);
+    positionMarker.visible = true;
+    const ownReveal = THREE.MathUtils.smoothstep(progress, 0.02, 0.26);
+    positionMarker.scale.setScalar(Math.max(0.001, ownReveal));
+    markerRing.rotation.z = progress * 1.0;
+    markerRingOuter.rotation.z = -progress * 0.65;
+
+    teamFormationRoot.visible = progress > 0.20 && safeMarkers.length > 0;
+    const revealWindow = 0.60;
+    const revealStart = 0.24;
+    const perMarker = safeMarkers.length > 0 ? revealWindow / safeMarkers.length : revealWindow;
+    teamFormationRoot.children.forEach((child, index) => {
+      const startAt = revealStart + index * perMarker;
+      const endAt = Math.min(0.96, startAt + Math.max(0.12, perMarker * 1.4));
+      const reveal = THREE.MathUtils.smoothstep(progress, startAt, endAt);
+      child.scale.setScalar(Math.max(0.001, reveal));
+      child.rotation.y = (1 - reveal) * 0.18;
+    });
+
+    stadium.rotation.y = -0.015;
+    renderer.render(scene, camera);
+  };
+
   const triangleCount = countTriangles(stadium);
 
   const destroy = () => {
@@ -1487,5 +1646,5 @@ export function createStadiumWebglRenderer(
     renderer.forceContextLoss();
   };
 
-  return { triangleCount, resize, render, renderApproach, renderPitchEntry, renderPlayerPosition, destroy };
+  return { triangleCount, resize, render, renderApproach, renderPitchEntry, renderPlayerPosition, renderTeamFormation, destroy };
 }

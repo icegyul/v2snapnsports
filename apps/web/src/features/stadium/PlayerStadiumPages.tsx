@@ -7,10 +7,12 @@ import { Stadium3DScene } from "./Stadium3DScene";
 import { StadiumApproachScene } from "./StadiumApproachScene";
 import { PitchEntryScene } from "./PitchEntryScene";
 import { PlayerPosition3DScene } from "./PlayerPosition3DScene";
+import { TeamFormation3DScene } from "./TeamFormation3DScene";
 import "./stadium.css";
 import "./stadiumApproach.css";
 import "./pitchEntry.css";
 import "./playerPosition3D.css";
+import "./teamFormation3D.css";
 
 const adapter = new FixtureCoreProductAdapter();
 const loadStadiumHome = () => adapter.getStadiumHome();
@@ -111,13 +113,6 @@ export function PitchEntryPage() {
   </main> : null}</CoreStateBoundary>;
 }
 
-function FormationBoard({ formation }: { formation: CoreFormation }) {
-  return <section className="position-pitch" aria-label="팀 포메이션 2D 보기">
-    {formation.teammates.map((teammate) => <span key={teammate.id} className="teammate-marker" style={{ left: `${teammate.x}%`, top: `${teammate.y}%` }} aria-label={`동료 등번호 ${teammate.shirtNumber}, ${teammate.position}`}>{teammate.shirtNumber}<br />{teammate.position}</span>)}
-    <span className="player-marker" aria-label={`나의 포지션 CM, 등번호 ${formation.player.shirtNumber}`}>{formation.player.shirtNumber}<br /><small>CM · 나</small></span>
-  </section>;
-}
-
 function PositionAccessibilityContract({ formation }: { formation: CoreFormation }) {
   return <div className="player-position-accessibility-contract" aria-label="포지션 익명 접근성 정보">
     <span aria-label={`나의 포지션 CM, 등번호 ${formation.player.shirtNumber}`} />
@@ -149,7 +144,23 @@ export function MyPositionPage() {
 
 export function MyTeamFormationPage() {
   const formation = useFixture(loadFormation);
-  return <CoreStateBoundary state={formation ? "READY" : "LOADING"}><main className="shell-main"><p className="eyebrow">TEAM REVEAL · {formation?.shapeLabel ?? ""}</p><h1>나의 팀 포메이션</h1>{formation && <FormationBoard formation={formation} />}<Link className="surface-link" to="/home/team">나의 팀 공간으로</Link></main></CoreStateBoundary>;
+  const home = useFixture(loadStadiumHome);
+  const [complete, setComplete] = useState(false);
+  const ready = Boolean(formation && home);
+  return <CoreStateBoundary state={ready ? "READY" : "LOADING"}>{formation && home ? <main className="shell-main team-formation-page">
+    <header className="team-formation-header">
+      <div>
+        <p className="eyebrow">TEAM REVEAL · {formation.shapeLabel}</p>
+        <h1>나의 팀 포메이션</h1>
+      </div>
+      <p className="team-formation-meta">{home.team.displayName} · 현재 연결된 동료 {formation.teammates.length}명만 실제 데이터 좌표로 표시합니다.</p>
+    </header>
+    <TeamFormation3DScene mode={home.visualMode} formation={formation} onComplete={() => setComplete(true)} />
+    <footer className="team-formation-footer">
+      <p>{complete ? `현재 연결된 ${formation.teammates.length + 1}명의 3D 위치 표시 완료` : "나의 위치를 기준으로 연결된 동료 위치를 펼치는 중입니다."}</p>
+      <Link className="surface-link" to="/home/team">나의 팀 공간으로</Link>
+    </footer>
+  </main> : null}</CoreStateBoundary>;
 }
 
 export function SpatialHomePage() {
