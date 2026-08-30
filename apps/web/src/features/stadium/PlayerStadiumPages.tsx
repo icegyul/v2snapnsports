@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import type { CoreFormation, CoreSpatialHome, CoreStadiumHome } from "../../api/coreProductContracts";
+import type { CoreFormation, CoreStadiumHome } from "../../api/coreProductContracts";
 import { FixtureCoreProductAdapter } from "../../adapters/fixtureCoreProductAdapter";
 import { CoreStateBoundary } from "../../components/CoreStateBoundary";
 import { Stadium3DScene } from "./Stadium3DScene";
@@ -8,11 +8,13 @@ import { StadiumApproachScene } from "./StadiumApproachScene";
 import { PitchEntryScene } from "./PitchEntryScene";
 import { PlayerPosition3DScene } from "./PlayerPosition3DScene";
 import { TeamFormation3DScene } from "./TeamFormation3DScene";
+import { SpatialHome3DScene } from "./SpatialHome3DScene";
 import "./stadium.css";
 import "./stadiumApproach.css";
 import "./pitchEntry.css";
 import "./playerPosition3D.css";
 import "./teamFormation3D.css";
+import "./spatialHome3D.css";
 
 const adapter = new FixtureCoreProductAdapter();
 const loadStadiumHome = () => adapter.getStadiumHome();
@@ -165,10 +167,21 @@ export function MyTeamFormationPage() {
 
 export function SpatialHomePage() {
   const spatial = useFixture(loadSpatialHome);
-  return <CoreStateBoundary state={spatial ? "READY" : "LOADING"}><SpatialHomeContent spatial={spatial} /></CoreStateBoundary>;
-}
-
-function SpatialHomeContent({ spatial }: { spatial: CoreSpatialHome | null }) {
-  if (!spatial) return null;
-  return <main className="shell-main"><p className="eyebrow">SPATIAL HOME · DEVELOPMENT PREVIEW</p><h1>나의 팀 공간</h1><p className="meta">{spatial.team.displayName} · {spatial.scoreboardLabel}</p><section className="spatial-map" aria-label="나의 팀 공간 바로가기">{spatial.anchors.map((anchor) => <Link className="spatial-anchor" data-testid="spatial-anchor" key={anchor.id} to={anchor.destination}><strong>{anchor.title}</strong><span>{anchor.detail}</span></Link>)}</section><section className="team-state-line"><span>{spatial.nextTraining.label}</span><span>{spatial.nextMatch.label}</span></section></main>;
+  const formation = useFixture(loadFormation);
+  const home = useFixture(loadStadiumHome);
+  const ready = Boolean(spatial && formation && home);
+  return <CoreStateBoundary state={ready ? "READY" : "LOADING"}>{spatial && formation && home ? <main className="shell-main spatial-home-page">
+    <header className="spatial-home-header">
+      <div>
+        <p className="eyebrow">SPATIAL HOME · LIVE STADIUM</p>
+        <h1>나의 팀 공간</h1>
+      </div>
+      <p className="spatial-home-meta">{spatial.team.displayName} · 3D 경기장을 홈으로 사용하며 현재 연결된 기능과 상태만 표시합니다.</p>
+    </header>
+    <SpatialHome3DScene mode={home.visualMode} spatial={spatial} formation={formation} />
+    <footer className="spatial-home-footnote">
+      <p>경기장 위 앵커에서 나·훈련·팀·커리어·영상 공간으로 이동합니다.</p>
+      {spatial.source === "SYNTHETIC_FIXTURE" && <p>데모 데이터 · 운영 데이터 연결 전</p>}
+    </footer>
+  </main> : null}</CoreStateBoundary>;
 }
