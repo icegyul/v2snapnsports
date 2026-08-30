@@ -8,6 +8,8 @@ const appBaseUrl = normalizedBaseUrl.endsWith("/v2") ? normalizedBaseUrl : `${no
 const outputDir = process.env.STADIUM_AUDIO_EVIDENCE_DIR ?? "output/stadium-audio-evidence";
 await fs.mkdir(outputDir, { recursive: true });
 
+const fullEntryCues = new Set(["APPROACH", "PITCH", "PROJECTION", "POSITION", "FORMATION", "SPATIAL_HOME"]);
+
 const browser = await chromium.launch({
   headless: true,
   args: ["--use-gl=swiftshader", "--enable-webgl", "--ignore-gpu-blocklist", "--disable-dev-shm-usage"],
@@ -61,15 +63,18 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
     const enabledHome = await audioState(page);
 
     await page.getByRole("button", { name: "경기장을 눌러 입장하세요" }).click();
+    await page.waitForURL(/\/v2\/home\/full$/, { timeout: 15000, waitUntil: "commit" });
     await page.waitForFunction(() => {
-      const heading = document.querySelector(".stadium-approach-header h1");
+      const surface = document.querySelector(".full-journey-surface");
       const dock = document.querySelector(".stadium-audio-dock");
-      return heading?.textContent?.trim() === "경기장으로 다가가기"
+      const cue = dock?.getAttribute("data-audio-last-cue") ?? "";
+      return surface?.getAttribute("data-render-state") === "READY"
         && dock?.getAttribute("data-audio-state") === "ENABLED"
-        && dock.getAttribute("data-audio-last-cue") === "APPROACH"
+        && ["APPROACH", "PITCH", "PROJECTION", "POSITION", "FORMATION", "SPATIAL_HOME"].includes(cue)
         && Number(dock.getAttribute("data-audio-cue-count") ?? "0") >= 2;
-    }, { timeout: 30000 });
-    const enabledApproach = await audioState(page);
+    }, { timeout: 60000 });
+    const enabledFullEntry = await audioState(page);
+    const fullEntryStage = await page.locator(".full-journey-surface").getAttribute("data-journey-stage");
 
     await page.getByRole("button", { name: "경기장 사운드 음소거" }).click();
     await page.waitForFunction(() => {
@@ -84,8 +89,9 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
     await page.waitForFunction((previousCount) => {
       const dock = document.querySelector(".stadium-audio-dock");
       return dock?.getAttribute("data-audio-state") === "ENABLED"
+        && dock.getAttribute("data-audio-context") === "running"
         && Number(dock.getAttribute("data-audio-cue-count") ?? "0") > Number(previousCount);
-    }, enabledApproach.cueCount, { timeout: 10000 });
+    }, muted.cueCount, { timeout: 15000 });
     const unmuted = await audioState(page);
 
     await page.locator(".bottom-navigation a[href='/training']").click();
@@ -108,7 +114,8 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
       initial,
       beforeGesture,
       enabledHome,
-      enabledApproach,
+      enabledFullEntry,
+      fullEntryStage,
       muted,
       unmuted,
       returnedHome,
@@ -117,6 +124,7 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
       navRect,
       dockClearOfNav,
       dockAbsentOutsideStadium,
+      fullEntryUrl: page.url(),
       consoleErrors,
     };
     await fs.writeFile(`${outputDir}/${name}.json`, JSON.stringify(evidence, null, 2));
@@ -157,12 +165,15 @@ for (const result of results) {
     && result.enabledHome.context === "running"
     && result.enabledHome.lastCue === "HOME"
     && result.enabledHome.cueCount === 1
-    && result.enabledApproach.state === "ENABLED"
-    && result.enabledApproach.lastCue === "APPROACH"
-    && result.enabledApproach.cueCount === 2
+    && result.enabledFullEntry.state === "ENABLED"
+    && result.enabledFullEntry.context === "running"
+    && fullEntryCues.has(result.enabledFullEntry.lastCue)
+    && result.enabledFullEntry.cueCount >= 2
+    && fullEntryCues.has(result.fullEntryStage)
     && result.muted.state === "MUTED"
     && result.unmuted.state === "ENABLED"
-    && result.unmuted.cueCount === 3
+    && result.unmuted.context === "running"
+    && result.unmuted.cueCount > result.muted.cueCount
     && result.dockAbsentOutsideStadium
     && result.returnedHome.state === "MUTED"
     && result.returnedDockRect.width >= 44
