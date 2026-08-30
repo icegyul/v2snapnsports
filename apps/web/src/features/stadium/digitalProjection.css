@@ -124,13 +124,17 @@
 
 @media (max-width: 760px) {
   .digital-projection-page {
-    padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px));
   }
 
   .digital-projection-header,
   .digital-projection-footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .digital-projection-footer {
+    padding-bottom: 64px;
   }
 
   .digital-projection-meta {
