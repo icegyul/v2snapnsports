@@ -1,0 +1,261 @@
+.stadium-approach-page {
+  width: min(100%, 1180px);
+  max-width: 1180px;
+  min-height: calc(100dvh - 64px);
+  padding: max(18px, env(safe-area-inset-top)) clamp(16px, 4vw, 40px) 24px;
+  gap: 14px;
+  align-content: start;
+}
+
+.stadium-approach-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 0 2px;
+}
+
+.stadium-approach-header h1 {
+  margin: 2px 0 0;
+  font-size: clamp(30px, 7vw, 52px);
+  line-height: 0.96;
+  letter-spacing: -0.045em;
+}
+
+.stadium-approach-header p,
+.stadium-approach-footer p {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.stadium-approach-header .eyebrow {
+  margin-bottom: 6px;
+}
+
+.stadium-approach-meta {
+  max-width: 420px;
+  text-align: right;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.stadium-approach-surface {
+  position: relative;
+  min-height: clamp(520px, 70dvh, 760px);
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid var(--color-border-strong);
+  border-radius: clamp(22px, 5vw, 34px);
+  background: #0c1114;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.34);
+}
+
+.stadium-approach-surface::after {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(4, 8, 11, 0.34) 0%, transparent 25%, transparent 67%, rgba(4, 7, 9, 0.74) 100%),
+    radial-gradient(ellipse at 50% 70%, transparent 38%, rgba(2, 4, 5, 0.24) 100%);
+}
+
+.stadium-approach-world,
+.stadium-approach-webgl-canvas,
+.stadium-approach-fallback {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.stadium-approach-world {
+  z-index: 1;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 74% 14%, rgba(210, 226, 235, 0.12), transparent 24%),
+    radial-gradient(ellipse at 50% 74%, rgba(77, 103, 90, 0.14), transparent 44%),
+    linear-gradient(180deg, #202a30 0%, #141b1f 43%, #0d1316 73%, #090d0f 100%);
+}
+
+.stadium-approach-sky-glow {
+  position: absolute;
+  top: 3%;
+  left: 50%;
+  width: 86%;
+  height: 44%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(236, 242, 242, 0.10), transparent 68%);
+  filter: blur(20px);
+}
+
+.stadium-approach-webgl-canvas {
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 360ms ease;
+}
+
+.stadium-approach-webgl-canvas.stadium-approach-webgl-ready {
+  opacity: 1;
+}
+
+.stadium-approach-fallback {
+  z-index: 1;
+  inset: 18% 6% 16%;
+  transform: perspective(900px) rotateX(58deg) rotateZ(-2deg);
+  opacity: 1;
+  transition: opacity 260ms ease;
+}
+
+.stadium-approach-fallback-hidden {
+  opacity: 0;
+}
+
+.stadium-approach-fallback-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border-style: solid;
+}
+
+.stadium-approach-fallback-ring-outer {
+  width: 94%;
+  height: 76%;
+  border-width: clamp(18px, 5vw, 38px);
+  border-color: #343c42;
+}
+
+.stadium-approach-fallback-ring-inner {
+  width: 72%;
+  height: 56%;
+  border-width: clamp(12px, 4vw, 28px);
+  border-color: #232a2f;
+}
+
+.stadium-approach-fallback-pitch {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 50%;
+  height: 32%;
+  transform: translate(-50%, -50%) translateZ(26px);
+  border: 2px solid rgba(244, 246, 247, 0.72);
+  background: #194629;
+}
+
+.stadium-approach-hud {
+  position: absolute;
+  z-index: 5;
+  right: 18px;
+  bottom: 18px;
+  left: 18px;
+  display: grid;
+  gap: 7px;
+  pointer-events: none;
+}
+
+.stadium-approach-phase {
+  justify-self: start;
+  padding: 7px 10px;
+  border: 1px solid rgba(244, 246, 247, 0.12);
+  border-radius: 999px;
+  background: rgba(12, 16, 18, 0.66);
+  color: rgba(244, 246, 247, 0.84);
+  backdrop-filter: blur(12px);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.stadium-approach-track {
+  position: relative;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(244, 246, 247, 0.16);
+}
+
+.stadium-approach-track-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  background: var(--color-accent-pitch);
+  box-shadow: 0 0 12px rgba(98, 211, 109, 0.4);
+}
+
+.stadium-approach-steps {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(244, 246, 247, 0.5);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.stadium-approach-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 2px;
+}
+
+.stadium-approach-footer p {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.stadium-approach-enter-link {
+  flex: 0 0 auto;
+  padding-inline: 18px;
+}
+
+@media (max-width: 560px) {
+  .stadium-approach-page {
+    padding-inline: 12px;
+    gap: 10px;
+  }
+
+  .stadium-approach-header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding-inline: 4px;
+  }
+
+  .stadium-approach-meta {
+    max-width: none;
+    text-align: left;
+  }
+
+  .stadium-approach-surface {
+    min-height: clamp(520px, 70dvh, 620px);
+  }
+
+  .stadium-approach-hud {
+    right: 14px;
+    bottom: 14px;
+    left: 14px;
+  }
+
+  .stadium-approach-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .stadium-approach-enter-link {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stadium-approach-webgl-canvas,
+  .stadium-approach-fallback {
+    transition: none;
+  }
+}
