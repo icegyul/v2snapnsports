@@ -1,0 +1,48 @@
+name: Stadium Codex Source Package
+
+on:
+  push:
+    branches:
+      - handoff/stadium-codex-package-20260830
+    paths:
+      - tools/stadium-codex-package.trigger
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact implementation freeze
+        uses: actions/checkout@v4
+        with:
+          ref: 892dcc335e73b5872ce5bd4844b7dea0f534a44d
+          fetch-depth: 1
+      - name: Verify implementation freeze
+        run: |
+          ACTUAL="$(git rev-parse HEAD)"
+          test "$ACTUAL" = "892dcc335e73b5872ce5bd4844b7dea0f534a44d"
+          printf '%s\n' "$ACTUAL" > IMPLEMENTATION_FREEZE_SHA.txt
+          printf '%s\n' 'feature/v2-stadium-first-screen-complete' > IMPLEMENTATION_SOURCE_BRANCH.txt
+          git ls-files | sort > TRACKED_FILES.txt
+      - name: Build exact tracked-source zip
+        run: |
+          git archive \
+            --format=zip \
+            --prefix=SNAPN_STADIUM_SOURCE_892dcc/ \
+            --output=SNAPN_STADIUM_SOURCE_HEAD_892dcc.zip \
+            HEAD
+          sha256sum SNAPN_STADIUM_SOURCE_HEAD_892dcc.zip > SNAPN_STADIUM_SOURCE_HEAD_892dcc.zip.sha256
+      - name: Upload Codex source package
+        uses: actions/upload-artifact@v4
+        with:
+          name: snapn-stadium-codex-source-892dcc
+          path: |
+            SNAPN_STADIUM_SOURCE_HEAD_892dcc.zip
+            SNAPN_STADIUM_SOURCE_HEAD_892dcc.zip.sha256
+            IMPLEMENTATION_FREEZE_SHA.txt
+            IMPLEMENTATION_SOURCE_BRANCH.txt
+            TRACKED_FILES.txt
+          if-no-files-found: error
+          retention-days: 30
