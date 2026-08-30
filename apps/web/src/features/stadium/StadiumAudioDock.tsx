@@ -46,6 +46,10 @@ export function StadiumAudioDock() {
 
   useEffect(() => subscribeStadiumAudio(() => setSnapshot(getStadiumAudioSnapshot())), []);
 
+  useEffect(() => () => {
+    if (getStadiumAudioSnapshot().state === "ENABLED") setStadiumAudioMuted(true);
+  }, []);
+
   useEffect(() => {
     const cue = cueForPath(location.pathname);
     if (cue && snapshot.state === "ENABLED") playStadiumAudioCue(cue);
