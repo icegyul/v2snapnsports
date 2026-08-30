@@ -1,0 +1,126 @@
+name: Stadium V15.36 Live Scoreboard
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1536-live-scoreboard.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply V15.36 live 3D scoreboard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          root = Path('.')
+          v14 = root / 'apps/web/src/three/stadiumWebglV14.ts'
+          text = v14.read_text()
+
+          old = '''export interface StadiumTeamMarker {\n  readonly x: number;\n  readonly z: number;\n  readonly shirtNumber: string;\n  readonly position: string;\n}\n\nexport interface StadiumWebglRenderer {'''
+          new = '''export interface StadiumTeamMarker {\n  readonly x: number;\n  readonly z: number;\n  readonly shirtNumber: string;\n  readonly position: string;\n}\n\nexport interface StadiumScoreboardState {\n  readonly headline: string;\n  readonly formation: string;\n  readonly training: string;\n  readonly match: string;\n}\n\nexport interface StadiumWebglRenderer {'''
+          if text.count(old) != 1:
+              raise SystemExit('V15.36 scoreboard state insertion token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = '  renderDigitalProjection?(progress: number): void;\n  destroy(): void;'
+          new = '  renderDigitalProjection?(progress: number): void;\n  updateScoreboard?(state: StadiumScoreboardState): void;\n  destroy(): void;'
+          if text.count(old) != 1:
+              raise SystemExit('V15.36 renderer method token mismatch')
+          text = text.replace(old, new, 1)
+
+          marker = '''  const texture = addDisposable(textures, new THREE.CanvasTexture(canvas));\n  texture.colorSpace = THREE.SRGBColorSpace;\n  return texture;\n}\nfunction makeAdBoardTexture(textures: Set<THREE.Texture>): THREE.Texture {'''
+          live_fn = '''  const texture = addDisposable(textures, new THREE.CanvasTexture(canvas));\n  texture.colorSpace = THREE.SRGBColorSpace;\n  return texture;\n}\n\nfunction clampScoreboardText(value: string, maxLength: number): string {\n  const clean = value.replace(/\\s+/g, " ").trim();\n  return clean.length <= maxLength ? clean : `${clean.slice(0, Math.max(1, maxLength - 1))}…`;\n}\n\nfunction paintLiveScoreboardTexture(texture: THREE.Texture, state: StadiumScoreboardState): void {\n  const canvas = texture.image as HTMLCanvasElement | undefined;\n  const ctx = canvas?.getContext?.("2d");\n  if (!canvas || !ctx) return;\n\n  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);\n  gradient.addColorStop(0, "#06101b");\n  gradient.addColorStop(0.48, "#0a3456");\n  gradient.addColorStop(1, "#06101b");\n  ctx.fillStyle = gradient;\n  ctx.fillRect(0, 0, canvas.width, canvas.height);\n  ctx.strokeStyle = "rgba(93,198,255,.88)";\n  ctx.lineWidth = 6;\n  ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);\n\n  ctx.textAlign = "left";\n  ctx.fillStyle = "#78d1ff";\n  ctx.font = "700 28px Arial, sans-serif";\n  ctx.fillText("SNAPN SPORTS · TEAM STATE", 44, 54);\n\n  ctx.fillStyle = "#effaff";\n  ctx.font = "700 43px Arial, sans-serif";\n  ctx.fillText(clampScoreboardText(state.headline, 32), 44, 112);\n\n  ctx.fillStyle = "#8edcff";\n  ctx.font = "700 28px Arial, sans-serif";\n  ctx.fillText(`FORMATION  ${clampScoreboardText(state.formation, 14)}`, 44, 158);\n\n  ctx.fillStyle = "rgba(239,250,255,.80)";\n  ctx.font = "600 24px Arial, sans-serif";\n  ctx.fillText(`TRAINING  ${clampScoreboardText(state.training, 34)}`, 44, 210);\n  ctx.fillText(`MATCH     ${clampScoreboardText(state.match, 34)}`, 44, 252);\n\n  ctx.textAlign = "right";\n  ctx.fillStyle = "rgba(126,214,255,.72)";\n  ctx.font = "700 20px Arial, sans-serif";\n  ctx.fillText("LIVE SPATIAL HOME", canvas.width - 44, 292);\n  texture.needsUpdate = true;\n}\n\nfunction makeAdBoardTexture(textures: Set<THREE.Texture>): THREE.Texture {'''
+          if text.count(marker) != 1:
+              raise SystemExit('V15.36 scoreboard painter insertion token mismatch')
+          text = text.replace(marker, live_fn, 1)
+
+          old = '''  const scoreboardTexture = makeScoreboardTexture(textures);\n  scoreboardTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());\n  const scoreboardMaterial = addDisposable('''
+          new = '''  const scoreboardTexture = makeScoreboardTexture(textures);\n  scoreboardTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());\n  group.userData.scoreboardTexture = scoreboardTexture;\n  const scoreboardMaterial = addDisposable('''
+          if text.count(old) != 1:
+              raise SystemExit('V15.36 scoreboard texture attachment token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = '''  const stadium = buildStadium(scene, renderer, mode, recipe, geometries, materials, textures);\n\n  const positionMarker = new THREE.Group();'''
+          new = '''  const stadium = buildStadium(scene, renderer, mode, recipe, geometries, materials, textures);\n  const liveScoreboardTexture = stadium.userData.scoreboardTexture as THREE.Texture | undefined;\n\n  const positionMarker = new THREE.Group();'''
+          if text.count(old) != 1:
+              raise SystemExit('V15.36 live texture handle token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = '''  const triangleCount = countTriangles(stadium);\n\n  const destroy = () => {'''
+          new = '''  const updateScoreboard = (state: StadiumScoreboardState) => {\n    if (!liveScoreboardTexture) return;\n    paintLiveScoreboardTexture(liveScoreboardTexture, state);\n  };\n\n  const triangleCount = countTriangles(stadium);\n\n  const destroy = () => {'''
+          if text.count(old) != 1:
+              raise SystemExit('V15.36 updateScoreboard function token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = '  return { triangleCount, resize, render, renderApproach, renderPitchEntry, renderPlayerPosition, renderTeamFormation, renderDigitalProjection, destroy };'
+          new = '  return { triangleCount, resize, render, renderApproach, renderPitchEntry, renderPlayerPosition, renderTeamFormation, renderDigitalProjection, updateScoreboard, destroy };'
+          if text.count(old) != 1:
+              raise SystemExit('V15.36 renderer return token mismatch')
+          text = text.replace(old, new, 1)
+          v14.write_text(text)
+
+          v151 = root / 'apps/web/src/three/stadiumWebglV151.ts'
+          text = v151.read_text()
+          old = '''    renderDigitalProjection(progress: number) {\n      base.renderDigitalProjection?.(progress);\n    },\n    destroy() {'''
+          new = '''    renderDigitalProjection(progress: number) {\n      base.renderDigitalProjection?.(progress);\n    },\n    updateScoreboard(state) {\n      base.updateScoreboard?.(state);\n    },\n    destroy() {'''
+          if text.count(old) != 1:
+              raise SystemExit('V15.36 V151 passthrough token mismatch')
+          text = text.replace(old, new, 1)
+          v151.write_text(text)
+
+          entry = root / 'apps/web/src/three/stadiumWebgl.ts'
+          text = entry.read_text()
+          old = 'export type { StadiumTeamMarker } from "./stadiumWebglV14";'
+          new = 'export type { StadiumScoreboardState, StadiumTeamMarker } from "./stadiumWebglV14";'
+          if text.count(old) != 1:
+              raise SystemExit('V15.36 public scoreboard type export token mismatch')
+          entry.write_text(text.replace(old, new, 1))
+
+          spatial = root / 'apps/web/src/features/stadium/SpatialHome3DScene.tsx'
+          text = spatial.read_text()
+          old = '  const [renderState, setRenderState] = useState<RenderState>(mode === "STATIC" ? "FALLBACK" : "INITIALIZING");'
+          new = '  const [renderState, setRenderState] = useState<RenderState>(mode === "STATIC" ? "FALLBACK" : "INITIALIZING");\n  const [scoreboardLive, setScoreboardLive] = useState(false);'
+          if text.count(old) != 1:
+              raise SystemExit('V15.36 SpatialHome scoreboard state token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = '''    setEffectiveMode(mode);\n    setRenderState(mode === "STATIC" ? "FALLBACK" : "INITIALIZING");'''
+          new = '''    setEffectiveMode(mode);\n    setRenderState(mode === "STATIC" ? "FALLBACK" : "INITIALIZING");\n    setScoreboardLive(false);'''
+          if text.count(old) != 1:
+              raise SystemExit('V15.36 SpatialHome reset token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = '''    const renderSpatialHome = renderer.renderTeamFormation.bind(renderer);\n    rendererRef.current = renderer;\n    setRenderState("READY");'''
+          new = '''    const renderSpatialHome = renderer.renderTeamFormation.bind(renderer);\n    renderer.updateScoreboard?.({\n      headline: spatial.scoreboardLabel,\n      formation: formation.shapeLabel,\n      training: spatial.nextTraining.label,\n      match: spatial.nextMatch.label,\n    });\n    setScoreboardLive(Boolean(renderer.updateScoreboard));\n    rendererRef.current = renderer;\n    setRenderState("READY");'''
+          if text.count(old) != 1:
+              raise SystemExit('V15.36 SpatialHome update token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = '  }, [effectiveMode, own.x, own.z, teammateMarkers]);'
+          new = '  }, [effectiveMode, formation.shapeLabel, own.x, own.z, spatial.nextMatch.label, spatial.nextTraining.label, spatial.scoreboardLabel, teammateMarkers]);'
+          if text.count(old) != 1:
+              raise SystemExit('V15.36 SpatialHome dependencies token mismatch')
+          text = text.replace(old, new, 1)
+
+          old = '''      data-spatial-anchor-count={spatial.anchors.length}\n      data-formation-teammate-count={formation.teammates.length}\n    >'''
+          new = '''      data-spatial-anchor-count={spatial.anchors.length}\n      data-formation-teammate-count={formation.teammates.length}\n      data-live-scoreboard={scoreboardLive ? "true" : "false"}\n      data-scoreboard-label={spatial.scoreboardLabel}\n    >'''
+          if text.count(old) != 1:
+              raise SystemExit('V15.36 SpatialHome evidence attrs token mismatch')
+          text = text.replace(old, new, 1)
+          spatial.write_text(text)
+          PY
+      - name: Commit V15.36 live scoreboard
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts apps/web/src/three/stadiumWebglV151.ts apps/web/src/three/stadiumWebgl.ts apps/web/src/features/stadium/SpatialHome3DScene.tsx
+          git commit -m "feat: connect V15.36 live 3D stadium scoreboard"
+          git push
