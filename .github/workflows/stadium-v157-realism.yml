@@ -1,4 +1,4 @@
-name: Stadium V15.19 Portrait Sightline
+name: Stadium V15.20 Portrait Composition
 
 on:
   push:
@@ -15,28 +15,52 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Raise portrait sightline toward seating bowl
+      - name: Rebalance portrait camera composition
         run: |
           python - <<'PY'
           from pathlib import Path
           path = Path('apps/web/src/three/stadiumWebglV14.ts')
           text = path.read_text()
           replacements = {
-              'const radius = 48;': 'const radius = 50;',
-              'camera.position.set(Math.sin(angle) * radius, 26.0, Math.cos(angle) * radius);': 'camera.position.set(Math.sin(angle) * radius, 24.5, Math.cos(angle) * radius);',
-              'camera.lookAt(new THREE.Vector3(-6, 11.0, 0));': 'camera.lookAt(new THREE.Vector3(-6, 16.5, 0));',
+              'const radius = 50;': 'const radius = 58;',
+              'camera.fov = 80;': 'camera.fov = 76;',
+              'camera.zoom = 0.72;': 'camera.zoom = 0.78;',
+              'camera.position.set(Math.sin(angle) * radius, 24.5, Math.cos(angle) * radius);': 'camera.position.set(Math.sin(angle) * radius, 26.5, Math.cos(angle) * radius);',
+              'camera.lookAt(new THREE.Vector3(-6, 16.5, 0));': 'camera.lookAt(new THREE.Vector3(-8, 10.5, 0));',
           }
           for old, new in replacements.items():
               count = text.count(old)
               if count != 1:
-                  raise SystemExit(f'V15.19 expected one token, found {count}: {old}')
+                  raise SystemExit(f'V15.20 expected one token, found {count}: {old}')
               text = text.replace(old, new, 1)
           path.write_text(text)
           PY
-      - name: Commit V15.19 portrait sightline
+      - name: Normalize mobile WebGL crop
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/features/stadium/stadiumV149Cinematic.css')
+          text = path.read_text()
+          old = '    transform:translateY(0) scale(1.40)!important;'
+          new = '    transform:translateY(-3%) scale(1.20)!important;'
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'V15.20 expected one mobile transform, found {count}')
+          text = text.replace(old, new, 1)
+          old_origin = '    transform-origin:50% 50%!important;'
+          # Replace only the mobile occurrence after the new transform.
+          idx = text.index(new)
+          tail = text[idx:]
+          if old_origin not in tail:
+              raise SystemExit('V15.20 mobile transform origin not found')
+          tail = tail.replace(old_origin, '    transform-origin:50% 54%!important;', 1)
+          text = text[:idx] + tail
+          path.write_text(text)
+          PY
+      - name: Commit V15.20 portrait composition
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- apps/web/src/three/stadiumWebglV14.ts
-          git commit -m "feat: refine V15.19 portrait stadium sightline"
+          git add -- apps/web/src/three/stadiumWebglV14.ts apps/web/src/features/stadium/stadiumV149Cinematic.css
+          git commit -m "feat: rebalance V15.20 portrait stadium composition"
           git push
