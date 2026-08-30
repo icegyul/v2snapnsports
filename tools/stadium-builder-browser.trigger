@@ -1,1 +1,1 @@
-verify guided stadium builder presets validator persistence and live 3d preview on desktop and mobile
+rerun stadium builder acceptance after preview orbit and verifier lint fixes
