@@ -1,0 +1,36 @@
+name: Stadium V15.30 Approach Capability Fix
+
+on:
+  push:
+    branches:
+      - feature/v2-stadium-first-screen-complete
+    paths:
+      - tools/stadium-v1530-approach-capability-fix.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Keep legacy renderer wrappers source-compatible
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web/src/three/stadiumWebglV14.ts')
+          text = path.read_text()
+          old = '  renderApproach(progress: number): void;'
+          new = '  renderApproach?(progress: number): void;'
+          if text.count(old) != 1:
+              raise SystemExit(f'V15.30 capability token mismatch: {text.count(old)}')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit V15.30 compatibility fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/web/src/three/stadiumWebglV14.ts
+          git commit -m "fix: keep legacy stadium renderers compatible with approach capability"
+          git push
