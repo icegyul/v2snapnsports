@@ -1141,11 +1141,11 @@ export function createStadiumWebglRenderer(
     // looking lengthwise through the stadium. This avoids seating/column intrusion
     // and uses a wide optical field instead of a 2D canvas crop.
     const angle = (68 + orbit * 0.04) * Math.PI / 180;
-    const radius = 63;
-    camera.fov = 68;
-    camera.zoom = 0.80;
-    camera.position.set(Math.sin(angle) * radius, 30.5, Math.cos(angle) * radius);
-    camera.lookAt(new THREE.Vector3(-2, 11.5, -7));
+    const radius = 72;
+    camera.fov = 66;
+    camera.zoom = 0.88;
+    camera.position.set(Math.sin(angle) * radius, 39.0, Math.cos(angle) * radius);
+    camera.lookAt(new THREE.Vector3(-2, 11.0, -8));
     camera.updateProjectionMatrix();
     stadium.rotation.y = 0;
     renderer.render(scene, camera);
