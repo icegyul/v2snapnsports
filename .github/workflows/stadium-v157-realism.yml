@@ -1,4 +1,4 @@
-name: Stadium V15.15 Goal-Axis Camera
+name: Stadium V15.16 Portrait Composition
 
 on:
   push:
@@ -15,84 +15,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Rebuild portrait camera on pitch goal axis
+      - name: Refine portrait optical composition
         run: |
           python - <<'PY'
           from pathlib import Path
-
           path = Path('apps/web/src/three/stadiumWebglV14.ts')
           text = path.read_text()
-          start = text.index('  const render = (orbit: number, zoom0: number) => {')
-          end = text.index('\n\n  const triangleCount =', start)
-          new = '''  const render = (orbit: number, zoom0: number) => {
-            const portrait = cssWidth / cssHeight < 0.82;
-            camera.aspect = cssWidth / cssHeight;
-
-            if (portrait) {
-              // Mobile acceptance camera: inside the pitch, just ahead of the goal line,
-              // looking lengthwise through the stadium. This avoids seating/column intrusion
-              // and uses a wide optical field instead of a 2D canvas crop.
-              const angle = (90 + orbit * 0.04) * Math.PI / 180;
-              const radius = 44;
-              camera.fov = 82;
-              camera.zoom = 0.62;
-              camera.position.set(Math.sin(angle) * radius, 30.5, Math.cos(angle) * radius);
-              camera.lookAt(new THREE.Vector3(-6, 6.0, 0));
-              camera.updateProjectionMatrix();
-              stadium.rotation.y = 0;
-              renderer.render(scene, camera);
-              return;
-            }
-
-            const zoom = Math.min(1.10, Math.max(0.86, zoom0));
-            const angle = (18 + orbit * 0.18) * Math.PI / 180;
-            const radius = 38 / zoom;
-            const height = 25 / zoom;
-            camera.fov = 58;
-            camera.zoom = 1;
-            camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
-            camera.lookAt(new THREE.Vector3(0, 13.4, -5.4));
-            camera.updateProjectionMatrix();
-            stadium.rotation.y = -0.015;
-            renderer.render(scene, camera);
-          };'''
-          path.write_text(text[:start] + new + text[end:])
+          replacements = {
+              '              const radius = 44;': '              const radius = 48;',
+              '              camera.fov = 82;': '              camera.fov = 80;',
+              '              camera.zoom = 0.62;': '              camera.zoom = 0.72;',
+              '              camera.position.set(Math.sin(angle) * radius, 30.5, Math.cos(angle) * radius);': '              camera.position.set(Math.sin(angle) * radius, 26.0, Math.cos(angle) * radius);',
+              '              camera.lookAt(new THREE.Vector3(-6, 6.0, 0));': '              camera.lookAt(new THREE.Vector3(-6, 11.0, 0));',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'V15.16 token not found: {old}')
+              text = text.replace(old, new, 1)
+          path.write_text(text)
           PY
-      - name: Remove portrait wrapper camera distortion
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path('apps/web/src/three/stadiumWebglV151.ts')
-          text = path.read_text()
-          start = text.index('    render(orbit: number, _zoom: number) {')
-          end = text.index('\n    destroy() {', start)
-          new = '''    render(orbit: number, _zoom: number) {
-              if (portrait) {
-                base.render(orbit, 1.0);
-                return;
-              }
-              base.render(orbit - 5, 1.0);
-            },'''
-          path.write_text(text[:start] + new + text[end:])
-          PY
-      - name: Neutralize mobile CSS crop
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path('apps/web/src/features/stadium/stadiumV149Cinematic.css')
-          text = path.read_text()
-          old = '    transform:translateY(-8%) scale(1.04)!important;'
-          new = '    transform:translateY(-1%) scale(1.00)!important;'
-          if old not in text:
-              raise SystemExit('V15.15 mobile canvas transform not found')
-          path.write_text(text.replace(old, new, 1))
-          PY
-      - name: Commit V15.15 goal-axis camera
+      - name: Commit V15.16 portrait composition
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- apps/web/src/three/stadiumWebglV14.ts apps/web/src/three/stadiumWebglV151.ts apps/web/src/features/stadium/stadiumV149Cinematic.css
-          git commit -m "feat: add V15.15 goal-axis mobile stadium camera"
+          git add -- apps/web/src/three/stadiumWebglV14.ts
+          git commit -m "feat: refine V15.16 portrait stadium composition"
           git push
