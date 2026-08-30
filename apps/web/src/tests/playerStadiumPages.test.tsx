@@ -10,7 +10,7 @@ describe("Player Stadium product flow", () => {
     expect(screen.getByRole("button", { name: "경기장을 눌러 입장하세요" })).toHaveAttribute("data-requested-mode", "FULL");
     expect(screen.getByText("나의 공간 · #8 중앙 미드필더")).toBeInTheDocument();
     expect(screen.getByText("다음 경기 · 데모 일정")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "경기장으로 들어가기" })).toHaveAttribute("href", "/home/approach");
+    expect(screen.getByRole("link", { name: "경기장으로 들어가기" })).toHaveAttribute("href", "/home/full");
   });
 
   it("keeps formation teammate markers private", async () => {
