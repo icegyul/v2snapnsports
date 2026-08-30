@@ -1,5 +1,6 @@
 /* global process, document, window, console */
 import { chromium } from "playwright";
+import { Buffer } from "node:buffer";
 import fs from "node:fs/promises";
 
 const baseUrl = process.env.STADIUM_PREVIEW_URL ?? "http://127.0.0.1:4173";
