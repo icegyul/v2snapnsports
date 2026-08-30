@@ -1,1 +1,1 @@
-V15.32 desktop and mobile browser evidence for bowl-to-touchline-to-pitch camera entry
+V15.32 browser verification rerun after removing obsolete STATIC 2D fallback helper
