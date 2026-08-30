@@ -39,6 +39,9 @@ export function createStadiumWebglRenderer(
     }
     base.render(orbit - 5, 1.0);
   },
+    renderApproach(progress: number) {
+      base.renderApproach(progress);
+    },
     destroy() {
       base.destroy();
     },

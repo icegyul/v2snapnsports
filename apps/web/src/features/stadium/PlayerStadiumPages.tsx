@@ -4,7 +4,9 @@ import type { CoreFormation, CoreSpatialHome, CoreStadiumHome } from "../../api/
 import { FixtureCoreProductAdapter } from "../../adapters/fixtureCoreProductAdapter";
 import { CoreStateBoundary } from "../../components/CoreStateBoundary";
 import { Stadium3DScene } from "./Stadium3DScene";
+import { StadiumApproachScene } from "./StadiumApproachScene";
 import "./stadium.css";
+import "./stadiumApproach.css";
 
 const adapter = new FixtureCoreProductAdapter();
 const loadStadiumHome = () => adapter.getStadiumHome();
@@ -71,7 +73,24 @@ export function StadiumExteriorPage() {
   return <CoreStateBoundary state={home ? "READY" : "LOADING"}>{home ? <StadiumExteriorContent home={home} /> : null}</CoreStateBoundary>;
 }
 
-export function StadiumApproachPage() { return <main className="shell-main"><p className="eyebrow">STADIUM EXPERIENCE · ZOOM</p><h1>경기장으로 다가가기</h1><StaticScene label="경기장 접근" /><Link className="surface-link" to="/home/enter">피치로 들어가기</Link></main>; }
+export function StadiumApproachPage() {
+  const home = useFixture(loadStadiumHome);
+  const [complete, setComplete] = useState(false);
+  return <CoreStateBoundary state={home ? "READY" : "LOADING"}>{home ? <main className="shell-main stadium-approach-page">
+    <header className="stadium-approach-header">
+      <div>
+        <p className="eyebrow">STADIUM EXPERIENCE · APPROACH</p>
+        <h1>경기장으로 다가가기</h1>
+      </div>
+      <p className="stadium-approach-meta">{home.team.displayName} · 외곽에서 지붕 상부를 지나 실제 3D bowl 내부로 접근합니다.</p>
+    </header>
+    <StadiumApproachScene mode={home.visualMode} onComplete={() => setComplete(true)} />
+    <footer className="stadium-approach-footer">
+      <p>{complete ? "3D 카메라가 경기장 내부에 도착했습니다." : "외부 시점에서 경기장 내부로 이동 중입니다."}</p>
+      <Link className="surface-link stadium-approach-enter-link" to="/home/enter">피치로 들어가기</Link>
+    </footer>
+  </main> : null}</CoreStateBoundary>;
+}
 export function PitchEntryPage() { return <main className="shell-main"><p className="eyebrow">STADIUM EXPERIENCE · PITCH ENTRY</p><h1>피치 진입</h1><StaticScene label="피치 진입" /><Link className="surface-link" to="/home/position">나의 포지션 보기</Link></main>; }
 
 function FormationBoard({ formation, ownOnly = false }: { formation: CoreFormation; ownOnly?: boolean }) {
