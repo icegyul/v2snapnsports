@@ -73,7 +73,7 @@ function makePitchTexture(textures: Set<THREE.Texture>): THREE.Texture {
 
   const stripe = canvas.width / 20;
   for (let i = 0; i < 24; i += 1) {
-    ctx.fillStyle = i % 2 === 0 ? "#183d28" : "#1d472c";
+    ctx.fillStyle = i % 2 === 0 ? "#193f29" : "#1e492e";
     ctx.fillRect(i * stripe, 0, stripe + 1, canvas.height);
   }
 
@@ -84,12 +84,12 @@ function makePitchTexture(textures: Set<THREE.Texture>): THREE.Texture {
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.globalAlpha = 0.055;
+  ctx.globalAlpha = 0.090;
   for (let i = 0; i < 5200; i += 1) {
     const x = (i * 131) % canvas.width;
     const y = (i * 71 + (i % 17) * 19) % canvas.height;
     ctx.fillStyle = i % 3 === 0 ? "#8da77c" : "#0a180e";
-    ctx.fillRect(x, y, 1, 1);
+    ctx.fillRect(x, y, 1, i % 5 === 0 ? 2 : 1);
   }
   ctx.globalAlpha = 1;
 
@@ -917,7 +917,7 @@ function buildStadium(
   grassBumpTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const pitchMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ map: grassTexture, bumpMap: grassBumpTexture, bumpScale: 0.028, roughness: 0.96, metalness: 0.0 }),
+    new THREE.MeshStandardMaterial({ map: grassTexture, bumpMap: grassBumpTexture, bumpScale: 0.045, roughness: 0.93, metalness: 0.0 }),
   );
   const concreteMaterial = addDisposable(
     materials,
