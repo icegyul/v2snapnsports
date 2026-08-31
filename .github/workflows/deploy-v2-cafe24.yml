@@ -94,10 +94,11 @@ jobs:
             set net:timeout 20;
             set net:reconnect-interval-base 3;
             set mirror:parallel-transfer-count 1;
-            set cmd:fail-exit yes;
             debug 3;
             open $FTP_SERVER;
+            set cmd:fail-exit no;
             mkdir -p \"$target\";
+            set cmd:fail-exit yes;
             cd \"$target\";
             lcd dist;
             mirror -R --verbose=3 --parallel=1 . .;
