@@ -88,24 +88,30 @@ jobs:
           chmod 600 "$HOME/.netrc"
 
           set +e
-          lftp -e "
+          lftp -d -e "
             set ftp:ssl-allow no;
             set net:max-retries 2;
             set net:timeout 20;
+            set net:reconnect-interval-base 3;
             set mirror:parallel-transfer-count 1;
+            debug 3;
             open $FTP_SERVER;
             mkdir -p -f \"$target\";
-            mirror -R --verbose dist \"$target\";
+            mirror -R --verbose=3 dist \"$target\";
             bye
-          "
+          " > "$RUNNER_TEMP/lftp.log" 2>&1
           status=$?
           set -e
           rm -f "$HOME/.netrc"
+          encode() { awk '{printf "%s%%0A", $0}'; }
           if [ "$status" -ne 0 ]; then
-            echo "::error::lftp mirror failed with exit code $status (see the step log above for the FTP transcript)."
+            tail -c 4000 "$RUNNER_TEMP/lftp.log" > "$RUNNER_TEMP/lftp_tail.log"
+            echo "::error title=lftp exit $status::$(cat "$RUNNER_TEMP/lftp_tail.log" | encode)"
             exit "$status"
           fi
           echo "lftp mirror completed."
+          echo "--- lftp transcript (tail) ---"
+          tail -c 2000 "$RUNNER_TEMP/lftp.log" || true
 
       - name: Smoke check /v2/
         run: |
