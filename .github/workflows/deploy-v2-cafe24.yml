@@ -53,8 +53,9 @@ jobs:
           } >> "$GITHUB_ENV"
           echo "FTP credentials resolved."
 
-      - name: Inspect FTP layout and mkdir permission (diagnostic, no secret values printed)
+      - name: Inspect FTP layout (diagnostic, no secret values printed)
         run: |
+          set +e
           encode() { awk '{printf "%s%%0A", $0}'; }
           probe() {
             label="$1"; url="$2"
@@ -63,14 +64,9 @@ jobs:
             body="exit=${code}%0A[${out}]"
             echo "::notice title=${label}::$(printf '%s' "$body" | encode)"
           }
-          probe "FTP root" "ftp://${FTP_SERVER}/"
-          probe "FTP www" "ftp://${FTP_SERVER}/www/"
-          probe "FTP www v2" "ftp://${FTP_SERVER}/www/v2/"
-          probe "FTP html" "ftp://${FTP_SERVER}/html/"
-          probe "FTP v2 (account-root relative)" "ftp://${FTP_SERVER}/v2/"
-          mkout=$(curl -s -u "${FTP_USERNAME}:${FTP_PASSWORD}" "ftp://${FTP_SERVER}/" -Q "MKD www" -Q "-RMD www" 2>&1)
-          mkcode=$?
-          echo "::notice title=MKD www at root (then removed)::$(printf '%s' "exit=${mkcode}%0A[${mkout}]" | encode)"
+          probe "FTP root (home dir)" "ftp://${FTP_SERVER}/"
+          probe "FTP /v2/ (target, account-root relative)" "ftp://${FTP_SERVER}/v2/"
+          set -e
 
       - uses: actions/setup-node@v4
         with:
@@ -93,7 +89,7 @@ jobs:
           username: ${{ env.FTP_USERNAME }}
           password: ${{ env.FTP_PASSWORD }}
           local-dir: dist/
-          server-dir: ${{ vars.CAFE24_FTP_SERVER_DIR != '' && vars.CAFE24_FTP_SERVER_DIR || 'www/v2/' }}
+          server-dir: ${{ vars.CAFE24_FTP_SERVER_DIR != '' && vars.CAFE24_FTP_SERVER_DIR || 'v2/' }}
           dangerous-clean-slate: false
 
       - name: Smoke check /v2/
