@@ -22,8 +22,9 @@ export const BASE_STADIUM_ACCEPTANCE_RECIPE: StadiumRecipe = {
 export function createStadiumWebglRenderer(
   canvas: HTMLCanvasElement,
   mode: Exclude<CoreVisualMode, "STATIC">,
+  recipe: StadiumRecipe = BASE_STADIUM_ACCEPTANCE_RECIPE,
 ): StadiumWebglRenderer | null {
-  const base = createPbrStadium(canvas, mode, BASE_STADIUM_ACCEPTANCE_RECIPE);
+  const base = createPbrStadium(canvas, mode, recipe);
   if (!base) return null;
   let portrait = false;
 

@@ -18,6 +18,15 @@ import { loadStadiumMotionFeatures } from "../features/stadium/stadiumMotionLoad
 const StadiumBuilderPage = lazy(() => import("../features/stadium-builder/StadiumBuilderPage")
   .then((module) => ({ default: module.StadiumBuilderPage })));
 
+const StadiumSelectPage = lazy(() => import("../features/stadium/StadiumSelectPage")
+  .then((module) => ({ default: module.StadiumSelectPage })));
+
+function StadiumSelectRoute() {
+  return <Suspense fallback={<main className="shell-main" role="status" aria-label="경기장 선택 준비"><p>경기장 선택 화면을 준비하고 있습니다.</p></main>}>
+    <StadiumSelectPage />
+  </Suspense>;
+}
+
 function StadiumBuilderRoute() {
   return <Suspense fallback={<main className="shell-main" role="status" aria-label="스타디움 설계 도구 준비"><p>스타디움 설계 도구를 준비하고 있습니다.</p></main>}>
     <StadiumBuilderPage />
@@ -62,7 +71,7 @@ function GenericShell({ title }: { title: string }) { return <main className="sh
 function AppRoutes() {
   const location = useLocation();
   const isPublic = location.pathname === "/login" || location.pathname === "/signup/role" || location.pathname.startsWith("/invite/guardian/");
-  const isStadiumBuilder = location.pathname === "/home/builder";
+  const isStadiumBuilder = location.pathname === "/home/builder" || location.pathname === "/home/stadium";
   const isStadiumHome = location.pathname === "/home";
   const isStadiumExperience = !isPublic && (location.pathname === "/home" || location.pathname.startsWith("/home/"));
   return <div className="app-shell"><Routes>
@@ -75,6 +84,7 @@ function AppRoutes() {
     <Route path="/home/position" element={<MyPositionPage />} />
     <Route path="/home/formation" element={<MyTeamFormationPage />} />
     <Route path="/home/team" element={<SpatialHomePage />} />
+    <Route path="/home/stadium" element={<StadiumSelectRoute />} />
     <Route path="/home/builder" element={<StadiumBuilderRoute />} />
     <Route path="/stadium" element={<Navigate replace to="/home" />} />
     <Route path="/signup/role" element={<RoleSelect />} />

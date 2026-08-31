@@ -3,6 +3,15 @@ import type { CoreVisualMode } from "../../api/coreProductContracts";
 import { createStadiumScene, nextStadiumMode } from "../../three/stadiumScene";
 import { createStadiumWebglRenderer, type StadiumWebglRenderer } from "../../three/stadiumWebgl";
 import { getStadiumHomeMotionProfile } from "./stadiumHomeMotion";
+import { resolveSelectedStadium, SERVICE_STADIUM_PRESETS, type ServiceStadiumPreset } from "./stadiumSelection";
+
+function readSelectedStadium(): ServiceStadiumPreset {
+  try {
+    return resolveSelectedStadium(window.localStorage);
+  } catch {
+    return SERVICE_STADIUM_PRESETS[0];
+  }
+}
 
 interface Stadium3DSceneProps {
   readonly mode: CoreVisualMode;
@@ -45,6 +54,7 @@ export function Stadium3DScene({ mode, onEnter }: Stadium3DSceneProps) {
   });
   const pinchRef = useRef({ distance: 0, zoom: 1 });
   const suppressClickRef = useRef(false);
+  const [selectedStadium] = useState(readSelectedStadium);
 
   const scene = createStadiumScene(effectiveMode);
 
@@ -83,7 +93,7 @@ export function Stadium3DScene({ mode, onEnter }: Stadium3DSceneProps) {
 
     let renderer: StadiumWebglRenderer | null = null;
     try {
-      renderer = createStadiumWebglRenderer(canvas, effectiveMode);
+      renderer = createStadiumWebglRenderer(canvas, effectiveMode, selectedStadium.recipe);
     } catch {
       renderer = null;
     }
@@ -171,7 +181,7 @@ export function Stadium3DScene({ mode, onEnter }: Stadium3DSceneProps) {
       renderer?.destroy();
       if (rendererRef.current === renderer) rendererRef.current = null;
     };
-  }, [cancelIntroCamera, effectiveMode]);
+  }, [cancelIntroCamera, effectiveMode, selectedStadium]);
 
   useEffect(() => {
     orbitRef.current = orbit;
@@ -359,6 +369,7 @@ export function Stadium3DScene({ mode, onEnter }: Stadium3DSceneProps) {
       data-render-state={renderState}
       data-zoom={zoom.toFixed(3)}
       data-rise={rise.toFixed(3)}
+      data-stadium-preset={selectedStadium.id}
       style={{ "--stadium-zoom": zoom } as CSSProperties}
       onClick={handleClick}
       onKeyDown={handleKeyDown}

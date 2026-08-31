@@ -82,6 +82,8 @@ function StadiumExteriorContent({ home }: { home: CoreStadiumHome }) {
         <span className="stadium-enter-arrow">→</span>
       </MotionDiv>
 
+      <Link className="stadium-select-entry" to="/home/stadium">경기장 선택</Link>
+
       {home.source === "SYNTHETIC_FIXTURE" && <p className="stadium-service-data-note">데모 데이터 · 운영 데이터 연결 전</p>}
     </section>
   </main></LazyMotion>;

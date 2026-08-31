@@ -201,6 +201,30 @@ body:has(.stadium-service-home) .app-shell {
   bottom: calc(96px + env(safe-area-inset-bottom, 0px));
 }
 
+.shell-main.stadium-service-home .stadium-select-entry {
+  position: absolute;
+  z-index: 6;
+  top: max(24px, calc(env(safe-area-inset-top, 0px) + 16px));
+  right: clamp(20px, 3vw, 48px);
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgba(210, 225, 232, 0.26);
+  border-radius: 999px;
+  color: #dffbff;
+  background: rgba(5, 15, 23, 0.58);
+  backdrop-filter: blur(12px);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.shell-main.stadium-service-home .stadium-select-entry:hover {
+  border-color: rgba(18, 223, 243, 0.55);
+}
+
 .shell-main.stadium-service-home .stadium-rise-hint-arrow {
   color: #12dff3;
 }

@@ -5,6 +5,7 @@ import { nextStadiumMode } from "../../three/stadiumScene";
 import { createStadiumWebglRenderer, type StadiumTeamMarker, type StadiumWebglRenderer } from "../../three/stadiumWebgl";
 import { playStadiumAudioCue, type StadiumAudioCue } from "./stadiumAudioDirector";
 import { ownCoordinate, teammateCoordinate } from "./tacticalProjection";
+import { resolveSelectedStadium, SERVICE_STADIUM_PRESETS, type ServiceStadiumPreset } from "./stadiumSelection";
 import { TeamTacticsField } from "./TeamTacticsField";
 
 interface FullStadiumJourneySceneProps {
@@ -63,6 +64,15 @@ function stageLabel(stage: JourneyStage): string {
   }
 }
 
+
+function readSelectedStadium(): ServiceStadiumPreset {
+  try {
+    return resolveSelectedStadium(window.localStorage);
+  } catch {
+    return SERVICE_STADIUM_PRESETS[0];
+  }
+}
+
 export function FullStadiumJourneyScene({ mode, formation, spatial }: FullStadiumJourneySceneProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rendererRef = useRef<StadiumWebglRenderer | null>(null);
@@ -78,6 +88,7 @@ export function FullStadiumJourneyScene({ mode, formation, spatial }: FullStadiu
   const [progress, setProgress] = useState(0);
   const [stage, setStage] = useState<JourneyStage>("FORMATION");
   const [scoreboardLive, setScoreboardLive] = useState(false);
+  const [selectedStadium] = useState(readSelectedStadium);
 
   const own = useMemo(() => ownCoordinate(formation.player.primaryPosition), [formation.player.primaryPosition]);
   const teammates = useMemo<readonly StadiumTeamMarker[]>(() => formation.teammates.map((teammate) => ({
@@ -124,7 +135,7 @@ export function FullStadiumJourneyScene({ mode, formation, spatial }: FullStadiu
 
     let renderer: StadiumWebglRenderer | null = null;
     try {
-      renderer = createStadiumWebglRenderer(canvas, effectiveMode);
+      renderer = createStadiumWebglRenderer(canvas, effectiveMode, selectedStadium.recipe);
     } catch {
       renderer = null;
     }
@@ -265,7 +276,7 @@ export function FullStadiumJourneyScene({ mode, formation, spatial }: FullStadiu
       renderer?.destroy();
       if (rendererRef.current === renderer) rendererRef.current = null;
     };
-  }, [effectiveMode, formation.shapeLabel, own.x, own.z, spatial.nextMatch.label, spatial.nextTraining.label, spatial.scoreboardLabel, teammates, view]);
+  }, [effectiveMode, formation.shapeLabel, own.x, own.z, selectedStadium, spatial.nextMatch.label, spatial.nextTraining.label, spatial.scoreboardLabel, teammates, view]);
 
   const finishImmediately = () => {
     if (timerRef.current !== null) {
