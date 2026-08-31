@@ -65,7 +65,7 @@ const definitions: Record<CoreVisualMode, StadiumSceneDefinition> = {
     productionSafe: true,
     orbitDegrees: 0,
     zoomMin: 1,
-    zoomMax: 1,
+    zoomMax: 1.6,
     modeLabel: "2D 안전 모드",
   },
 };

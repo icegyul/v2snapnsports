@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type WheelEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
 import type { CoreVisualMode } from "../../api/coreProductContracts";
 import { createStadiumScene, nextStadiumMode } from "../../three/stadiumScene";
 import { createStadiumWebglRenderer, type StadiumWebglRenderer } from "../../three/stadiumWebgl";
+import { getStadiumHomeMotionProfile } from "./stadiumHomeMotion";
 
 interface Stadium3DSceneProps {
   readonly mode: CoreVisualMode;
@@ -20,14 +21,18 @@ function distance(a: Point, b: Point): number {
 }
 
 export function Stadium3DScene({ mode, onEnter }: Stadium3DSceneProps) {
+  const surfaceRef = useRef<HTMLButtonElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rendererRef = useRef<StadiumWebglRenderer | null>(null);
+  const introAnimationRef = useRef<{ cancel(): void } | null>(null);
   const [effectiveMode, setEffectiveMode] = useState<CoreVisualMode>(mode);
   const [renderState, setRenderState] = useState<RenderState>(mode === "STATIC" ? "FALLBACK" : "INITIALIZING");
   const [orbit, setOrbit] = useState(0);
   const [zoom, setZoom] = useState(1);
+  const [rise, setRise] = useState(0);
   const orbitRef = useRef(orbit);
   const zoomRef = useRef(zoom);
+  const riseRef = useRef(rise);
   const pointersRef = useRef(new Map<number, Point>());
   const gestureRef = useRef({
     primaryId: null as number | null,
@@ -43,17 +48,33 @@ export function Stadium3DScene({ mode, onEnter }: Stadium3DSceneProps) {
 
   const scene = createStadiumScene(effectiveMode);
 
+  const cancelIntroCamera = useCallback((syncReactState: boolean) => {
+    if (!introAnimationRef.current) return;
+    introAnimationRef.current.cancel();
+    introAnimationRef.current = null;
+    if (syncReactState) {
+      setOrbit(orbitRef.current);
+      setZoom(zoomRef.current);
+    }
+  }, []);
+
   useEffect(() => {
+    cancelIntroCamera(false);
     setEffectiveMode(mode);
     setRenderState(mode === "STATIC" ? "FALLBACK" : "INITIALIZING");
+    orbitRef.current = 0;
+    zoomRef.current = 1;
+    riseRef.current = 0;
     setOrbit(0);
     setZoom(1);
-  }, [mode]);
+    setRise(0);
+  }, [cancelIntroCamera, mode]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     rendererRef.current?.destroy();
     rendererRef.current = null;
+    cancelIntroCamera(false);
 
     if (!canvas || effectiveMode === "STATIC") {
       setRenderState("FALLBACK");
@@ -76,15 +97,56 @@ export function Stadium3DScene({ mode, onEnter }: Stadium3DSceneProps) {
     rendererRef.current = renderer;
     setRenderState("READY");
 
+    const reducedMotion = typeof window.matchMedia === "function"
+      && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const cameraMotion = getStadiumHomeMotionProfile(reducedMotion).camera;
+    if (cameraMotion.enabled) {
+      orbitRef.current = cameraMotion.fromOrbit;
+      zoomRef.current = cameraMotion.fromZoom;
+    }
+
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
       renderer?.resize(rect.width, rect.height, window.devicePixelRatio || 1);
-      renderer?.render(orbitRef.current, zoomRef.current);
+      renderer?.render(orbitRef.current, zoomRef.current, riseRef.current);
     };
     resize();
 
+    let introLoadCancelled = false;
+    if (cameraMotion.enabled) {
+      void import("animejs").then(({ animate }) => {
+        if (introLoadCancelled || rendererRef.current !== renderer) return;
+        const cameraState = {
+          orbit: cameraMotion.fromOrbit,
+          zoom: cameraMotion.fromZoom,
+        };
+        introAnimationRef.current = animate(cameraState, {
+          orbit: cameraMotion.toOrbit,
+          zoom: cameraMotion.toZoom,
+          duration: cameraMotion.duration,
+          ease: "out(3)",
+          onUpdate: () => {
+            if (rendererRef.current !== renderer) return;
+            orbitRef.current = cameraState.orbit;
+            zoomRef.current = cameraState.zoom;
+            renderer.render(cameraState.orbit, cameraState.zoom, riseRef.current);
+          },
+          onComplete: () => {
+            if (rendererRef.current !== renderer) return;
+            introAnimationRef.current = null;
+            orbitRef.current = cameraMotion.toOrbit;
+            zoomRef.current = cameraMotion.toZoom;
+            setOrbit(cameraMotion.toOrbit);
+            setZoom(cameraMotion.toZoom);
+          },
+        });
+      });
+    }
+
     const handleContextLost = (event: Event) => {
       event.preventDefault();
+      introLoadCancelled = true;
+      cancelIntroCamera(false);
       rendererRef.current?.destroy();
       rendererRef.current = null;
       setRenderState("INITIALIZING");
@@ -101,19 +163,22 @@ export function Stadium3DScene({ mode, onEnter }: Stadium3DSceneProps) {
     }
 
     return () => {
+      introLoadCancelled = true;
+      cancelIntroCamera(false);
       canvas.removeEventListener("webglcontextlost", handleContextLost);
       observer?.disconnect();
       window.removeEventListener("resize", resize);
       renderer?.destroy();
       if (rendererRef.current === renderer) rendererRef.current = null;
     };
-  }, [effectiveMode]);
+  }, [cancelIntroCamera, effectiveMode]);
 
   useEffect(() => {
     orbitRef.current = orbit;
     zoomRef.current = zoom;
-    rendererRef.current?.render(orbit, zoom);
-  }, [orbit, zoom]);
+    riseRef.current = rise;
+    rendererRef.current?.render(orbit, zoom, rise);
+  }, [orbit, zoom, rise]);
 
   function suppressNextClick(): void {
     suppressClickRef.current = true;
@@ -123,7 +188,13 @@ export function Stadium3DScene({ mode, onEnter }: Stadium3DSceneProps) {
   }
 
   function handlePointerDown(event: PointerEvent<HTMLButtonElement>): void {
-    event.currentTarget.setPointerCapture?.(event.pointerId);
+    cancelIntroCamera(true);
+    try {
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+    } catch {
+      // Inactive pointer (synthetic events, or a pointer lost mid-gesture).
+      // Gesture tracking below must keep working without capture.
+    }
     const point = { x: event.clientX, y: event.clientY };
     pointersRef.current.set(event.pointerId, point);
     const gesture = gestureRef.current;
@@ -149,7 +220,7 @@ export function Stadium3DScene({ mode, onEnter }: Stadium3DSceneProps) {
     pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     const gesture = gestureRef.current;
 
-    if (pointersRef.current.size >= 2 && effectiveMode !== "STATIC") {
+    if (pointersRef.current.size >= 2) {
       const points = [...pointersRef.current.values()];
       const nextDistance = distance(points[0], points[1]);
       const initialDistance = pinchRef.current.distance || nextDistance;
@@ -168,6 +239,11 @@ export function Stadium3DScene({ mode, onEnter }: Stadium3DSceneProps) {
     if (scene.orbitDegrees > 0) {
       const deltaX = event.clientX - gesture.lastX;
       setOrbit((current) => clamp(current + deltaX * 0.13, -scene.orbitDegrees, scene.orbitDegrees));
+    }
+    if (effectiveMode !== "STATIC") {
+      // Upward drag lifts the camera toward the aerial pitch view.
+      const deltaY = event.clientY - gesture.lastY;
+      setRise((current) => clamp(current - deltaY * 0.0035, 0, 1));
     }
     gesture.lastX = event.clientX;
     gesture.lastY = event.clientY;
@@ -190,20 +266,19 @@ export function Stadium3DScene({ mode, onEnter }: Stadium3DSceneProps) {
   function handlePointerUp(event: PointerEvent<HTMLButtonElement>): void {
     const gesture = gestureRef.current;
     const isPrimary = gesture.primaryId === event.pointerId;
-    const deltaX = event.clientX - gesture.startX;
-    const deltaY = event.clientY - gesture.startY;
     pointersRef.current.delete(event.pointerId);
-    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
-      event.currentTarget.releasePointerCapture?.(event.pointerId);
+    try {
+      if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+        event.currentTarget.releasePointerCapture?.(event.pointerId);
+      }
+    } catch {
+      // Releasing an already-lost pointer must not break gesture cleanup.
     }
 
-    if (isPrimary) {
-      if (!gesture.pinched && deltaY < -58 && Math.abs(deltaY) > Math.abs(deltaX) * 1.05) {
-        suppressNextClick();
-        onEnter();
-      } else if (gesture.moved || gesture.pinched) {
-        suppressNextClick();
-      }
+    // Vertical drags are camera control (rise), so entry happens only on a
+    // clean click — any moved or pinched gesture suppresses it.
+    if (isPrimary && (gesture.moved || gesture.pinched)) {
+      suppressNextClick();
     }
     resetGesture();
   }
@@ -219,16 +294,54 @@ export function Stadium3DScene({ mode, onEnter }: Stadium3DSceneProps) {
     onEnter();
   }
 
-  function handleWheel(event: WheelEvent<HTMLButtonElement>): void {
-    if (effectiveMode === "STATIC") return;
+  const wheelHandlerRef = useRef<(event: globalThis.WheelEvent) => void>(() => {});
+  wheelHandlerRef.current = (event: globalThis.WheelEvent) => {
+    cancelIntroCamera(true);
     event.preventDefault();
     const amount = event.deltaY < 0 ? 0.04 : -0.04;
     setZoom((current) => clamp(current + amount, scene.zoomMin, scene.zoomMax));
-  }
+  };
+
+  useEffect(() => {
+    // React root wheel listeners are passive, so preventDefault there logs a
+    // console error. Zoom needs to stop page scroll, so bind non-passively.
+    const surface = surfaceRef.current;
+    if (!surface) return;
+    const handler = (event: globalThis.WheelEvent) => wheelHandlerRef.current(event);
+    surface.addEventListener("wheel", handler, { passive: false });
+    return () => surface.removeEventListener("wheel", handler);
+  }, []);
 
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>): void {
-    if (effectiveMode === "STATIC") return;
+    if (event.key === "+" || event.key === "=") {
+      cancelIntroCamera(true);
+      event.preventDefault();
+      setZoom((current) => clamp(current + 0.08, scene.zoomMin, scene.zoomMax));
+      return;
+    }
+    if (event.key === "-" || event.key === "_") {
+      cancelIntroCamera(true);
+      event.preventDefault();
+      setZoom((current) => clamp(current - 0.08, scene.zoomMin, scene.zoomMax));
+      return;
+    }
+    if (event.key === "0") {
+      cancelIntroCamera(true);
+      event.preventDefault();
+      setZoom(clamp(1, scene.zoomMin, scene.zoomMax));
+      return;
+    }
+    if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+      if (effectiveMode === "STATIC") return;
+      cancelIntroCamera(true);
+      event.preventDefault();
+      const direction = event.key === "ArrowUp" ? 1 : -1;
+      setRise((current) => clamp(current + direction * 0.12, 0, 1));
+      return;
+    }
     if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      if (scene.orbitDegrees <= 0) return;
+      cancelIntroCamera(true);
       event.preventDefault();
       const direction = event.key === "ArrowLeft" ? -1 : 1;
       setOrbit((current) => clamp(current + direction * 3, -scene.orbitDegrees, scene.orbitDegrees));
@@ -237,19 +350,22 @@ export function Stadium3DScene({ mode, onEnter }: Stadium3DSceneProps) {
 
   return (
     <button
+      ref={surfaceRef}
       type="button"
       className="stadium-interaction-surface"
-      aria-label="경기장을 눌러 입장하세요"
+      aria-label="경기장 입장"
       data-requested-mode={mode}
       data-render-mode={effectiveMode}
       data-render-state={renderState}
+      data-zoom={zoom.toFixed(3)}
+      data-rise={rise.toFixed(3)}
+      style={{ "--stadium-zoom": zoom } as CSSProperties}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
-      onWheel={handleWheel}
     >
       <span className="stadium-world" aria-hidden="true">
         <span className="stadium-sky-glow" />

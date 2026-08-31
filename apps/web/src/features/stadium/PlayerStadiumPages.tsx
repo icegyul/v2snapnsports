@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { LazyMotion, useReducedMotion } from "motion/react";
+import { div as MotionDiv, h1 as MotionHeading, header as MotionHeader, p as MotionParagraph } from "motion/react-m";
 import { Link, useNavigate } from "react-router-dom";
 import type { CoreFormation, CoreStadiumHome } from "../../api/coreProductContracts";
 import { FixtureCoreProductAdapter } from "../../adapters/fixtureCoreProductAdapter";
@@ -11,6 +13,8 @@ import { TeamFormation3DScene } from "./TeamFormation3DScene";
 import { SpatialHome3DScene } from "./SpatialHome3DScene";
 import { DigitalProjectionScene } from "./DigitalProjectionScene";
 import { FullStadiumJourneyScene } from "./FullStadiumJourneyScene";
+import { getStadiumHomeMotionProfile } from "./stadiumHomeMotion";
+import { loadStadiumMotionFeatures } from "./stadiumMotionLoader";
 import "./stadium.css";
 import "./stadiumApproach.css";
 import "./pitchEntry.css";
@@ -19,6 +23,8 @@ import "./teamFormation3D.css";
 import "./spatialHome3D.css";
 import "./digitalProjection.css";
 import "./fullStadiumJourney.css";
+import "./teamTacticsField.css";
+import "./stadiumServiceVisual.css";
 
 const adapter = new FixtureCoreProductAdapter();
 const loadStadiumHome = () => adapter.getStadiumHome();
@@ -33,47 +39,52 @@ function useFixture<T>(load: () => Promise<T>) {
 
 function StadiumExteriorContent({ home }: { home: CoreStadiumHome }) {
   const navigate = useNavigate();
-  const schedule = home.nextMatch.availability === "AVAILABLE"
-    ? home.nextMatch
-    : home.nextTraining.availability === "AVAILABLE"
-      ? home.nextTraining
-      : null;
+  const reducedMotion = Boolean(useReducedMotion());
+  const homeMotion = getStadiumHomeMotionProfile(reducedMotion);
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: homeMotion.ui.stagger },
+    },
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: homeMotion.ui.itemOffset },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: homeMotion.ui.duration, ease: [0.22, 0.72, 0, 1] as const },
+    },
+  };
 
-  return <main className="shell-main stadium-home-page">
-    <header className="stadium-home-header">
-      <div>
-        <p className="stadium-home-kicker">SNAPN SPORTS · 선수 공간</p>
-        <h1>나의 경기장</h1>
-        <p className="stadium-home-team">{home.team.displayName}</p>
-      </div>
-      {home.source === "SYNTHETIC_FIXTURE" && <span className="stadium-demo-badge">데모 데이터</span>}
-    </header>
-
+  return <LazyMotion features={loadStadiumMotionFeatures} strict><main className="shell-main stadium-home-page stadium-service-home">
     <section className="stadium-hero" aria-label="나의 경기장 3D 보기">
-      <div className="stadium-state-layer" aria-label="팀 상태">
-        <span className="stadium-state-label">팀 상태</span>
-        <strong>{schedule?.label ?? "오늘 예정된 일정이 없습니다"}</strong>
-        <span>{home.scoreboardLabel}</span>
-      </div>
+      <MotionHeader
+        className="stadium-home-header"
+        initial={reducedMotion ? false : "hidden"}
+        animate="visible"
+        variants={containerVariants}
+      >
+        <MotionHeading variants={itemVariants}>나의 경기장</MotionHeading>
+        <MotionParagraph className="stadium-home-player" variants={itemVariants}>선수 #{home.player.shirtNumber} · {home.player.primaryPosition}</MotionParagraph>
+      </MotionHeader>
 
       <Stadium3DScene mode={home.visualMode} onEnter={() => navigate("/home/full")} />
 
-      <div className="stadium-identity-indicator">
-        <span className="stadium-identity-number" aria-hidden="true">{home.player.shirtNumber}</span>
-        <span>나의 공간 · #{home.player.shirtNumber} {home.player.primaryPosition}</span>
-      </div>
+      <MotionDiv
+        className="stadium-enter-cue"
+        aria-hidden="true"
+        initial={reducedMotion ? false : { opacity: 0, y: homeMotion.ui.itemOffset }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: homeMotion.ui.duration, delay: reducedMotion ? 0 : 0.24, ease: [0.22, 0.72, 0, 1] }}
+      >
+        <span>경기장 입장</span>
+        <span className="stadium-enter-arrow">→</span>
+      </MotionDiv>
 
-      <div className="stadium-enter-cue" aria-hidden="true">
-        <span className="stadium-enter-arrow">↑</span>
-        <span>경기장을 눌러 입장하세요</span>
-      </div>
+      {home.source === "SYNTHETIC_FIXTURE" && <p className="stadium-service-data-note">데모 데이터 · 운영 데이터 연결 전</p>}
     </section>
-
-    <footer className="stadium-home-footer">
-      <p>좌우로 둘러보고 두 손가락으로 확대할 수 있습니다. 위로 밀어도 입장합니다.</p>
-      <Link className="surface-link stadium-enter-link" to="/home/full">경기장으로 들어가기</Link>
-    </footer>
-  </main>;
+  </main></LazyMotion>;
 }
 
 export function StadiumExteriorPage() {

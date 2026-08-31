@@ -122,6 +122,31 @@
   cursor: pointer;
 }
 
+/* P0-B: explicit switch between tactical field and cinematic journey. */
+.full-journey-cinematic {
+  position: absolute;
+  z-index: 8;
+  top: 16px;
+  right: 16px;
+  min-width: 118px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(202, 234, 248, 0.24);
+  border-right: 3px solid #12dff3;
+  border-radius: 2px;
+  background: rgba(5, 14, 18, 0.72);
+  color: #eaf7fb;
+  font-size: 13px;
+  font-weight: 650;
+  backdrop-filter: blur(9px);
+  cursor: pointer;
+}
+
+.full-journey-cinematic:focus-visible {
+  outline: 2px solid #12dff3;
+  outline-offset: 3px;
+}
+
 .full-journey-anchor-layer {
   position: absolute;
   z-index: 6;

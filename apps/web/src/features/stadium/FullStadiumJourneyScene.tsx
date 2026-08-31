@@ -4,6 +4,8 @@ import type { CoreFormation, CoreSpatialHome, CoreVisualMode } from "../../api/c
 import { nextStadiumMode } from "../../three/stadiumScene";
 import { createStadiumWebglRenderer, type StadiumTeamMarker, type StadiumWebglRenderer } from "../../three/stadiumWebgl";
 import { playStadiumAudioCue, type StadiumAudioCue } from "./stadiumAudioDirector";
+import { ownCoordinate, teammateCoordinate } from "./tacticalProjection";
+import { TeamTacticsField } from "./TeamTacticsField";
 
 interface FullStadiumJourneySceneProps {
   readonly mode: CoreVisualMode;
@@ -13,7 +15,7 @@ interface FullStadiumJourneySceneProps {
 
 type RenderState = "INITIALIZING" | "READY" | "FALLBACK";
 type JourneyStage = "APPROACH" | "PITCH" | "PROJECTION" | "POSITION" | "FORMATION" | "SPATIAL_HOME";
-type Coordinate = Readonly<{ x: number; z: number }>;
+type EntryView = "TACTICS" | "CINEMATIC";
 
 const APPROACH_END = 0.24;
 const PITCH_END = 0.42;
@@ -28,45 +30,6 @@ function clamp01(value: number): number {
 function smoothLocal(value: number): number {
   const clamped = clamp01(value);
   return clamped * clamped * (3 - 2 * clamped);
-}
-
-function ownCoordinate(position: string): Coordinate {
-  const normalized = position.trim().toUpperCase();
-  if (position.includes("골키퍼")) return { x: -45, z: 0 };
-  if (position.includes("왼쪽 풀백")) return { x: -28, z: -23 };
-  if (position.includes("오른쪽 풀백")) return { x: -28, z: 23 };
-  if (position.includes("수비형 미드필더")) return { x: -14, z: 0 };
-  if (position.includes("중앙 미드필더")) return { x: 0, z: 0 };
-  if (position.includes("공격형 미드필더")) return { x: 16, z: 0 };
-  if (position.includes("왼쪽 윙")) return { x: 24, z: -25 };
-  if (position.includes("오른쪽 윙")) return { x: 24, z: 25 };
-  if (position.includes("스트라이커") || position.includes("공격수")) return { x: 38, z: 0 };
-  if (position.includes("센터백") || position.includes("중앙 수비수")) return { x: -30, z: 0 };
-  switch (normalized) {
-    case "GK": return { x: -45, z: 0 };
-    case "LB": return { x: -28, z: -23 };
-    case "LCB": return { x: -30, z: -10 };
-    case "CB": return { x: -30, z: 0 };
-    case "RCB": return { x: -30, z: 10 };
-    case "RB": return { x: -28, z: 23 };
-    case "CDM":
-    case "DM": return { x: -14, z: 0 };
-    case "CM": return { x: 0, z: 0 };
-    case "CAM":
-    case "AM": return { x: 16, z: 0 };
-    case "LW": return { x: 24, z: -25 };
-    case "RW": return { x: 24, z: 25 };
-    case "CF": return { x: 31, z: 0 };
-    case "ST": return { x: 38, z: 0 };
-    default: return { x: 0, z: 0 };
-  }
-}
-
-function teammateCoordinate(xPercent: number, yPercent: number): Coordinate {
-  return {
-    x: ((Math.min(100, Math.max(0, xPercent)) - 50) / 50) * 47,
-    z: ((Math.min(100, Math.max(0, yPercent)) - 50) / 50) * 29,
-  };
 }
 
 function stageForProgress(progress: number): JourneyStage {
@@ -104,13 +67,16 @@ export function FullStadiumJourneyScene({ mode, formation, spatial }: FullStadiu
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rendererRef = useRef<StadiumWebglRenderer | null>(null);
   const timerRef = useRef<number | null>(null);
-  const progressRef = useRef(mode === "STATIC" ? 1 : 0);
+  const progressRef = useRef(0);
   const renderProgressRef = useRef<((progress: number) => void) | null>(null);
   const previousAudioStageRef = useRef<JourneyStage | null>(null);
   const [effectiveMode, setEffectiveMode] = useState<CoreVisualMode>(mode);
   const [renderState, setRenderState] = useState<RenderState>(mode === "STATIC" ? "FALLBACK" : "INITIALIZING");
-  const [progress, setProgress] = useState(mode === "STATIC" ? 1 : 0);
-  const [stage, setStage] = useState<JourneyStage>(mode === "STATIC" ? "SPATIAL_HOME" : "APPROACH");
+  // P0-B: entry defaults to the tactical field for every mode. The cinematic
+  // 6-stage journey stays available behind an explicit user action.
+  const [view, setView] = useState<EntryView>("TACTICS");
+  const [progress, setProgress] = useState(0);
+  const [stage, setStage] = useState<JourneyStage>("FORMATION");
   const [scoreboardLive, setScoreboardLive] = useState(false);
 
   const own = useMemo(() => ownCoordinate(formation.player.primaryPosition), [formation.player.primaryPosition]);
@@ -129,9 +95,10 @@ export function FullStadiumJourneyScene({ mode, formation, spatial }: FullStadiu
   useEffect(() => {
     setEffectiveMode(mode);
     setRenderState(mode === "STATIC" ? "FALLBACK" : "INITIALIZING");
-    progressRef.current = mode === "STATIC" ? 1 : 0;
-    setProgress(progressRef.current);
-    setStage(mode === "STATIC" ? "SPATIAL_HOME" : "APPROACH");
+    progressRef.current = 0;
+    setProgress(0);
+    setView("TACTICS");
+    setStage("FORMATION");
     setScoreboardLive(false);
     previousAudioStageRef.current = null;
   }, [mode]);
@@ -147,10 +114,11 @@ export function FullStadiumJourneyScene({ mode, formation, spatial }: FullStadiu
     }
 
     if (!canvas || effectiveMode === "STATIC") {
+      // P0-B: STATIC entry must land on the tactical field, not Spatial Home.
       setRenderState("FALLBACK");
-      progressRef.current = 1;
-      setProgress(1);
-      setStage("SPATIAL_HOME");
+      progressRef.current = 0;
+      setProgress(0);
+      setStage("FORMATION");
       return;
     }
 
@@ -213,10 +181,19 @@ export function FullStadiumJourneyScene({ mode, formation, spatial }: FullStadiu
     };
     renderProgressRef.current = renderProgress;
 
+    const renderTacticsContext = () => {
+      // Pitch context under the tactical layer: settled formation frame.
+      renderTeamFormation(1, own.x, own.z, teammates);
+    };
+
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
       renderer?.resize(rect.width, rect.height, window.devicePixelRatio || 1);
-      renderProgress(progressRef.current);
+      if (view === "TACTICS") {
+        renderTacticsContext();
+      } else {
+        renderProgress(progressRef.current);
+      }
     };
     resize();
 
@@ -240,7 +217,13 @@ export function FullStadiumJourneyScene({ mode, formation, spatial }: FullStadiu
     }
 
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    if (reducedMotion) {
+    if (view === "TACTICS") {
+      // P0-B default: immediate tactical field. No auto-run of the 6.2s
+      // cinematic sequence; it stays reachable via the explicit action below.
+      progressRef.current = 0;
+      setStage("FORMATION");
+      renderTacticsContext();
+    } else if (reducedMotion) {
       renderProgress(1);
       setProgress(1);
     } else {
@@ -282,7 +265,7 @@ export function FullStadiumJourneyScene({ mode, formation, spatial }: FullStadiu
       renderer?.destroy();
       if (rendererRef.current === renderer) rendererRef.current = null;
     };
-  }, [effectiveMode, formation.shapeLabel, own.x, own.z, spatial.nextMatch.label, spatial.nextTraining.label, spatial.scoreboardLabel, teammates]);
+  }, [effectiveMode, formation.shapeLabel, own.x, own.z, spatial.nextMatch.label, spatial.nextTraining.label, spatial.scoreboardLabel, teammates, view]);
 
   const finishImmediately = () => {
     if (timerRef.current !== null) {
@@ -295,7 +278,26 @@ export function FullStadiumJourneyScene({ mode, formation, spatial }: FullStadiu
     setStage("SPATIAL_HOME");
   };
 
-  const spatialReady = progress >= 0.985 || effectiveMode === "STATIC";
+  const cinematicComplete = view === "CINEMATIC" && progress >= 0.985;
+  const spatialReady = view === "TACTICS" || cinematicComplete;
+
+  const startCinematic = () => {
+    progressRef.current = 0;
+    setProgress(0);
+    setStage("APPROACH");
+    setView("CINEMATIC");
+  };
+
+  const returnToTactics = () => {
+    if (timerRef.current !== null) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    progressRef.current = 0;
+    setProgress(0);
+    setStage("FORMATION");
+    setView("TACTICS");
+  };
 
   return (
     <section
@@ -304,52 +306,75 @@ export function FullStadiumJourneyScene({ mode, formation, spatial }: FullStadiu
       data-requested-mode={mode}
       data-render-mode={effectiveMode}
       data-render-state={renderState}
+      data-entry-view={view}
       data-journey-stage={stage}
       data-journey-progress={progress.toFixed(3)}
-      data-journey-complete={spatialReady ? "true" : "false"}
+      data-journey-complete={cinematicComplete ? "true" : "false"}
       data-live-scoreboard={scoreboardLive ? "true" : "false"}
       data-spatial-anchor-count={spatial.anchors.length}
       data-formation-teammate-count={formation.teammates.length}
     >
-      <canvas ref={canvasRef} className={`full-journey-canvas ${renderState === "READY" ? "full-journey-canvas-ready" : ""}`} />
+      {/* key={view}: destroy() force-loses the WebGL context, and a canvas whose
+          context was lost cannot host a new renderer. A view switch therefore
+          mounts a fresh canvas so the next renderer gets a live context. */}
+      <canvas key={view} ref={canvasRef} className={`full-journey-canvas ${renderState === "READY" ? "full-journey-canvas-ready" : ""}`} />
       {renderState === "FALLBACK" && <div className="full-journey-static-field" aria-hidden="true" />}
 
-      <div className="full-journey-team-state" aria-label="현재 팀 상태">
-        <span>{formation.shapeLabel} · #{formation.player.shirtNumber} {formation.player.primaryPosition}</span>
-        <strong>{spatial.scoreboardLabel}</strong>
-      </div>
+      {view === "TACTICS" && <TeamTacticsField formation={formation} />}
 
-      {!spatialReady && (
+      {view === "CINEMATIC" && (
+        <div className="full-journey-team-state" aria-label="현재 팀 상태">
+          <span>{formation.shapeLabel} · #{formation.player.shirtNumber} {formation.player.primaryPosition}</span>
+          <strong>{spatial.scoreboardLabel}</strong>
+        </div>
+      )}
+
+      {view === "TACTICS" && renderState === "READY" && (
+        <button className="full-journey-cinematic" type="button" onClick={startCinematic}>
+          시네마틱 입장
+        </button>
+      )}
+      {view === "CINEMATIC" && cinematicComplete && (
+        <button className="full-journey-cinematic" type="button" onClick={returnToTactics}>
+          전술 필드 보기
+        </button>
+      )}
+
+      {view === "CINEMATIC" && !cinematicComplete && (
         <button className="full-journey-skip" type="button" onClick={finishImmediately} disabled={renderState !== "READY"}>
           빠른 입장
         </button>
       )}
 
-      <nav className="full-journey-anchor-layer" aria-label="Spatial Home 바로가기">
-        {spatial.anchors.map((anchor) => (
-          <Link
-            className={`full-journey-anchor full-journey-anchor-${anchor.kind.toLowerCase()}`}
-            data-testid="full-journey-anchor"
-            data-spatial-kind={anchor.kind}
-            key={anchor.id}
-            tabIndex={spatialReady ? 0 : -1}
-            aria-hidden={spatialReady ? undefined : true}
-            to={anchor.destination}
-          >
-            <span>{anchor.kind}</span>
-            <strong>{anchor.title}</strong>
-            <small>{anchor.detail}</small>
-          </Link>
-        ))}
-      </nav>
+      {view === "CINEMATIC" && (
+        <nav className="full-journey-anchor-layer" aria-label="Spatial Home 바로가기">
+          {spatial.anchors.map((anchor) => (
+            <Link
+              className={`full-journey-anchor full-journey-anchor-${anchor.kind.toLowerCase()}`}
+              data-testid="full-journey-anchor"
+              data-spatial-kind={anchor.kind}
+              key={anchor.id}
+              tabIndex={cinematicComplete ? 0 : -1}
+              aria-hidden={cinematicComplete ? undefined : true}
+              to={anchor.destination}
+            >
+              <span>{anchor.kind}</span>
+              <strong>{anchor.title}</strong>
+              <small>{anchor.detail}</small>
+            </Link>
+          ))}
+        </nav>
+      )}
 
-      <div className="full-journey-hud" aria-live="polite">
-        <div>
-          <span>FULL ENTRY</span>
-          <strong>{stageLabel(stage)}</strong>
+      {view === "CINEMATIC" && (
+        <div className="full-journey-hud" aria-live="polite">
+          <div>
+            <span>FULL ENTRY</span>
+            <strong>{stageLabel(stage)}</strong>
+          </div>
+          <div className="full-journey-progress"><i style={{ transform: `scaleX(${progress})` }} /></div>
         </div>
-        <div className="full-journey-progress"><i style={{ transform: `scaleX(${progress})` }} /></div>
-      </div>
+      )}
     </section>
   );
 }

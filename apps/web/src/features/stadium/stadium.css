@@ -162,7 +162,7 @@
 .stadium-static-fallback {
   z-index: 1;
   inset: 25% 4% 11%;
-  transform: perspective(900px) rotateX(58deg) rotateZ(-1deg);
+  transform: perspective(900px) rotateX(58deg) rotateZ(-1deg) scale(var(--stadium-zoom, 1));
   transform-style: preserve-3d;
   opacity: 1;
   transition: opacity 260ms ease;

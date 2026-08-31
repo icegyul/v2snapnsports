@@ -1,0 +1,363 @@
+/* Image-first Stadium Home finish. This file intentionally loads last. */
+body:has(.stadium-service-home) {
+  overflow: hidden;
+  background: #071018;
+}
+
+body:has(.stadium-service-home) .app-shell {
+  min-height: 100dvh;
+  padding-bottom: 0;
+  background: #071018;
+}
+
+.shell-main.stadium-home-page.stadium-service-home {
+  position: relative;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100dvh !important;
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: #071018 !important;
+}
+
+.shell-main.stadium-service-home .stadium-hero {
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
+  height: 100dvh !important;
+  min-height: 620px !important;
+  max-height: none !important;
+  overflow: hidden !important;
+  isolation: isolate;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: #071018 !important;
+  box-shadow: none !important;
+}
+
+.shell-main.stadium-service-home .stadium-hero::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  background:
+    linear-gradient(90deg, rgba(4, 11, 18, .74) 0%, rgba(4, 11, 18, .34) 30%, transparent 58%),
+    linear-gradient(180deg, rgba(4, 10, 17, .10) 0%, transparent 54%, rgba(4, 9, 15, .50) 100%),
+    url("../../assets/stadium-service-sky.png") center 16% / cover no-repeat !important;
+}
+
+.shell-main.stadium-service-home .stadium-hero::after {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+  background:
+    linear-gradient(180deg, transparent 0 68%, rgba(2, 7, 11, .20) 82%, rgba(2, 7, 11, .76) 100%),
+    radial-gradient(ellipse at 50% 72%, transparent 38%, rgba(2, 7, 11, .18) 100%) !important;
+}
+
+.shell-main.stadium-service-home .stadium-home-header {
+  position: absolute;
+  z-index: 5;
+  top: clamp(52px, 8dvh, 104px);
+  left: clamp(30px, 5.7vw, 92px);
+  width: min(560px, 48vw);
+  min-height: 0;
+  display: block;
+  padding: 0;
+  pointer-events: none;
+}
+
+.shell-main.stadium-service-home .stadium-home-header h1 {
+  margin: 0;
+  color: #f2f5f6;
+  background: none;
+  font-size: clamp(54px, 5.25vw, 78px);
+  font-weight: 680;
+  line-height: .96;
+  letter-spacing: -.065em;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, .22);
+  -webkit-text-fill-color: currentColor;
+}
+
+.shell-main.stadium-service-home .stadium-home-player {
+  margin: 18px 0 0;
+  color: rgba(230, 237, 240, .78);
+  font-size: clamp(16px, 1.4vw, 21px);
+  font-weight: 450;
+  letter-spacing: -.025em;
+}
+
+.shell-main.stadium-service-home .stadium-interaction-surface {
+  z-index: 1;
+  inset: 0;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.shell-main.stadium-service-home .stadium-world {
+  z-index: 1;
+  overflow: hidden;
+  background: transparent;
+}
+
+.shell-main.stadium-service-home .stadium-world::before,
+.shell-main.stadium-service-home .stadium-world::after,
+.shell-main.stadium-service-home .stadium-sky-glow,
+.shell-main.stadium-service-home .stadium-ground-glow,
+.shell-main.stadium-service-home .stadium-quality-chip,
+.shell-main.stadium-service-home .stadium-state-layer,
+.shell-main.stadium-service-home .stadium-identity-indicator,
+.shell-main.stadium-service-home .stadium-demo-badge,
+.shell-main.stadium-service-home .stadium-home-footer {
+  display: none !important;
+}
+
+.shell-main.stadium-service-home .stadium-webgl-canvas {
+  z-index: 2;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  transform: none !important;
+  transform-origin: center !important;
+  filter: saturate(.92) contrast(1.08) brightness(1.02) drop-shadow(0 42px 70px rgba(0, 0, 0, .50)) !important;
+}
+
+.shell-main.stadium-service-home .stadium-static-fallback {
+  z-index: 1;
+  inset: 0 !important;
+  /* P0-A: STATIC zoom — driven by the user gesture state, not locked to none.
+     No transition: direct manipulation (wheel/pinch) must track 1:1, and the
+     end state must not depend on animation frames in throttled webviews. */
+  transform: scale(var(--stadium-zoom, 1)) !important;
+  transform-origin: 50% 55% !important;
+  will-change: transform;
+  opacity: 1;
+  filter: none;
+  background: url("../../assets/stadium-service-poster-desktop.jpg") center center / cover no-repeat;
+}
+
+.shell-main.stadium-service-home .stadium-static-fallback > * {
+  display: none !important;
+}
+
+.shell-main.stadium-service-home .stadium-interaction-surface[data-render-state="FALLBACK"] .stadium-webgl-canvas,
+.shell-main.stadium-service-home .stadium-interaction-surface[data-render-state="INITIALIZING"] .stadium-webgl-canvas {
+  display: none !important;
+}
+
+.shell-main.stadium-service-home .stadium-enter-cue {
+  position: absolute;
+  z-index: 5;
+  top: clamp(190px, 26dvh, 292px) !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: clamp(30px, 5.7vw, 92px) !important;
+  width: clamp(188px, 15vw, 224px) !important;
+  height: 56px !important;
+  min-width: 188px !important;
+  min-height: 56px !important;
+  max-width: 224px !important;
+  max-height: 56px !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 0 0 20px !important;
+  transform: none !important;
+  border: 1px solid rgba(210, 225, 232, .28) !important;
+  border-right: 3px solid #12dff3 !important;
+  border-radius: 2px !important;
+  color: #f2f5f6;
+  background: rgba(5, 15, 23, .64) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(14px);
+  font-size: 14px !important;
+  font-weight: 650;
+  letter-spacing: -.015em;
+  pointer-events: none;
+}
+
+.shell-main.stadium-service-home .stadium-enter-cue > span:first-child {
+  flex: 1 1 auto;
+  text-align: left;
+}
+
+.shell-main.stadium-service-home .stadium-enter-arrow {
+  width: 54px !important;
+  height: 54px !important;
+  min-width: 54px !important;
+  min-height: 54px !important;
+  display: grid;
+  place-items: center;
+  border: 0 !important;
+  border-left: 1px solid rgba(210, 225, 232, .20) !important;
+  border-radius: 0 !important;
+  color: #dffbff;
+  background: rgba(18, 223, 243, .035) !important;
+  box-shadow: none !important;
+  font-size: 19px !important;
+}
+
+.shell-main.stadium-service-home .stadium-service-data-note {
+  position: absolute;
+  z-index: 5;
+  right: clamp(22px, 3vw, 48px);
+  bottom: 82px;
+  margin: 0;
+  color: rgba(219, 229, 233, .48);
+  font-size: 10px;
+  letter-spacing: .035em;
+  pointer-events: none;
+}
+
+body:has(.stadium-service-home) .bottom-navigation {
+  z-index: 10;
+  min-height: 64px;
+  padding: 0 clamp(16px, 4vw, 56px) env(safe-area-inset-bottom, 0px);
+  border-top: 1px solid rgba(210, 225, 232, .12);
+  background: linear-gradient(180deg, rgba(5, 13, 20, .72), rgba(5, 13, 20, .96));
+  backdrop-filter: blur(20px);
+}
+
+body:has(.stadium-service-home) .bottom-navigation a {
+  position: relative;
+  color: rgba(219, 229, 233, .52);
+  font-size: 11px;
+  font-weight: 580;
+  letter-spacing: .02em;
+}
+
+body:has(.stadium-service-home) .bottom-navigation .nav-active {
+  color: #f2f5f6;
+  box-shadow: none;
+}
+
+body:has(.stadium-service-home) .bottom-navigation .nav-active::after {
+  display: none;
+}
+
+body:has(.stadium-service-home) .bottom-navigation .stadium-nav-indicator {
+  position: absolute;
+  right: 31%;
+  bottom: 9px;
+  left: 31%;
+  height: 2px;
+  background: #12dff3;
+}
+
+@media (max-width: 720px) {
+  .shell-main.stadium-home-page.stadium-service-home {
+    min-height: 100dvh !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  .shell-main.stadium-service-home .stadium-hero {
+    height: 100dvh !important;
+    min-height: 600px !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+  }
+
+  .shell-main.stadium-service-home .stadium-hero::before {
+    background:
+      linear-gradient(180deg, rgba(4, 11, 18, .50) 0%, transparent 43%, rgba(2, 7, 11, .64) 100%),
+      url("../../assets/stadium-service-sky.png") 60% 12% / auto 68% no-repeat,
+      #071018 !important;
+  }
+
+  .shell-main.stadium-service-home .stadium-home-header {
+    top: max(40px, calc(env(safe-area-inset-top, 0px) + 24px));
+    left: 24px;
+    width: calc(100% - 48px);
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    align-items: initial !important;
+  }
+
+  .shell-main.stadium-service-home .stadium-home-header h1 {
+    margin: 0 !important;
+    font-size: clamp(42px, 13vw, 58px) !important;
+    line-height: .94 !important;
+  }
+
+  .shell-main.stadium-service-home .stadium-home-player {
+    margin-top: 12px;
+    font-size: 15px;
+  }
+
+  .shell-main.stadium-service-home .stadium-webgl-canvas {
+    top: 18% !important;
+    height: 70% !important;
+    min-height: 0 !important;
+    transform: scale(1.12) translateY(2%) !important;
+    transform-origin: 50% 57% !important;
+    filter: saturate(.90) contrast(1.08) brightness(1.04) drop-shadow(0 28px 48px rgba(0, 0, 0, .56)) !important;
+  }
+
+  .shell-main.stadium-service-home .stadium-static-fallback {
+    background-image: url("../../assets/stadium-service-poster-mobile.jpg") !important;
+    background-position: center center !important;
+    background-size: cover !important;
+  }
+
+  .shell-main.stadium-service-home .stadium-enter-cue {
+    top: auto !important;
+    right: 20px !important;
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+    left: 20px !important;
+    width: auto !important;
+    height: 50px !important;
+    min-width: 0 !important;
+    min-height: 50px !important;
+    max-width: none !important;
+    max-height: 50px !important;
+    padding-left: 18px !important;
+  }
+
+  .shell-main.stadium-service-home .stadium-enter-arrow {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+  }
+
+  .shell-main.stadium-service-home .stadium-service-data-note {
+    right: 21px;
+    bottom: calc(139px + env(safe-area-inset-bottom, 0px));
+    font-size: 9px;
+  }
+
+  body:has(.stadium-service-home) .bottom-navigation {
+    min-height: 64px;
+    padding-right: 6px;
+    padding-left: 6px;
+  }
+
+  body:has(.stadium-service-home) .bottom-navigation .stadium-nav-indicator {
+    right: 27%;
+    bottom: 8px;
+    left: 27%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-main.stadium-service-home .stadium-webgl-canvas {
+    transition: opacity 120ms linear;
+  }
+}
