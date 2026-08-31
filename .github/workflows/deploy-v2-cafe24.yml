@@ -135,6 +135,10 @@ jobs:
             cd \"$target\";
             lcd dist;
             mirror -R --verbose=3 --parallel=1 . .;
+            set cmd:fail-exit no;
+            chmod 755 . assets;
+            chmod 644 .htaccess *.html *.js *.svg *.webmanifest;
+            chmod 644 assets/*;
             bye
           " > "$RUNNER_TEMP/lftp.log" 2>&1
           status=$?
