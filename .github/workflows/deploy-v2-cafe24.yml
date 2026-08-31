@@ -53,15 +53,24 @@ jobs:
           } >> "$GITHUB_ENV"
           echo "FTP credentials resolved."
 
-      - name: Inspect FTP root layout (diagnostic, safe - no secret values printed)
+      - name: Inspect FTP layout and mkdir permission (diagnostic, no secret values printed)
         run: |
           encode() { awk '{printf "%s%%0A", $0}'; }
-          root_listing=$(curl -s --list-only -u "${FTP_USERNAME}:${FTP_PASSWORD}" "ftp://${FTP_SERVER}/" || echo "LIST_FAILED")
-          echo "::notice title=FTP root listing::$(printf '%s' "$root_listing" | encode)"
-          for d in www html public_html htdocs web v2; do
-            sub=$(curl -s --list-only -u "${FTP_USERNAME}:${FTP_PASSWORD}" "ftp://${FTP_SERVER}/$d/" 2>&1 || echo "NOT_FOUND_OR_EMPTY")
-            echo "::notice title=FTP /$d/ listing::$(printf '%s' "$sub" | encode)"
-          done
+          probe() {
+            label="$1"; url="$2"
+            out=$(curl -s --list-only -u "${FTP_USERNAME}:${FTP_PASSWORD}" "$url" 2>&1)
+            code=$?
+            body="exit=${code}%0A[${out}]"
+            echo "::notice title=${label}::$(printf '%s' "$body" | encode)"
+          }
+          probe "FTP root" "ftp://${FTP_SERVER}/"
+          probe "FTP www" "ftp://${FTP_SERVER}/www/"
+          probe "FTP www v2" "ftp://${FTP_SERVER}/www/v2/"
+          probe "FTP html" "ftp://${FTP_SERVER}/html/"
+          probe "FTP v2 (account-root relative)" "ftp://${FTP_SERVER}/v2/"
+          mkout=$(curl -s -u "${FTP_USERNAME}:${FTP_PASSWORD}" "ftp://${FTP_SERVER}/" -Q "MKD www" -Q "-RMD www" 2>&1)
+          mkcode=$?
+          echo "::notice title=MKD www at root (then removed)::$(printf '%s' "exit=${mkcode}%0A[${mkout}]" | encode)"
 
       - uses: actions/setup-node@v4
         with:
