@@ -196,6 +196,15 @@ body:has(.stadium-service-home) .app-shell {
   text-align: left;
 }
 
+.shell-main.stadium-service-home .stadium-rise-hint {
+  z-index: 6;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+}
+
+.shell-main.stadium-service-home .stadium-rise-hint-arrow {
+  color: #12dff3;
+}
+
 .shell-main.stadium-service-home .stadium-enter-arrow {
   width: 54px !important;
   height: 54px !important;
@@ -328,6 +337,10 @@ body:has(.stadium-service-home) .bottom-navigation .stadium-nav-indicator {
     max-width: none !important;
     max-height: 50px !important;
     padding-left: 18px !important;
+  }
+
+  .shell-main.stadium-service-home .stadium-rise-hint {
+    bottom: calc(148px + env(safe-area-inset-bottom, 0px));
   }
 
   .shell-main.stadium-service-home .stadium-enter-arrow {

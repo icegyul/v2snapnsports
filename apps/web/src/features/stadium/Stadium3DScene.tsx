@@ -383,6 +383,12 @@ export function Stadium3DScene({ mode, onEnter }: Stadium3DSceneProps) {
         <canvas ref={canvasRef} className={`stadium-webgl-canvas ${renderState === "READY" ? "stadium-webgl-ready" : ""}`} />
         <span className="stadium-quality-chip">{scene.modeLabel}</span>
       </span>
+      {effectiveMode !== "STATIC" && (
+        <span className={`stadium-rise-hint ${rise > 0.04 ? "stadium-rise-hint-hidden" : ""}`} aria-hidden="true">
+          <span className="stadium-rise-hint-arrow">↑</span>
+          <span>드래그해서 경기장 둘러보기</span>
+        </span>
+      )}
     </button>
   );
 }
