@@ -4,12 +4,14 @@ name: Deploy V2 to Cafe24
 # Triggered by pushing to the deploy/v2 pointer branch (or manually via
 # workflow_dispatch). Requires repository Actions secrets (Settings →
 # Secrets and variables → Actions), configured by the owner — values
-# never live in the repo:
-#   CAFE24_FTP_SERVER    e.g. ftp.snapnsports.com (or the Cafe24 FTP host)
-#   CAFE24_FTP_USERNAME
-#   CAFE24_FTP_PASSWORD
+# never live in the repo. Preferred: a single secret named CAFE24 whose
+# value is three lines — FTP server / username / password. Individual
+# secrets CAFE24_FTP_SERVER / CAFE24_FTP_USERNAME / CAFE24_FTP_PASSWORD
+# take precedence when present.
 # Optional variable (Settings → Variables → Actions):
-#   CAFE24_FTP_SERVER_DIR  target directory, default www/v2/
+#   CAFE24_FTP_SERVER_DIR  target directory relative to the FTP login
+#                          home, default v2/ (this account's FTP home
+#                          has no www/ wrapper - it is the doc root).
 
 on:
   workflow_dispatch:
@@ -34,13 +36,14 @@ jobs:
           P: ${{ secrets.CAFE24_FTP_PASSWORD }}
           COMBINED: ${{ secrets.CAFE24 }}
         run: |
-          # Preferred: one secret named CAFE24 whose value is three lines —
-          # server / username / password. Individual secrets still win if set.
           if [ -z "$S" ] && [ -n "$COMBINED" ]; then
             S=$(printf '%s\n' "$COMBINED" | sed -n 1p | tr -d '\r' | xargs)
             U=$(printf '%s\n' "$COMBINED" | sed -n 2p | tr -d '\r' | xargs)
             P=$(printf '%s\n' "$COMBINED" | sed -n 3p | tr -d '\r')
           fi
+          # Strip an accidental scheme/trailing slash so both lftp's
+          # positional host arg and the .netrc "machine" line match.
+          S=$(printf '%s' "$S" | sed -E 's#^ftps?://##; s#/+$##')
           if [ -z "$S" ] || [ -z "$U" ] || [ -z "$P" ]; then
             echo "::error::FTP credentials incomplete. Easiest fix: edit the repository secret named CAFE24 so its value is exactly three lines - line 1 FTP server, line 2 username, line 3 password."
             exit 1
@@ -51,22 +54,7 @@ jobs:
             echo "FTP_USERNAME=$U"
             echo "FTP_PASSWORD=$P"
           } >> "$GITHUB_ENV"
-          echo "FTP credentials resolved."
-
-      - name: Inspect FTP layout (diagnostic, no secret values printed)
-        run: |
-          set +e
-          encode() { awk '{printf "%s%%0A", $0}'; }
-          probe() {
-            label="$1"; url="$2"
-            out=$(curl -s --list-only -u "${FTP_USERNAME}:${FTP_PASSWORD}" "$url" 2>&1)
-            code=$?
-            body="exit=${code}%0A[${out}]"
-            echo "::notice title=${label}::$(printf '%s' "$body" | encode)"
-          }
-          probe "FTP root (home dir)" "ftp://${FTP_SERVER}/"
-          probe "FTP /v2/ (target, account-root relative)" "ftp://${FTP_SERVER}/v2/"
-          set -e
+          echo "FTP credentials resolved (server: $S)."
 
       - uses: actions/setup-node@v4
         with:
@@ -82,15 +70,42 @@ jobs:
           npm test -- --run
           npm run build
 
-      - name: Deploy dist/ to /v2/
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ env.FTP_SERVER }}
-          username: ${{ env.FTP_USERNAME }}
-          password: ${{ env.FTP_PASSWORD }}
-          local-dir: dist/
-          server-dir: ${{ vars.CAFE24_FTP_SERVER_DIR != '' && vars.CAFE24_FTP_SERVER_DIR || 'v2/' }}
-          dangerous-clean-slate: false
+      - name: Deploy dist/ to /v2/ via lftp
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y lftp
+
+          target="${{ vars.CAFE24_FTP_SERVER_DIR != '' && vars.CAFE24_FTP_SERVER_DIR || 'v2/' }}"
+
+          # Credentials via .netrc rather than an lftp command string, so
+          # nothing in the password needs shell/lftp quoting.
+          umask 077
+          cat > "$HOME/.netrc" <<NETRC
+          machine $FTP_SERVER
+          login $FTP_USERNAME
+          password $FTP_PASSWORD
+          NETRC
+          chmod 600 "$HOME/.netrc"
+
+          set +e
+          lftp -e "
+            set ftp:ssl-allow no;
+            set net:max-retries 2;
+            set net:timeout 20;
+            set mirror:parallel-transfer-count 1;
+            open $FTP_SERVER;
+            mkdir -p -f \"$target\";
+            mirror -R --verbose dist \"$target\";
+            bye
+          "
+          status=$?
+          set -e
+          rm -f "$HOME/.netrc"
+          if [ "$status" -ne 0 ]; then
+            echo "::error::lftp mirror failed with exit code $status (see the step log above for the FTP transcript)."
+            exit "$status"
+          fi
+          echo "lftp mirror completed."
 
       - name: Smoke check /v2/
         run: |
