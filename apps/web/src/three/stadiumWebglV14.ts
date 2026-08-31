@@ -910,13 +910,13 @@ const floodMaterial = addDisposable(
   // visible additive cones down onto the pitch, read from inside the bowl.
   if (profile.builderVisuals && recipe.lightingProfile === "EVENT") {
     const beamLength = 44;
-    const beamGeometry = addDisposable(geometries, new THREE.CylinderGeometry(1.1, 7.5, beamLength, 12, 1, true));
+    const beamGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.7, 3.6, beamLength, 12, 1, true));
     const beamMaterial = addDisposable(
       materials,
       new THREE.MeshBasicMaterial({
         color: 0xdff3ff,
         transparent: true,
-        opacity: 0.05,
+        opacity: 0.03,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
         side: THREE.DoubleSide,
