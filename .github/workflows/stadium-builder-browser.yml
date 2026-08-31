@@ -39,7 +39,9 @@ jobs:
           cat /tmp/stadium-builder-preview.log
           exit 1
       - name: Capture Stadium Builder
-        run: node tools/capture_stadium_builder.mjs
+        run: |
+          node --test tools/stadium-frame-analysis.test.mjs
+          node tools/capture_stadium_builder.mjs
       - name: Upload Builder evidence
         if: always()
         uses: actions/upload-artifact@v4

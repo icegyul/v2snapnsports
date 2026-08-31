@@ -2,11 +2,11 @@ import { isHardDisabled } from "../lib/featureFlags";
 import type { ManagerRole } from "../api/contracts";
 
 export const playerNavigation = [
-  { label: "HOME", to: "/home" },
-  { label: "TRAINING", to: "/training" },
-  { label: "COMMUNITY", to: "/community" },
-  { label: "VIDEO", to: "/video" },
-  { label: "MORE", to: "/more" }
+  { label: "홈", to: "/home" },
+  { label: "훈련", to: "/training" },
+  { label: "팀", to: "/home/team" },
+  { label: "커리어", to: "/player/me/career" },
+  { label: "영상", to: "/video" },
 ] as const;
 
 export function resolveRouteAccess(input: { path: string; role: "PLAYER" | "MANAGER"; verifiedGrants: Array<{ role: ManagerRole }> }): { allowed: boolean; reason?: string } {

@@ -1,8 +1,10 @@
-import { Link, MemoryRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { LazyMotion, useReducedMotion } from "motion/react";
+import { span as MotionSpan } from "motion/react-m";
+import { BrowserRouter, Link, MemoryRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { RouteStatePanel } from "../components/RouteStatePanel";
 import { DigitalProjectionPage, FullStadiumJourneyPage, MyPositionPage, MyTeamFormationPage, PitchEntryPage, SpatialHomePage, StadiumApproachPage, StadiumExteriorPage } from "../features/stadium/PlayerStadiumPages";
 import { StadiumAudioDock } from "../features/stadium/StadiumAudioDock";
-import { StadiumBuilderPage } from "../features/stadium-builder/StadiumBuilderPage";
 import { CommunityPage, VideoPage } from "../features/product/RemainingProductPages";
 import { Pack02CareerPassportPage, Pack02CareerSeasonPage, Pack02OpportunityPage, Pack02PortfolioPage, Pack02TeamCommunicationPage } from "../features/pack02/Pack02Pages";
 import { AgentWorkspacePage, AnalystWorkspacePage, ClubDirectorWorkspacePage, CoachWorkspacePage, ManagerHomePage, RefereeWorkspacePage, TeamManagerWorkspacePage } from "../features/pack03/ManagerWorkspacePages";
@@ -11,12 +13,35 @@ import { CommunityComposerPage, CommunityDetailPage } from "../features/communit
 import { VideoDetailPage } from "../features/product/ProductDetailPages";
 import { playerNavigation } from "../routes/routePolicy";
 import { Pack01MatchCenterPage, Pack01MatchPage, Pack01PlaybackPage, Pack01TacticPage, Pack01TrainingDetailPage, Pack01TrainingPage } from "../features/pack01/Pack01Pages";
+import { loadStadiumMotionFeatures } from "../features/stadium/stadiumMotionLoader";
+
+const StadiumBuilderPage = lazy(() => import("../features/stadium-builder/StadiumBuilderPage")
+  .then((module) => ({ default: module.StadiumBuilderPage })));
+
+function StadiumBuilderRoute() {
+  return <Suspense fallback={<main className="shell-main" role="status" aria-label="스타디움 설계 도구 준비"><p>스타디움 설계 도구를 준비하고 있습니다.</p></main>}>
+    <StadiumBuilderPage />
+  </Suspense>;
+}
 
 function BottomNavigation() {
   const location = useLocation();
-  return <nav className="bottom-navigation" aria-label="플레이어 기본 탐색">
-    {playerNavigation.map((item) => <Link key={item.to} className={location.pathname === item.to ? "nav-active" : ""} to={item.to}>{item.label}</Link>)}
-  </nav>;
+  const reducedMotion = Boolean(useReducedMotion());
+  return <LazyMotion features={loadStadiumMotionFeatures} strict><nav className="bottom-navigation" aria-label="플레이어 기본 탐색">
+    {playerNavigation.map((item) => {
+      const active = location.pathname === item.to;
+      return <Link key={item.to} className={active ? "nav-active" : ""} to={item.to}>
+        {item.label}
+        {active && <MotionSpan
+          className="stadium-nav-indicator"
+          initial={reducedMotion ? false : { opacity: 0, scaleX: 0.35 }}
+          animate={{ opacity: 1, scaleX: 1 }}
+          transition={reducedMotion ? { duration: 0 } : { duration: 0.26, ease: [0.22, 0.72, 0, 1] }}
+          aria-hidden="true"
+        />}
+      </Link>;
+    })}
+  </nav></LazyMotion>;
 }
 
 function RoleSelect() {
@@ -37,6 +62,8 @@ function GenericShell({ title }: { title: string }) { return <main className="sh
 function AppRoutes() {
   const location = useLocation();
   const isPublic = location.pathname === "/login" || location.pathname === "/signup/role" || location.pathname.startsWith("/invite/guardian/");
+  const isStadiumBuilder = location.pathname === "/home/builder";
+  const isStadiumHome = location.pathname === "/home";
   const isStadiumExperience = !isPublic && (location.pathname === "/home" || location.pathname.startsWith("/home/"));
   return <div className="app-shell"><Routes>
     <Route path="/" element={<Navigate replace to="/home" />} />
@@ -48,7 +75,7 @@ function AppRoutes() {
     <Route path="/home/position" element={<MyPositionPage />} />
     <Route path="/home/formation" element={<MyTeamFormationPage />} />
     <Route path="/home/team" element={<SpatialHomePage />} />
-    <Route path="/home/builder" element={<StadiumBuilderPage />} />
+    <Route path="/home/builder" element={<StadiumBuilderRoute />} />
     <Route path="/stadium" element={<Navigate replace to="/home" />} />
     <Route path="/signup/role" element={<RoleSelect />} />
     <Route path="/login" element={<GenericShell title="로그인" />} />
@@ -89,9 +116,10 @@ function AppRoutes() {
     <Route path="/player/me/career" element={<Pack02CareerPassportPage />} />
     <Route path="/player/me/career/season/:seasonId" element={<Pack02CareerSeasonPage />} />
     <Route path="*" element={<GenericShell title="찾을 수 없는 화면" />} />
-  </Routes>{isStadiumExperience && <StadiumAudioDock />}{!isPublic && <BottomNavigation />}</div>;
+  </Routes>{isStadiumExperience && !isStadiumBuilder && !isStadiumHome && <StadiumAudioDock />}{!isPublic && !isStadiumBuilder && <BottomNavigation />}</div>;
 }
 
-export function AppShell({ initialPath = "/home" }: { initialPath?: string }) {
-  return <MemoryRouter initialEntries={[initialPath]}><AppRoutes /></MemoryRouter>;
+export function AppShell({ initialPath }: { initialPath?: string }) {
+  if (initialPath) return <MemoryRouter initialEntries={[initialPath]}><AppRoutes /></MemoryRouter>;
+  return <BrowserRouter basename="/v2"><AppRoutes /></BrowserRouter>;
 }

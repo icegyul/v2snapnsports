@@ -18,6 +18,7 @@ import "../features/stadium/stadiumV12Acceptance.css";
 import "../features/stadium/stadiumV143Acceptance.css";
 import "../features/stadium/stadiumV145ViewportFill.css";
 import "../features/stadium/stadiumV149Cinematic.css";
+import "../features/stadium/stadiumServiceVisual.css";
 export { createStadiumWebglRenderer } from "./stadiumWebglV151";
 export type { StadiumWebglRenderer } from "./stadiumWebglV151";
 export type { StadiumScoreboardState, StadiumTeamMarker } from "./stadiumWebglV14";

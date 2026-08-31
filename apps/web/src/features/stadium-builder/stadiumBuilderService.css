@@ -1,0 +1,320 @@
+/* Final service workspace: stadium-first preview with one open tool rail. */
+@media (min-width: 901px) {
+  body:has(.stadium-builder-page) {
+    overflow: hidden;
+    background: #071018;
+  }
+
+  body:has(.stadium-builder-page) .app-shell {
+    min-height: 100dvh;
+    padding: 0;
+    background: #071018;
+  }
+
+  .shell-main.stadium-builder-page {
+    width: 100% !important;
+    max-width: none !important;
+    height: 100dvh;
+    min-height: 100dvh;
+    display: grid;
+    grid-template-rows: 72px minmax(0, 1fr);
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #071018;
+  }
+
+  .stadium-builder-header {
+    position: relative;
+    z-index: 7;
+    min-height: 72px;
+    align-items: center;
+    gap: 20px;
+    padding: 0 18px 0 24px;
+    border-bottom: 1px solid rgba(210, 225, 232, .12);
+    background: rgba(5, 13, 20, .97);
+  }
+
+  .stadium-builder-title-block {
+    max-width: none;
+  }
+
+  .stadium-builder-kicker,
+  .stadium-builder-title-block > p:last-child {
+    display: none;
+  }
+
+  .stadium-builder-title-block h1 {
+    font-size: 30px;
+    font-weight: 690;
+    line-height: 1;
+    letter-spacing: -.045em;
+  }
+
+  .stadium-builder-header-actions {
+    gap: 7px;
+  }
+
+  .stadium-builder-header-actions .stadium-builder-back,
+  .stadium-builder-header-actions button {
+    min-width: 70px;
+    min-height: 40px;
+    padding: 0 13px;
+    border-color: rgba(210, 225, 232, .18);
+    border-radius: 2px;
+    background: transparent;
+    box-shadow: none;
+    color: rgba(232, 239, 242, .78);
+    font-size: 12px;
+  }
+
+  .stadium-builder-header-actions .stadium-builder-save {
+    gap: 9px;
+    padding: 0 5px 0 15px;
+    border-color: #12dff3;
+    background: #e4fbff;
+    color: #071018;
+    box-shadow: none;
+  }
+
+  .stadium-builder-save span {
+    width: 30px;
+    height: 30px;
+    border-radius: 1px;
+  }
+
+  .stadium-builder-workspace {
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 72fr) minmax(360px, 28fr);
+    gap: 0;
+    align-items: stretch;
+    overflow: hidden;
+  }
+
+  .stadium-builder-preview-panel {
+    position: relative;
+    top: auto;
+    min-height: 0;
+    display: block;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: #061019;
+    box-shadow: none;
+  }
+
+  .stadium-builder-preview-panel::after {
+    z-index: 2;
+    border-radius: 0;
+    background:
+      linear-gradient(180deg, rgba(3, 9, 15, .10), transparent 56%, rgba(3, 9, 15, .30)),
+      radial-gradient(ellipse at 50% 50%, transparent 52%, rgba(2, 7, 12, .18) 100%);
+  }
+
+  .stadium-builder-preview-stage {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border-radius: 0;
+    background: #061019;
+    box-shadow: none;
+  }
+
+  .stadium-builder-preview-panel[data-preview-state="FALLBACK"] .stadium-builder-preview-canvas {
+    display: none;
+  }
+
+  .stadium-builder-preview-fallback {
+    inset: 0;
+    display: block;
+    padding: 0;
+    background: url("../../assets/stadium-builder-service-poster.jpg") center center / cover no-repeat;
+  }
+
+  .stadium-builder-preview-poster {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    background: url("../../assets/stadium-builder-service-poster.jpg") center center / cover no-repeat;
+    opacity: 1;
+    transition: opacity 420ms cubic-bezier(.22, .72, 0, 1);
+    pointer-events: none;
+  }
+
+  .stadium-builder-preview-poster.is-hidden {
+    opacity: 0;
+  }
+
+  .stadium-builder-preview-enter {
+    position: absolute;
+    z-index: 4;
+    right: 24px;
+    bottom: 24px;
+    min-width: 170px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 0 0 0 16px;
+    border: 1px solid rgba(210, 225, 232, .34);
+    border-right: 3px solid #12dff3;
+    border-radius: 2px;
+    background: rgba(4, 13, 20, .76);
+    color: #f2f5f6;
+    backdrop-filter: blur(14px);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  .stadium-builder-preview-enter span {
+    width: 46px;
+    min-height: 46px;
+    display: grid;
+    place-items: center;
+    border-left: 1px solid rgba(210, 225, 232, .18);
+    color: #dcfbff;
+    font-size: 17px;
+  }
+
+  .stadium-builder-preview-head,
+  .stadium-builder-preview-hint,
+  .stadium-builder-preview-meta {
+    display: none;
+  }
+
+  .stadium-builder-editor {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, auto) auto;
+    align-content: start;
+    gap: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 12px 18px 18px;
+    border-left: 1px solid rgba(210, 225, 232, .16);
+    background: #0a1219;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(210, 225, 232, .22) transparent;
+  }
+
+  .stadium-builder-steps {
+    display: grid;
+    gap: 0;
+    padding: 0 0 10px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .stadium-builder-steps button {
+    position: relative;
+    min-height: 39px;
+    grid-template-columns: 28px minmax(0, 1fr);
+    grid-template-rows: 1fr;
+    column-gap: 9px;
+    padding: 0 8px;
+    border: 0;
+    border-bottom: 1px solid rgba(210, 225, 232, .07);
+    border-radius: 0;
+    color: rgba(186, 200, 206, .52);
+  }
+
+  .stadium-builder-steps button > span {
+    grid-row: 1;
+    width: 22px;
+    height: 22px;
+    border: 0;
+    border-radius: 0;
+    color: rgba(186, 200, 206, .42);
+    font-size: 8px;
+  }
+
+  .stadium-builder-steps button strong {
+    align-self: center;
+    font-size: 12px;
+    font-weight: 590;
+  }
+
+  .stadium-builder-steps button small {
+    display: none;
+  }
+
+  .stadium-builder-steps button.is-active {
+    background: rgba(18, 223, 243, .045);
+    box-shadow: inset 3px 0 #12dff3;
+  }
+
+  .stadium-builder-steps button.is-active > span {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    color: #7deef9;
+  }
+
+  .stadium-builder-step-panel,
+  .stadium-builder-validator {
+    gap: 14px;
+    padding: 18px 0 14px;
+    border: 0;
+    border-top: 1px solid rgba(210, 225, 232, .14);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .stadium-builder-step-title {
+    padding-bottom: 12px;
+  }
+
+  .stadium-builder-step-title h2 {
+    font-size: 24px;
+    font-weight: 670;
+  }
+
+  .stadium-builder-control-grid {
+    gap: 12px;
+  }
+
+  .stadium-builder-control-grid select,
+  .stadium-builder-control-grid input[type="color"],
+  .stadium-builder-segmented button,
+  .stadium-builder-step-nav button {
+    border-radius: 2px;
+    background-color: #0d1820;
+  }
+
+  .stadium-builder-family-description {
+    padding: 11px 12px;
+  }
+
+  .stadium-builder-step-nav button {
+    min-width: 92px;
+    min-height: 40px;
+  }
+
+  .stadium-builder-validator.is-valid {
+    display: none;
+  }
+
+  .stadium-builder-validator.has-errors {
+    margin-top: 2px;
+    padding: 12px 0;
+    border-color: rgba(241, 108, 102, .40);
+  }
+
+  .stadium-builder-save-message {
+    min-height: 16px;
+    margin: 0;
+    padding: 10px 0 0;
+    border-top: 1px solid rgba(210, 225, 232, .10);
+    color: rgba(206, 219, 224, .56);
+  }
+}

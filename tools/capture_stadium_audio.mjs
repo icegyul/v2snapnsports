@@ -94,11 +94,11 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
     }, muted.cueCount, { timeout: 15000 });
     const unmuted = await audioState(page);
 
-    await page.locator(".bottom-navigation a[href='/training']").click();
+    await page.locator(".bottom-navigation a[href='/v2/training']").click();
     await page.waitForFunction(() => !document.querySelector(".stadium-audio-dock"), { timeout: 10000 });
     const dockAbsentOutsideStadium = await page.locator(".stadium-audio-dock").count() === 0;
 
-    await page.locator(".bottom-navigation a[href='/home']").click();
+    await page.locator(".bottom-navigation a[href='/v2/home']").click();
     await page.waitForFunction(() => {
       const dock = document.querySelector(".stadium-audio-dock");
       if (!dock || dock.getAttribute("data-audio-state") !== "MUTED") return false;

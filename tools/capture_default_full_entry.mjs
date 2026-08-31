@@ -108,7 +108,7 @@ try {
 
 for (const result of results) {
   const valid = result.homeUrl.endsWith("/v2/home")
-    && result.footerHref === "/home/full"
+    && result.footerHref === "/v2/home/full"
     && result.fullUrl.endsWith("/v2/home/full")
     && result.initialStage === "APPROACH"
     && result.canvasCount === 1

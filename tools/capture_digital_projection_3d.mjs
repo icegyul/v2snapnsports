@@ -136,7 +136,7 @@ for (const result of results) {
     && result.end.detail.some((value) => value.includes("DEMO U17 A팀") && value.includes("4-3-3") && value.includes("연결 동료 3명"))
     && result.end.detail.includes("데모 팀 상태 · 일정 확인 필요")
     && result.end.hud === "프로젝션 준비 완료"
-    && result.nextHref === "/home/position"
+    && result.nextHref === "/v2/home/position"
     && result.nextCtaClear
     && !result.end.bodyText.includes("Fixture Player")
     && result.frameChangedStartToMid

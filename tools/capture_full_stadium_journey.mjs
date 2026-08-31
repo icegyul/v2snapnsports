@@ -12,11 +12,11 @@ await fs.mkdir(outputDir, { recursive: true });
 const expectedStages = ["APPROACH", "PITCH", "PROJECTION", "POSITION", "FORMATION", "SPATIAL_HOME"];
 const screenshotStages = new Set(["APPROACH", "PROJECTION", "POSITION", "FORMATION", "SPATIAL_HOME"]);
 const expectedAnchors = [
-  ["PLAYER", "나", "/player/career"],
-  ["TRAINING", "훈련", "/training"],
-  ["TEAM", "팀", "/home/formation"],
-  ["CAREER", "커리어", "/player/career"],
-  ["VIDEO", "영상", "/video"],
+  ["PLAYER", "나", "/v2/player/career"],
+  ["TRAINING", "훈련", "/v2/training"],
+  ["TEAM", "팀", "/v2/home/formation"],
+  ["CAREER", "커리어", "/v2/player/career"],
+  ["VIDEO", "영상", "/v2/video"],
 ];
 
 const browser = await chromium.launch({

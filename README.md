@@ -1,5 +1,15 @@
 # SnapN Sports V2 Foundation
 
+## Claude Code handoff
+
+2026-08-31 Stadium continuation은 다음 문서부터 읽는다.
+
+- [`README_FIRST_CLAUDE_CODE_KO.md`](README_FIRST_CLAUDE_CODE_KO.md)
+- [`HANDOFF/UPDATE_REASON_AND_FAILURE_RECORD_KO.md`](HANDOFF/UPDATE_REASON_AND_FAILURE_RECORD_KO.md)
+- [`HANDOFF/CLAUDE_CODE_DEVELOPMENT_DIRECTIVE_KO.md`](HANDOFF/CLAUDE_CODE_DEVELOPMENT_DIRECTIVE_KO.md)
+- [`HANDOFF/CLAUDE_CODE_HANDOFF_KO.md`](HANDOFF/CLAUDE_CODE_HANDOFF_KO.md)
+- [`HANDOFF/API_AND_PASSWORD_LOCATION_GUIDE_KO.md`](HANDOFF/API_AND_PASSWORD_LOCATION_GUIDE_KO.md)
+
 This directory is the new V2 project boundary. The legacy V1 checkout remains read-only and is used only as an evidence source until an approved cutover.
 
 ## Current status
