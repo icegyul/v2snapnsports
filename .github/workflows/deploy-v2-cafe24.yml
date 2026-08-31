@@ -94,10 +94,13 @@ jobs:
             set net:timeout 20;
             set net:reconnect-interval-base 3;
             set mirror:parallel-transfer-count 1;
+            set cmd:fail-exit yes;
             debug 3;
             open $FTP_SERVER;
-            mkdir -p -f \"$target\";
-            mirror -R --verbose=3 dist \"$target\";
+            mkdir -p \"$target\";
+            cd \"$target\";
+            lcd dist;
+            mirror -R --verbose=3 --parallel=1 . .;
             bye
           " > "$RUNNER_TEMP/lftp.log" 2>&1
           status=$?
