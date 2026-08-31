@@ -1,5 +1,13 @@
 import * as THREE from "three";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { Reflector } from "three/examples/jsm/objects/Reflector.js";
+import stadiumServiceSkyUrl from "../assets/stadium-service-sky.png";
 import type { CoreVisualMode } from "../api/coreProductContracts";
+import { resolveSeatPatternColor, resolveStadiumVisualProfile, type StadiumVisualProfile } from "./stadiumVisualProfile";
+import { resolveServiceCamera } from "./stadiumServicePresentation";
+import { resolveServiceArchitecture } from "./stadiumServiceArchitecture";
 
 export interface StadiumTeamMarker {
   readonly x: number;
@@ -18,7 +26,7 @@ export interface StadiumScoreboardState {
 export interface StadiumWebglRenderer {
   readonly triangleCount: number;
   resize(width: number, height: number, dpr: number): void;
-  render(orbit: number, zoom: number): void;
+  render(orbit: number, zoom: number, rise?: number): void;
   renderApproach?(progress: number): void;
   renderPitchEntry?(progress: number): void;
   renderPlayerPosition?(progress: number, x: number, z: number): void;
@@ -37,6 +45,10 @@ export interface StadiumRecipe {
   seatColor: number;
   accentColor: number;
   columnStyle: StadiumColumnStyle;
+  presentationProfile?: "SERVICE_HOME" | "SERVICE_BUILDER";
+  bowlProfile?: "COMPACT" | "BALANCED" | "STEEP";
+  roofProfile?: "OPEN_RING" | "HALF_CANOPY" | "FULL_CANOPY";
+  standProfile?: "SINGLE_BOWL" | "DOUBLE_DECK" | "TRIPLE_DECK";
   seatPattern?: "MONO" | "DUO" | "GRADIENT";
   facadeProfile?: "SOLID_RIB" | "GLASS_BAND" | "LIGHT_FRAME";
   lightingProfile?: "DAYLIGHT" | "BALANCED" | "EVENT";
@@ -219,6 +231,54 @@ function makeEnvironmentTexture(textures: Set<THREE.Texture>): THREE.Texture {
       texture.needsUpdate = true;
       return texture;
     }
+
+function makeBuilderSkyTexture(
+  textures: Set<THREE.Texture>,
+  profile: StadiumVisualProfile,
+  environment: NonNullable<StadiumRecipe["environmentProfile"]>,
+): THREE.Texture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1024;
+  canvas.height = 1024;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("stadium builder sky canvas unavailable");
+
+  const top = new THREE.Color(profile.skyTop).getStyle();
+  const horizon = new THREE.Color(profile.skyHorizon).getStyle();
+  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, top);
+  gradient.addColorStop(0.56, top);
+  gradient.addColorStop(0.84, horizon);
+  gradient.addColorStop(1, new THREE.Color(profile.groundColor).getStyle());
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const glowX = environment === "NIGHT_EVENT" ? 720 : environment === "COASTAL" ? 260 : 690;
+  const glowY = environment === "NIGHT_EVENT" ? 650 : 570;
+  const glow = ctx.createRadialGradient(glowX, glowY, 8, glowX, glowY, environment === "NIGHT_EVENT" ? 270 : 190);
+  glow.addColorStop(0, environment === "NIGHT_EVENT" ? "rgba(69,199,255,.33)" : "rgba(255,232,190,.62)");
+  glow.addColorStop(0.28, environment === "NIGHT_EVENT" ? "rgba(21,128,194,.16)" : "rgba(255,205,150,.20)");
+  glow.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (environment === "NIGHT_EVENT") {
+    ctx.fillStyle = "rgba(215,239,255,.72)";
+    for (let index = 0; index < 72; index += 1) {
+      const x = hash(index, 41) * canvas.width;
+      const y = hash(index, 87) * 560;
+      const radius = 0.6 + hash(index, 12) * 1.4;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, TAU);
+      ctx.fill();
+    }
+  }
+
+  const texture = addDisposable(textures, new THREE.CanvasTexture(canvas));
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
 
     function makeScoreboardTexture(textures: Set<THREE.Texture>): THREE.Texture {
   const canvas = document.createElement("canvas");
@@ -434,7 +494,10 @@ function addEllipticRing(
   const geometry = addDisposable(geometries, new THREE.TorusGeometry(radiusX, tube, 6, 144));
   const ring = new THREE.Mesh(geometry, material);
   ring.rotation.x = Math.PI / 2;
-  ring.scale.z = radiusZ / radiusX;
+  // Torus lies in local XY; after the x-rotation local Y maps to world Z, so
+  // the ellipse squash must be scale.y (scale.z only fattened the tube and
+  // left the ring circular, floating in front of the elliptic facade).
+  ring.scale.y = radiusZ / radiusX;
   ring.position.y = y;
   group.add(ring);
   return ring;
@@ -611,8 +674,7 @@ function addSeatBacks(
   );
   const seats = new THREE.InstancedMesh(geometry, material, count);
   const dummy = new THREE.Object3D();
-  const baseColor = new THREE.Color(recipe.seatColor);
-  const accentColor = new THREE.Color(recipe.accentColor).multiplyScalar(0.40);
+  const seatColor = new THREE.Color(recipe.seatColor);
   const rowDepthX = (spec.outerX - spec.innerX) / spec.rows;
   const rowDepthZ = (spec.outerZ - spec.innerZ) / spec.rows;
   const rise = (spec.y1 - spec.y0) / spec.rows;
@@ -628,16 +690,8 @@ function addSeatBacks(
       dummy.scale.set(0.92, 0.92, 0.92);
       dummy.updateMatrix();
       seats.setMatrixAt(index, dummy.matrix);
-      const section = Math.floor(slot / 24);
-      const seatPattern = recipe.seatPattern ?? "DUO";
-      const color = seatPattern === "MONO"
-        ? baseColor
-        : seatPattern === "GRADIENT"
-          ? baseColor.clone().lerp(accentColor, 0.12 + 0.72 * ((slot % spec.peoplePerRow) / Math.max(1, spec.peoplePerRow - 1)))
-          : section % 13 === 0
-            ? accentColor
-            : baseColor;
-      seats.setColorAt(index, color);
+      seatColor.setHex(resolveSeatPatternColor(recipe, slot, spec.peoplePerRow));
+      seats.setColorAt(index, seatColor);
       index += 1;
     }
   }
@@ -743,6 +797,7 @@ function addRoof(
   geometries: Set<THREE.BufferGeometry>,
   materials: Set<THREE.Material>,
   recipe: StadiumRecipe,
+  profile: StadiumVisualProfile,
   roofMaterial: THREE.Material,
   steelMaterial: THREE.Material,
 ): void {
@@ -751,7 +806,7 @@ function addRoof(
   const innerX = 96.5 + (1 - recipe.roofCoverage) * 10;
   const innerZ = 68.5 + (1 - recipe.roofCoverage) * 7;
   const roof = new THREE.Mesh(
-    ellipseSurfaceGeometry(geometries, innerX, innerZ, outerX, outerZ, 37.9, 43.0, 192),
+    ellipseSurfaceGeometry(geometries, innerX, innerZ, outerX, outerZ, 37.9 + profile.roofLift, 43.0 + profile.roofLift, 192),
     roofMaterial,
   );
   roof.castShadow = true;
@@ -760,8 +815,8 @@ function addRoof(
 
   for (let i = 0; i < 40; i += 1) {
     const angle = (i / 40) * TAU;
-    const start = new THREE.Vector3(Math.cos(angle) * 116, 41.9, Math.sin(angle) * 84.0);
-    const end = new THREE.Vector3(Math.cos(angle) * innerX, 37.7, Math.sin(angle) * innerZ);
+    const start = new THREE.Vector3(Math.cos(angle) * 116, 41.9 + profile.roofLift, Math.sin(angle) * 84.0);
+    const end = new THREE.Vector3(Math.cos(angle) * innerX, 37.7 + profile.roofLift, Math.sin(angle) * innerZ);
     beamBetween(group, geometries, steelMaterial, start, end, 0.18, 6);
   }
 
@@ -874,11 +929,11 @@ function addLightGlows(
     group.add(sprite);
   }
 }
-function addLighting(scene: THREE.Scene, highQuality: boolean): void {
-  scene.add(new THREE.HemisphereLight(0xc3d2df, 0x101611, 0.84));
+function addLighting(scene: THREE.Scene, highQuality: boolean, profile: StadiumVisualProfile): void {
+  scene.add(new THREE.HemisphereLight(0xc3d2df, 0x101611, profile.hemisphereIntensity));
   scene.add(new THREE.AmbientLight(0xdce6ec, 0.15));
 
-  const key = new THREE.DirectionalLight(0xe7eff5, 1.38);
+  const key = new THREE.DirectionalLight(profile.keyColor, profile.keyIntensity);
   key.position.set(-48, 72, 24);
   key.castShadow = highQuality;
   if (highQuality) {
@@ -893,7 +948,7 @@ function addLighting(scene: THREE.Scene, highQuality: boolean): void {
   }
   scene.add(key);
 
-  const fill = new THREE.DirectionalLight(0xffdfb0, 0.38);
+  const fill = new THREE.DirectionalLight(0xffdfb0, profile.fillIntensity);
   fill.position.set(54, 38, -42);
   scene.add(fill);
 
@@ -910,6 +965,20 @@ function addLighting(scene: THREE.Scene, highQuality: boolean): void {
     light.position.set(x, 42, z);
     light.target = target;
     scene.add(light);
+  }
+
+  if (profile.builderVisuals) {
+    for (let index = 0; index < 8; index += 1) {
+      const angle = (index / 8) * TAU;
+      const practical = new THREE.PointLight(
+        profile.practicalColor,
+        profile.exposure >= 1.3 ? 720 : 420,
+        105,
+        1.7,
+      );
+      practical.position.set(Math.cos(angle) * 103, 22, Math.sin(angle) * 74);
+      scene.add(practical);
+    }
   }
 }
 
@@ -977,14 +1046,153 @@ function addStadiumOpenings(
   }
 }
 
+function addBuilderEnvironment(
+  group: THREE.Group,
+  geometries: Set<THREE.BufferGeometry>,
+  materials: Set<THREE.Material>,
+  recipe: StadiumRecipe,
+  profile: StadiumVisualProfile,
+): void {
+  if (!profile.builderVisuals) return;
+  const environment = recipe.environmentProfile ?? "CIVIC";
+  const groundMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({ color: profile.groundColor, roughness: 0.96, metalness: 0.02 }),
+  );
+  const groundGeometry = addDisposable(geometries, new THREE.CircleGeometry(265, 128));
+  const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -0.25;
+  ground.receiveShadow = true;
+  group.add(ground);
+
+  if (recipe.presentationProfile === "SERVICE_BUILDER") return;
+
+  if (environment === "PARK") {
+    const trunkGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.45, 0.62, 5.8, 7));
+    const crownGeometry = addDisposable(geometries, new THREE.DodecahedronGeometry(4.8, 0));
+    const trunkMaterial = addDisposable(materials, new THREE.MeshStandardMaterial({ color: 0x283329, roughness: 0.94 }));
+    const crownMaterial = addDisposable(materials, new THREE.MeshStandardMaterial({ color: 0x244936, roughness: 0.88 }));
+    const trunks = new THREE.InstancedMesh(trunkGeometry, trunkMaterial, 46);
+    const crowns = new THREE.InstancedMesh(crownGeometry, crownMaterial, 46);
+    const dummy = new THREE.Object3D();
+    for (let index = 0; index < 46; index += 1) {
+      const angle = (index / 46) * TAU + hash(index, 5) * 0.06;
+      const radius = 146 + hash(index, 11) * 34;
+      const scale = 0.76 + hash(index, 19) * 0.52;
+      dummy.position.set(Math.cos(angle) * radius, 2.65 * scale, Math.sin(angle) * radius * 0.72);
+      dummy.rotation.set(0, 0, 0);
+      dummy.scale.setScalar(scale);
+      dummy.updateMatrix();
+      trunks.setMatrixAt(index, dummy.matrix);
+      dummy.position.y = 8.2 * scale;
+      dummy.rotation.set(hash(index, 3) * 0.2, hash(index, 7) * Math.PI, hash(index, 17) * 0.12);
+      dummy.scale.set(scale * 1.05, scale * 1.22, scale);
+      dummy.updateMatrix();
+      crowns.setMatrixAt(index, dummy.matrix);
+    }
+    trunks.instanceMatrix.needsUpdate = true;
+    crowns.instanceMatrix.needsUpdate = true;
+    group.add(trunks, crowns);
+    return;
+  }
+
+  if (environment === "COASTAL") {
+    const waterMaterial = addDisposable(
+      materials,
+      new THREE.MeshPhysicalMaterial({
+        color: 0x163d50,
+        roughness: 0.24,
+        metalness: 0.12,
+        clearcoat: 0.72,
+        clearcoatRoughness: 0.18,
+        transparent: true,
+        opacity: 0.82,
+      }),
+    );
+    const waterGeometry = addDisposable(geometries, new THREE.RingGeometry(176, 300, 128));
+    const water = new THREE.Mesh(waterGeometry, waterMaterial);
+    water.rotation.x = -Math.PI / 2;
+    water.position.y = -0.19;
+    group.add(water);
+    const horizonMaterial = addDisposable(
+      materials,
+      new THREE.MeshBasicMaterial({ color: 0x89d8ef, transparent: true, opacity: 0.22 }),
+    );
+    for (const z of [-144, -158, -172]) {
+      const lineGeometry = addDisposable(geometries, new THREE.PlaneGeometry(340, 0.16));
+      const line = new THREE.Mesh(lineGeometry, horizonMaterial);
+      line.rotation.x = -Math.PI / 2;
+      line.position.set(0, -0.05, z);
+      group.add(line);
+    }
+    return;
+  }
+
+  const buildingCount = environment === "URBAN" ? 30 : environment === "NIGHT_EVENT" ? 24 : 20;
+  const buildingGeometry = addDisposable(geometries, new THREE.BoxGeometry(7.5, 1, 7.5));
+  const buildingMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      color: environment === "NIGHT_EVENT" ? 0x0c1824 : environment === "URBAN" ? 0x273139 : 0x343e43,
+      emissive: environment === "NIGHT_EVENT" ? profile.practicalColor : 0x000000,
+      emissiveIntensity: environment === "NIGHT_EVENT" ? 0.14 : 0,
+      roughness: 0.72,
+      metalness: 0.28,
+    }),
+  );
+  const buildings = new THREE.InstancedMesh(buildingGeometry, buildingMaterial, buildingCount);
+  const dummy = new THREE.Object3D();
+  const viewAngle = 34 * Math.PI / 180;
+  const backAngle = viewAngle + Math.PI;
+  const skylineSpan = 2.35;
+  for (let index = 0; index < buildingCount; index += 1) {
+    const progress = index / (buildingCount - 1);
+    const angle = backAngle - skylineSpan / 2 + progress * skylineSpan + (hash(index, 31) - 0.5) * 0.055;
+    const radius = 182 + hash(index, 13) * 46;
+    const height = 11 + hash(index, 73) * (environment === "URBAN" ? 36 : 22);
+    dummy.position.set(Math.cos(angle) * radius, height / 2 - 0.1, Math.sin(angle) * radius * 0.72);
+    dummy.rotation.y = -angle;
+    dummy.scale.set(0.78 + hash(index, 9) * 0.82, height, 0.72 + hash(index, 47) * 0.66);
+    dummy.updateMatrix();
+    buildings.setMatrixAt(index, dummy.matrix);
+  }
+  buildings.instanceMatrix.needsUpdate = true;
+  group.add(buildings);
+
+  if (environment === "NIGHT_EVENT") {
+    const beamGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.6, 2.8, 94, 12, 1, true));
+    const beamMaterial = addDisposable(
+      materials,
+      new THREE.MeshBasicMaterial({
+        color: profile.practicalColor,
+        transparent: true,
+        opacity: 0.055,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      }),
+    );
+    for (let index = 0; index < 8; index += 1) {
+      const angle = (index / 8) * TAU;
+      const beam = new THREE.Mesh(beamGeometry, beamMaterial);
+      beam.position.set(Math.cos(angle) * 101, 62, Math.sin(angle) * 72);
+      beam.rotation.z = (index % 2 === 0 ? 1 : -1) * 0.08;
+      group.add(beam);
+    }
+  }
+}
+
 function addExteriorFacade(
   group: THREE.Group,
   geometries: Set<THREE.BufferGeometry>,
   materials: Set<THREE.Material>,
   recipe: StadiumRecipe,
+  profile: StadiumVisualProfile,
 ): void {
   const environment = recipe.environmentProfile ?? "CIVIC";
   const facade = recipe.facadeProfile ?? "GLASS_BAND";
+  const serviceBuilder = recipe.presentationProfile === "SERVICE_BUILDER";
   const plazaColor = environment === "PARK"
     ? 0x17221b
     : environment === "COASTAL"
@@ -994,15 +1202,22 @@ function addExteriorFacade(
         : environment === "URBAN"
           ? 0x15191e
           : 0x151b20;
-  const baseColor = facade === "SOLID_RIB" ? 0x30363c : facade === "LIGHT_FRAME" ? 0x414a51 : 0x343b42;
-  const upperColor = facade === "SOLID_RIB" ? 0x313941 : facade === "LIGHT_FRAME" ? 0x596873 : 0x414d58;
+  const baseColor = serviceBuilder ? 0x59656d : facade === "SOLID_RIB" ? 0x3c444b : facade === "LIGHT_FRAME" ? 0x414a51 : 0x343b42;
+  const upperColor = serviceBuilder ? 0x53616a : facade === "SOLID_RIB" ? 0x46515a : facade === "LIGHT_FRAME" ? 0x596873 : 0x414d58;
   const plazaMaterial = addDisposable(
     materials,
     new THREE.MeshStandardMaterial({ color: plazaColor, roughness: 0.98, metalness: 0.02 }),
   );
   const baseMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: baseColor, roughness: facade === "LIGHT_FRAME" ? 0.66 : 0.84, metalness: facade === "LIGHT_FRAME" ? 0.34 : 0.12, side: THREE.DoubleSide }),
+    new THREE.MeshStandardMaterial({
+      color: baseColor,
+      emissive: recipe.lightingProfile === "EVENT" ? recipe.accentColor : 0x000000,
+      emissiveIntensity: recipe.lightingProfile === "EVENT" ? 0.055 : 0,
+      roughness: facade === "LIGHT_FRAME" ? 0.66 : 0.84,
+      metalness: facade === "LIGHT_FRAME" ? 0.34 : 0.12,
+      side: THREE.DoubleSide,
+    }),
   );
   const upperMaterial = addDisposable(
     materials,
@@ -1018,24 +1233,24 @@ function addExteriorFacade(
   const glassMaterial = addDisposable(
     materials,
     new THREE.MeshPhysicalMaterial({
-      color: facade === "LIGHT_FRAME" ? 0x24485c : facade === "SOLID_RIB" ? 0x162631 : 0x17303e,
-      emissive: facade === "LIGHT_FRAME" ? recipe.accentColor : 0x07131a,
-      emissiveIntensity: facade === "LIGHT_FRAME" ? 0.18 : 0.44,
-      roughness: facade === "SOLID_RIB" ? 0.30 : 0.18,
-      metalness: facade === "LIGHT_FRAME" ? 0.28 : 0.18,
-      transparent: true,
-      opacity: facade === "SOLID_RIB" ? 0.56 : 0.78,
-      clearcoat: 0.32,
-      clearcoatRoughness: 0.22,
+      color: serviceBuilder ? 0x4f6975 : facade === "LIGHT_FRAME" ? 0x24485c : facade === "SOLID_RIB" ? 0x343e46 : 0x17303e,
+      emissive: serviceBuilder ? 0xf1d6a7 : facade === "LIGHT_FRAME" ? recipe.accentColor : 0x07131a,
+      emissiveIntensity: serviceBuilder ? 0.24 : facade === "LIGHT_FRAME" ? 0.22 : facade === "SOLID_RIB" ? 0.02 : 0.44,
+      roughness: serviceBuilder ? 0.26 : facade === "SOLID_RIB" ? 0.70 : 0.18,
+      metalness: facade === "SOLID_RIB" ? 0.06 : facade === "LIGHT_FRAME" ? 0.28 : 0.18,
+      transparent: facade !== "SOLID_RIB",
+      opacity: serviceBuilder ? 0.68 : facade === "SOLID_RIB" ? 1 : 0.78,
+      clearcoat: facade === "SOLID_RIB" ? 0.04 : 0.32,
+      clearcoatRoughness: facade === "SOLID_RIB" ? 0.68 : 0.22,
       side: THREE.DoubleSide,
     }),
   );
   const finMaterial = addDisposable(
     materials,
     new THREE.MeshStandardMaterial({
-      color: facade === "LIGHT_FRAME" ? recipe.accentColor : facade === "SOLID_RIB" ? 0x6f7780 : 0x929da6,
-      emissive: facade === "LIGHT_FRAME" ? recipe.accentColor : 0x000000,
-      emissiveIntensity: facade === "LIGHT_FRAME" ? 0.20 : 0,
+      color: facade === "LIGHT_FRAME" ? recipe.accentColor : facade === "SOLID_RIB" ? 0xa3adb5 : 0x929da6,
+      emissive: facade === "LIGHT_FRAME" || recipe.lightingProfile === "EVENT" ? recipe.accentColor : 0x000000,
+      emissiveIntensity: facade === "LIGHT_FRAME" ? 0.32 : recipe.lightingProfile === "EVENT" ? 0.10 : 0,
       roughness: facade === "SOLID_RIB" ? 0.52 : 0.38,
       metalness: 0.70,
     }),
@@ -1043,9 +1258,9 @@ function addExteriorFacade(
   const entranceMaterial = addDisposable(
     materials,
     new THREE.MeshStandardMaterial({
-      color: 0x17212a,
-      emissive: 0x78cfff,
-      emissiveIntensity: 0.42,
+      color: serviceBuilder ? 0x756956 : 0x17212a,
+      emissive: serviceBuilder ? 0xf1d6a7 : 0x78cfff,
+      emissiveIntensity: serviceBuilder ? 0.90 : 0.42,
       roughness: 0.28,
       metalness: 0.18,
     }),
@@ -1055,18 +1270,24 @@ function addExteriorFacade(
     new THREE.MeshStandardMaterial({
       color: recipe.accentColor,
       emissive: recipe.accentColor,
-      emissiveIntensity: 1.6,
+      // SERVICE_HOME keeps the identity accent as a quiet hairline, matching
+      // the poster's "cyan only for focus and edges" art direction.
+      emissiveIntensity: recipe.lightingProfile === "EVENT"
+        ? 2.6
+        : recipe.presentationProfile === "SERVICE_HOME" ? 0.6 : 1.6,
       roughness: 0.34,
       metalness: 0.28,
     }),
   );
 
-  const plazaGeometry = addDisposable(geometries, new THREE.PlaneGeometry(310, 230));
-  const plaza = new THREE.Mesh(plazaGeometry, plazaMaterial);
-  plaza.rotation.x = -Math.PI / 2;
-  plaza.position.y = -0.18;
-  plaza.receiveShadow = true;
-  group.add(plaza);
+  if (!recipe.presentationProfile?.startsWith("SERVICE_")) {
+    const plazaGeometry = addDisposable(geometries, new THREE.PlaneGeometry(310, 230));
+    const plaza = new THREE.Mesh(plazaGeometry, plazaMaterial);
+    plaza.rotation.x = -Math.PI / 2;
+    plaza.position.y = -0.18;
+    plaza.receiveShadow = true;
+    group.add(plaza);
+  }
 
   const lowerWall = new THREE.Mesh(
     ellipseWallGeometry(geometries, 119.0, 84.4, 0.6, 10.4, 192),
@@ -1095,9 +1316,11 @@ function addExteriorFacade(
   addEllipticRing(group, geometries, finMaterial, 121.6, 86.3, 17.25, 0.14);
   addEllipticRing(group, geometries, finMaterial, 121.8, 86.5, 32.9, 0.20);
 
-  const finGeometry = addDisposable(geometries, new THREE.BoxGeometry(0.32, 15.2, 1.45));
-  for (let i = 0; i < 64; i += 1) {
-    const angle = (i / 64) * TAU;
+  const finWidth = facade === "SOLID_RIB" ? 0.82 : facade === "LIGHT_FRAME" ? 0.44 : 0.24;
+  const finDepth = facade === "SOLID_RIB" ? 3.2 : facade === "LIGHT_FRAME" ? 1.8 : 1.1;
+  const finGeometry = addDisposable(geometries, new THREE.BoxGeometry(finWidth, 15.2, finDepth));
+  for (let i = 0; i < profile.facadeRibCount; i += 1) {
+    const angle = (i / profile.facadeRibCount) * TAU;
     const fin = new THREE.Mesh(finGeometry, finMaterial);
     fin.position.set(Math.cos(angle) * 122.0, 24.9, Math.sin(angle) * 86.7);
     fin.rotation.y = -angle + Math.PI / 2;
@@ -1115,14 +1338,467 @@ function addExteriorFacade(
   }
 }
 
+function addServiceExteriorArchitecture(
+  group: THREE.Group,
+  geometries: Set<THREE.BufferGeometry>,
+  materials: Set<THREE.Material>,
+  textures: Set<THREE.Texture>,
+  recipe: StadiumRecipe,
+  mode: Exclude<CoreVisualMode, "STATIC">,
+  disposers: Array<() => void>,
+): void {
+  if (!recipe.presentationProfile?.startsWith("SERVICE_")) return;
+  const architecture = resolveServiceArchitecture();
+
+  // P1 board-formed concrete: procedural noise + faint vertical formwork
+  // lines as color/bump so the blades stop reading as untextured plastic.
+  const concreteCanvas = document.createElement("canvas");
+  concreteCanvas.width = 128;
+  concreteCanvas.height = 128;
+  const concreteCtx = concreteCanvas.getContext("2d");
+  if (concreteCtx) {
+    concreteCtx.fillStyle = "#8a8f94";
+    concreteCtx.fillRect(0, 0, 128, 128);
+    let concreteSeed = 4241;
+    const nextConcrete = () => {
+      concreteSeed = (concreteSeed * 16807) % 2147483647;
+      return concreteSeed / 2147483647;
+    };
+    for (let index = 0; index < 2600; index += 1) {
+      const shade = 120 + Math.floor(nextConcrete() * 46);
+      concreteCtx.fillStyle = `rgba(${shade}, ${shade + 3}, ${shade + 6}, 0.16)`;
+      concreteCtx.fillRect(nextConcrete() * 128, nextConcrete() * 128, 1 + nextConcrete() * 2.5, 1 + nextConcrete() * 2.5);
+    }
+    for (let line = 0; line < 8; line += 1) {
+      concreteCtx.fillStyle = "rgba(52, 58, 64, 0.16)";
+      concreteCtx.fillRect(line * 16 + 6, 0, 1, 128);
+      concreteCtx.fillStyle = "rgba(190, 196, 202, 0.08)";
+      concreteCtx.fillRect(line * 16 + 7, 0, 1, 128);
+    }
+  }
+  const concreteTexture = addDisposable(textures, new THREE.CanvasTexture(concreteCanvas));
+  concreteTexture.wrapS = THREE.RepeatWrapping;
+  concreteTexture.wrapT = THREE.RepeatWrapping;
+  concreteTexture.repeat.set(1.6, 3.2);
+  const concrete = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      color: 0x6b747d,
+      map: concreteTexture,
+      bumpMap: concreteTexture,
+      bumpScale: 0.3,
+      roughness: 0.86,
+      metalness: 0.03,
+    }),
+  );
+  const glass = addDisposable(
+    materials,
+    new THREE.MeshPhysicalMaterial({
+      color: 0x2c4656,
+      emissive: 0xf3d9a8,
+      emissiveIntensity: 0.16,
+      roughness: 0.14,
+      metalness: 0.10,
+      transparent: true,
+      opacity: 0.46,
+      clearcoat: 0.55,
+      clearcoatRoughness: 0.14,
+    }),
+  );
+  const warmInterior = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      color: 0x94805f,
+      emissive: 0xffdca3,
+      emissiveIntensity: 0.92,
+      roughness: 0.55,
+      metalness: 0.04,
+    }),
+  );
+  const warmStrip = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      color: 0xffe9c4,
+      emissive: 0xffd9a0,
+      emissiveIntensity: 2.4,
+      roughness: 0.4,
+      metalness: 0.02,
+    }),
+  );
+  const steel = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({ color: 0x2f3840, roughness: 0.52, metalness: 0.58 }),
+  );
+  // P1 wet mineral plaza: tile grid with grout lines plus a roughness map
+  // whose darker (smoother) patches read as standing water under the lights.
+  const plazaCanvas = document.createElement("canvas");
+  plazaCanvas.width = 256;
+  plazaCanvas.height = 256;
+  const plazaCtx = plazaCanvas.getContext("2d");
+  const plazaRoughCanvas = document.createElement("canvas");
+  plazaRoughCanvas.width = 256;
+  plazaRoughCanvas.height = 256;
+  const plazaRoughCtx = plazaRoughCanvas.getContext("2d");
+  if (plazaCtx && plazaRoughCtx) {
+    let plazaSeed = 7717;
+    const nextPlaza = () => {
+      plazaSeed = (plazaSeed * 16807) % 2147483647;
+      return plazaSeed / 2147483647;
+    };
+    plazaCtx.fillStyle = "#232f38";
+    plazaCtx.fillRect(0, 0, 256, 256);
+    plazaRoughCtx.fillStyle = "#6a6a6a";
+    plazaRoughCtx.fillRect(0, 0, 256, 256);
+    const tile = 32;
+    for (let ty = 0; ty < 256; ty += tile) {
+      for (let tx = 0; tx < 256; tx += tile) {
+        const tone = 26 + Math.floor(nextPlaza() * 16);
+        plazaCtx.fillStyle = `rgb(${tone}, ${tone + 9}, ${tone + 16})`;
+        plazaCtx.fillRect(tx + 1, ty + 1, tile - 2, tile - 2);
+        // Wet patches: lower roughness on scattered tiles.
+        const wet = nextPlaza();
+        const rough = wet < 0.34 ? 28 + Math.floor(nextPlaza() * 30) : 96 + Math.floor(nextPlaza() * 50);
+        plazaRoughCtx.fillStyle = `rgb(${rough}, ${rough}, ${rough})`;
+        plazaRoughCtx.fillRect(tx + 1, ty + 1, tile - 2, tile - 2);
+      }
+    }
+    plazaCtx.strokeStyle = "rgba(10, 15, 20, 0.85)";
+    plazaCtx.lineWidth = 2;
+    for (let line = 0; line <= 256; line += tile) {
+      plazaCtx.beginPath();
+      plazaCtx.moveTo(line, 0);
+      plazaCtx.lineTo(line, 256);
+      plazaCtx.stroke();
+      plazaCtx.beginPath();
+      plazaCtx.moveTo(0, line);
+      plazaCtx.lineTo(256, line);
+      plazaCtx.stroke();
+    }
+  }
+  const plazaTexture = addDisposable(textures, new THREE.CanvasTexture(plazaCanvas));
+  plazaTexture.wrapS = THREE.RepeatWrapping;
+  plazaTexture.wrapT = THREE.RepeatWrapping;
+  plazaTexture.repeat.set(12, 15);
+  plazaTexture.colorSpace = THREE.SRGBColorSpace;
+  const plazaRoughTexture = addDisposable(textures, new THREE.CanvasTexture(plazaRoughCanvas));
+  plazaRoughTexture.wrapS = THREE.RepeatWrapping;
+  plazaRoughTexture.wrapT = THREE.RepeatWrapping;
+  plazaRoughTexture.repeat.set(12, 15);
+  // Semi-transparent tile layer over a real mirror: the Reflector below shows
+  // the lit stadium in the wet ground, and the tiles temper it into wet stone.
+  const plazaMaterial = addDisposable(
+    materials,
+    new THREE.MeshPhysicalMaterial({
+      color: 0xb9c4cc,
+      map: plazaTexture,
+      roughness: 0.62,
+      roughnessMap: plazaRoughTexture,
+      metalness: 0.10,
+      clearcoat: 0.92,
+      clearcoatRoughness: 0.09,
+      transparent: true,
+      opacity: 0.8,
+      depthWrite: false,
+    }),
+  );
+  const seamMaterial = addDisposable(
+    materials,
+    new THREE.MeshBasicMaterial({ color: 0x41505a, transparent: true, opacity: 0.22 }),
+  );
+
+  const plazaGeometry = addDisposable(
+    geometries,
+    new THREE.PlaneGeometry(architecture.plaza.width, architecture.plaza.depth),
+  );
+
+  // P1 real planar reflection (FULL only): the poster's wet plaza mirrors the
+  // glowing stadium. On-demand rendering keeps the extra pass affordable.
+  if (mode === "FULL") {
+    const reflectorGeometry = addDisposable(
+      geometries,
+      new THREE.PlaneGeometry(architecture.plaza.width, architecture.plaza.depth),
+    );
+    const reflector = new Reflector(reflectorGeometry, {
+      clipBias: 0.003,
+      textureWidth: 1024,
+      textureHeight: 1024,
+      color: 0x4b565e,
+    });
+    reflector.rotation.x = -Math.PI / 2;
+    reflector.position.set(0, -0.26, 45);
+    group.add(reflector);
+    disposers.push(() => reflector.dispose());
+  }
+
+  const plaza = new THREE.Mesh(plazaGeometry, plazaMaterial);
+  plaza.rotation.x = -Math.PI / 2;
+  plaza.position.set(0, -0.20, 45);
+  plaza.receiveShadow = true;
+  group.add(plaza);
+
+  const entranceGeometry = addDisposable(
+    geometries,
+    new THREE.BoxGeometry(architecture.entrance.width, architecture.entrance.height, architecture.entrance.depth),
+  );
+  const entrance = new THREE.Mesh(entranceGeometry, glass);
+  entrance.position.set(0, architecture.entrance.height / 2, architecture.entrance.z);
+  entrance.castShadow = true;
+  group.add(entrance);
+
+  const slabWidth = architecture.entrance.width - 2;
+  const slabGeometry = addDisposable(geometries, new THREE.BoxGeometry(slabWidth, 0.34, 7.2));
+  const stripGeometry = addDisposable(geometries, new THREE.BoxGeometry(slabWidth - 1.6, 0.14, 0.22));
+  architecture.interiorSlabHeights.forEach((height) => {
+    const slab = new THREE.Mesh(slabGeometry, warmInterior);
+    slab.position.set(0, height, architecture.entrance.z - 0.8);
+    group.add(slab);
+    // Lit ceiling strip under each slab so every level reads as an occupied,
+    // warm concourse floor instead of a flat emissive box.
+    const strip = new THREE.Mesh(stripGeometry, warmStrip);
+    strip.position.set(0, height - 0.42, architecture.entrance.z + 1.1);
+    group.add(strip);
+  });
+
+  const mullionHeight = architecture.entrance.height - 1.6;
+  const mullionGeometry = addDisposable(geometries, new THREE.BoxGeometry(0.09, mullionHeight, 0.2));
+  const mullions = new THREE.InstancedMesh(mullionGeometry, steel, architecture.mullionCount);
+  const mullionDummy = new THREE.Object3D();
+  const mullionSpan = architecture.entrance.width - 1.6;
+  for (let index = 0; index < architecture.mullionCount; index += 1) {
+    const progress = architecture.mullionCount === 1 ? 0.5 : index / (architecture.mullionCount - 1);
+    mullionDummy.position.set(-mullionSpan / 2 + progress * mullionSpan, mullionHeight / 2 + 0.4, architecture.entrance.z + 2.6);
+    mullionDummy.updateMatrix();
+    mullions.setMatrixAt(index, mullionDummy.matrix);
+  }
+  mullions.instanceMatrix.needsUpdate = true;
+  group.add(mullions);
+
+  // Angular blade buttresses: wide at the base, narrow at the crown, shallow
+  // in depth, crown leaning toward the bowl — board-formed concrete piers,
+  // not traffic cones.
+  const buttressGeometry = addDisposable(geometries, new THREE.CylinderGeometry(2.6, 6.2, 32, 4));
+  architecture.buttresses.forEach((spec) => {
+    const buttress = new THREE.Mesh(buttressGeometry, concrete);
+    buttress.position.set(spec.x, spec.height / 2, spec.z);
+    buttress.scale.set(1.25, spec.height / 32, 0.55);
+    buttress.rotation.y = Math.PI / 4;
+    buttress.rotation.z = spec.lean;
+    buttress.rotation.x = -0.055;
+    buttress.castShadow = true;
+    buttress.receiveShadow = true;
+    group.add(buttress);
+  });
+
+  // Warm interior spill: soft point lights inside the atrium tint the stairs
+  // and nearby buttress faces without blowing out the plaza.
+  for (const x of [-11, 11]) {
+    const spill = new THREE.PointLight(0xffd9a0, 78, 78, 2.0);
+    spill.position.set(x, 13, architecture.entrance.z - 3);
+    group.add(spill);
+  }
+
+  // Glowing lobby backdrop: a warm gradient plane behind the glass gives the
+  // atrium the poster's lit-from-within depth.
+  const lobbyCanvas = document.createElement("canvas");
+  lobbyCanvas.width = 64;
+  lobbyCanvas.height = 64;
+  const lobbyCtx = lobbyCanvas.getContext("2d");
+  if (lobbyCtx) {
+    const lobbyGradient = lobbyCtx.createLinearGradient(0, 64, 0, 0);
+    lobbyGradient.addColorStop(0, "#ffdca3");
+    lobbyGradient.addColorStop(0.45, "#c69a5f");
+    lobbyGradient.addColorStop(1, "#6b5638");
+    lobbyCtx.fillStyle = lobbyGradient;
+    lobbyCtx.fillRect(0, 0, 64, 64);
+  }
+  const lobbyTexture = addDisposable(textures, new THREE.CanvasTexture(lobbyCanvas));
+  lobbyTexture.colorSpace = THREE.SRGBColorSpace;
+  const lobbyMaterial = addDisposable(
+    materials,
+    new THREE.MeshBasicMaterial({ map: lobbyTexture, toneMapped: false, opacity: 0.9, transparent: true }),
+  );
+  const lobbyGeometry = addDisposable(
+    geometries,
+    new THREE.PlaneGeometry(architecture.entrance.width - 3, architecture.entrance.height - 3),
+  );
+  const lobby = new THREE.Mesh(lobbyGeometry, lobbyMaterial);
+  lobby.position.set(0, architecture.entrance.height / 2 - 1, architecture.entrance.z - 2.2);
+  group.add(lobby);
+
+  // Glowing roof crown: warm ring just under the roof rim, echoing the
+  // poster's lit bowl edge.
+  const crownMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      color: 0xffe3ae,
+      emissive: 0xffd58e,
+      emissiveIntensity: 1.9,
+      roughness: 0.5,
+      metalness: 0.05,
+    }),
+  );
+  addEllipticRing(group, geometries, crownMaterial, 117.6, 82.9, 33.6, 0.42);
+
+  if (recipe.presentationProfile === "SERVICE_BUILDER") {
+    const perimeterGeometry = addDisposable(geometries, new THREE.CylinderGeometry(2.4, 5.6, 29, 4));
+    const perimeter = new THREE.InstancedMesh(perimeterGeometry, concrete, architecture.perimeterButtressCount);
+    const perimeterDummy = new THREE.Object3D();
+    for (let index = 0; index < architecture.perimeterButtressCount; index += 1) {
+      const angle = (index / architecture.perimeterButtressCount) * TAU;
+      perimeterDummy.position.set(Math.cos(angle) * 121.5, 14.3, Math.sin(angle) * 86.4);
+      perimeterDummy.rotation.set(0, -angle + Math.PI / 4, Math.sin(angle) * 0.035);
+      perimeterDummy.scale.set(0.88, 0.98 + Math.abs(Math.cos(angle)) * 0.08, 0.88);
+      perimeterDummy.updateMatrix();
+      perimeter.setMatrixAt(index, perimeterDummy.matrix);
+    }
+    perimeter.instanceMatrix.needsUpdate = true;
+    perimeter.castShadow = true;
+    perimeter.receiveShadow = true;
+    group.add(perimeter);
+  }
+
+  architecture.stairRuns.forEach((spec) => {
+    const geometry = addDisposable(geometries, new THREE.BoxGeometry(spec.width, 0.28, spec.depth));
+    const stair = new THREE.Mesh(geometry, concrete);
+    stair.position.set(0, spec.y, spec.z);
+    stair.receiveShadow = true;
+    group.add(stair);
+  });
+
+  const longitudinalGeometry = addDisposable(geometries, new THREE.BoxGeometry(0.085, 0.018, 244));
+  const longitudinal = new THREE.InstancedMesh(longitudinalGeometry, seamMaterial, 13);
+  const seamDummy = new THREE.Object3D();
+  for (let index = 0; index < 13; index += 1) {
+    seamDummy.position.set(-144 + index * 24, -0.08, 30);
+    seamDummy.updateMatrix();
+    longitudinal.setMatrixAt(index, seamDummy.matrix);
+  }
+  longitudinal.instanceMatrix.needsUpdate = true;
+  group.add(longitudinal);
+
+  const crossGeometry = addDisposable(geometries, new THREE.BoxGeometry(324, 0.018, 0.085));
+  const cross = new THREE.InstancedMesh(crossGeometry, seamMaterial, 17);
+  for (let index = 0; index < 17; index += 1) {
+    seamDummy.position.set(0, -0.075, -82 + index * 14);
+    seamDummy.updateMatrix();
+    cross.setMatrixAt(index, seamDummy.matrix);
+  }
+  cross.instanceMatrix.needsUpdate = true;
+  group.add(cross);
+
+  const bollardGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.12, 0.16, 1.1, 10));
+  const bollardMaterial = addDisposable(
+    materials,
+    new THREE.MeshStandardMaterial({
+      color: 0xdbe7ec,
+      emissive: 0xf1d6a7,
+      emissiveIntensity: 1.5,
+      roughness: 0.48,
+    }),
+  );
+  const bollards = new THREE.InstancedMesh(bollardGeometry, bollardMaterial, 24);
+  const bollardDummy = new THREE.Object3D();
+  for (let index = 0; index < 12; index += 1) {
+    const z = 96 + index * 9.6;
+    for (const side of [-1, 1]) {
+      const instanceIndex = index * 2 + (side === -1 ? 0 : 1);
+      bollardDummy.position.set(side * 30, 0.38, z);
+      bollardDummy.updateMatrix();
+      bollards.setMatrixAt(instanceIndex, bollardDummy.matrix);
+    }
+  }
+  bollards.instanceMatrix.needsUpdate = true;
+  group.add(bollards);
+
+  // Wet-plaza reflection: the poster's signature. A cheap additive canvas
+  // texture stretches the warm atrium light into vertical streaks on the
+  // plaza, plus a short streak under each bollard. No real reflections.
+  const reflectionCanvas = document.createElement("canvas");
+  reflectionCanvas.width = 256;
+  reflectionCanvas.height = 256;
+  const reflectionCtx = reflectionCanvas.getContext("2d");
+  if (reflectionCtx) {
+    reflectionCtx.clearRect(0, 0, 256, 256);
+    let streakSeed = 9377;
+    const nextSeed = () => {
+      streakSeed = (streakSeed * 16807) % 2147483647;
+      return streakSeed / 2147483647;
+    };
+    for (let index = 0; index < 46; index += 1) {
+      const x = nextSeed() * 256;
+      const width = 1.5 + nextSeed() * 6;
+      // Fade streaks toward the sides so the additive plane has no visible
+      // rectangular boundary on the plaza.
+      const edgeFade = Math.sin((Math.min(255, x) / 256) * Math.PI) ** 1.4;
+      const alpha = (0.05 + nextSeed() * 0.30) * edgeFade;
+      const gradient = reflectionCtx.createLinearGradient(0, 0, 0, 256);
+      gradient.addColorStop(0, `rgba(255, 216, 156, ${alpha})`);
+      gradient.addColorStop(0.55, `rgba(255, 205, 138, ${alpha * 0.42})`);
+      gradient.addColorStop(1, "rgba(255, 200, 130, 0)");
+      reflectionCtx.fillStyle = gradient;
+      reflectionCtx.fillRect(x, 0, width, 256);
+    }
+    const pool = reflectionCtx.createRadialGradient(128, 12, 4, 128, 12, 130);
+    pool.addColorStop(0, "rgba(255, 224, 172, 0.5)");
+    pool.addColorStop(1, "rgba(255, 210, 150, 0)");
+    reflectionCtx.fillStyle = pool;
+    reflectionCtx.fillRect(0, 0, 256, 256);
+  }
+  const reflectionTexture = addDisposable(textures, new THREE.CanvasTexture(reflectionCanvas));
+  reflectionTexture.colorSpace = THREE.SRGBColorSpace;
+  const reflectionMaterial = addDisposable(
+    materials,
+    new THREE.MeshBasicMaterial({
+      map: reflectionTexture,
+      transparent: true,
+      opacity: 0.45,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    }),
+  );
+  const reflectionGeometry = addDisposable(geometries, new THREE.PlaneGeometry(architecture.entrance.width + 44, 110));
+  const reflection = new THREE.Mesh(reflectionGeometry, reflectionMaterial);
+  reflection.rotation.x = -Math.PI / 2;
+  reflection.position.set(0, -0.12, architecture.entrance.z + 58);
+  group.add(reflection);
+
+  const bollardStreakGeometry = addDisposable(geometries, new THREE.PlaneGeometry(0.5, 5.2));
+  const bollardStreakMaterial = addDisposable(
+    materials,
+    new THREE.MeshBasicMaterial({
+      color: 0xffd9a0,
+      transparent: true,
+      opacity: 0.16,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    }),
+  );
+  const bollardStreaks = new THREE.InstancedMesh(bollardStreakGeometry, bollardStreakMaterial, 24);
+  const streakDummy = new THREE.Object3D();
+  for (let index = 0; index < 12; index += 1) {
+    const z = 96 + index * 9.6;
+    for (const side of [-1, 1]) {
+      const instanceIndex = index * 2 + (side === -1 ? 0 : 1);
+      streakDummy.position.set(side * 30, -0.1, z + 3.3);
+      streakDummy.rotation.set(-Math.PI / 2, 0, 0);
+      streakDummy.updateMatrix();
+      bollardStreaks.setMatrixAt(instanceIndex, streakDummy.matrix);
+    }
+  }
+  bollardStreaks.instanceMatrix.needsUpdate = true;
+  group.add(bollardStreaks);
+}
+
 function buildStadium(
   scene: THREE.Scene,
   renderer: THREE.WebGLRenderer,
   mode: Exclude<CoreVisualMode, "STATIC">,
   recipe: StadiumRecipe,
+  profile: StadiumVisualProfile,
   geometries: Set<THREE.BufferGeometry>,
   materials: Set<THREE.Material>,
   textures: Set<THREE.Texture>,
+  disposers: Array<() => void>,
 ): THREE.Group {
   const group = new THREE.Group();
   scene.add(group);
@@ -1135,13 +1811,14 @@ function buildStadium(
     materials,
     new THREE.MeshStandardMaterial({ map: grassTexture, bumpMap: grassBumpTexture, bumpScale: 0.045, roughness: 0.93, metalness: 0.0 }),
   );
+  const servicePresentation = Boolean(recipe.presentationProfile?.startsWith("SERVICE_"));
   const concreteMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: 0x5b6268, roughness: 0.94, metalness: 0.02 }),
+    new THREE.MeshStandardMaterial({ color: servicePresentation ? 0x78838a : 0x5b6268, roughness: 0.90, metalness: 0.02 }),
   );
   const darkConcreteMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: 0x222831, roughness: 0.91, metalness: 0.04 }),
+    new THREE.MeshStandardMaterial({ color: servicePresentation ? 0x343d43 : 0x222831, roughness: 0.89, metalness: 0.04 }),
   );
   const seatMaterial = addDisposable(
     materials,
@@ -1149,11 +1826,20 @@ function buildStadium(
   );
   const roofMaterial = addDisposable(
     materials,
-    new THREE.MeshPhysicalMaterial({ color: 0x46515d, roughness: 0.38, metalness: 0.68, clearcoat: 0.10, clearcoatRoughness: 0.54, side: THREE.DoubleSide }),
+    new THREE.MeshPhysicalMaterial({
+      color: servicePresentation ? 0x7b8891 : recipe.lightingProfile === "DAYLIGHT" ? 0x7d898f : recipe.lightingProfile === "EVENT" ? 0x33404d : 0x596671,
+      emissive: recipe.lightingProfile === "EVENT" ? recipe.accentColor : 0x000000,
+      emissiveIntensity: recipe.lightingProfile === "EVENT" ? 0.045 : 0,
+      roughness: 0.38,
+      metalness: 0.68,
+      clearcoat: 0.10,
+      clearcoatRoughness: 0.54,
+      side: THREE.DoubleSide,
+    }),
   );
   const steelMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: 0xa6afb7, roughness: 0.36, metalness: 0.72 }),
+    new THREE.MeshStandardMaterial({ color: servicePresentation ? 0xaeb9bf : 0xa6afb7, roughness: 0.36, metalness: 0.72 }),
   );
   const blackMaterial = addDisposable(
     materials,
@@ -1251,13 +1937,24 @@ function buildStadium(
       group.add(panel);
     }
   }
-  addExteriorFacade(group, geometries, materials, recipe);
+  addBuilderEnvironment(group, geometries, materials, recipe, profile);
+  addExteriorFacade(group, geometries, materials, recipe, profile);
+  addServiceExteriorArchitecture(group, geometries, materials, textures, recipe, mode, disposers);
 
-  const tiers: TierSpec[] = [
+  const baseTiers: TierSpec[] = [
     { innerX: 58.0, innerZ: 40.6, outerX: 76.2, outerZ: 53.5, y0: 0.72, y1: 10.0, rows: 17, peoplePerRow: 420 },
     { innerX: 79.0, innerZ: 55.8, outerX: 95.5, outerZ: 67.5, y0: 11.5, y1: 21.6, rows: 16, peoplePerRow: 470 },
     { innerX: 98.0, innerZ: 69.5, outerX: 113.0, outerZ: 80.2, y0: 23.2, y1: 33.0, rows: 15, peoplePerRow: 520 },
   ];
+  const tiers = baseTiers.map((tier) => ({
+    ...tier,
+    innerX: tier.innerX * profile.bowlRadiusScale,
+    innerZ: tier.innerZ * profile.bowlRadiusScale,
+    outerX: tier.outerX * profile.bowlRadiusScale,
+    outerZ: tier.outerZ * profile.bowlRadiusScale,
+    y0: tier.y0 * profile.tierRiseScale,
+    y1: tier.y1 * profile.tierRiseScale,
+  }));
   for (let i = 0; i < Math.min(recipe.tierCount, tiers.length); i += 1) {
     addTier(group, geometries, materials, tiers[i], recipe, seatMaterial, concreteMaterial);
   }
@@ -1288,9 +1985,9 @@ function buildStadium(
   group.add(screen);
 
   addColumns(group, geometries, steelMaterial, recipe);
-  addRoof(group, geometries, materials, recipe, roofMaterial, steelMaterial);
+  addRoof(group, geometries, materials, recipe, profile, roofMaterial, steelMaterial);
   addLightGlows(group, textures, materials);
-  addLighting(scene, mode === "FULL");
+  addLighting(scene, mode === "FULL", profile);
   return group;
 }
 
@@ -1311,6 +2008,7 @@ export function createStadiumWebglRenderer(
   recipe: StadiumRecipe = BASE_STADIUM_RECIPE,
 ): StadiumWebglRenderer | null {
   if (typeof window.WebGLRenderingContext === "undefined") return null;
+  const visualProfile = resolveStadiumVisualProfile(recipe);
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
@@ -1319,11 +2017,13 @@ export function createStadiumWebglRenderer(
     depth: true,
     powerPreference: mode === "FULL" ? "high-performance" : "default",
   });
-  renderer.setClearColor(0x000000, 0);
+  renderer.setClearColor(visualProfile.skyTop, visualProfile.clearAlpha);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   const lightingProfile = recipe.lightingProfile ?? "BALANCED";
-  renderer.toneMappingExposure = lightingProfile === "DAYLIGHT" ? 0.94 : lightingProfile === "EVENT" ? 1.16 : 1.02;
+  renderer.toneMappingExposure = recipe.presentationProfile === "SERVICE_BUILDER"
+    ? Math.max(1.36, visualProfile.exposure + 0.16)
+    : visualProfile.exposure;
   renderer.shadowMap.enabled = mode === "FULL";
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -1338,16 +2038,26 @@ export function createStadiumWebglRenderer(
         : environmentProfile === "URBAN"
           ? 0x11161b
           : 0x0c141c;
-  const fogNear = environmentProfile === "NIGHT_EVENT" ? 92 : environmentProfile === "COASTAL" ? 124 : 112;
-  const fogFar = environmentProfile === "PARK" ? 245 : environmentProfile === "NIGHT_EVENT" ? 230 : 275;
+  const fogNear = visualProfile.builderVisuals
+    ? environmentProfile === "NIGHT_EVENT" ? 150 : 180
+    : environmentProfile === "NIGHT_EVENT" ? 92 : environmentProfile === "COASTAL" ? 124 : 112;
+  const fogFar = visualProfile.builderVisuals
+    ? environmentProfile === "NIGHT_EVENT" ? 470 : 540
+    : environmentProfile === "PARK" ? 245 : environmentProfile === "NIGHT_EVENT" ? 230 : 275;
   scene.fog = new THREE.Fog(fogColor, fogNear, fogFar);
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
   const textures = new Set<THREE.Texture>();
+  if (visualProfile.builderVisuals) {
+    scene.background = makeBuilderSkyTexture(textures, visualProfile, environmentProfile);
+  }
   const environmentTexture = makeEnvironmentTexture(textures);
   scene.environment = environmentTexture;
-  scene.environmentIntensity = lightingProfile === "DAYLIGHT" ? 0.78 : environmentProfile === "NIGHT_EVENT" ? 0.58 : environmentProfile === "COASTAL" ? 0.82 : 0.72;
-  const stadium = buildStadium(scene, renderer, mode, recipe, geometries, materials, textures);
+  scene.environmentIntensity = recipe.presentationProfile === "SERVICE_BUILDER"
+    ? 0.92
+    : lightingProfile === "DAYLIGHT" ? 0.78 : environmentProfile === "NIGHT_EVENT" ? 0.58 : environmentProfile === "COASTAL" ? 0.82 : 0.72;
+  const disposers: Array<() => void> = [];
+  const stadium = buildStadium(scene, renderer, mode, recipe, visualProfile, geometries, materials, textures, disposers);
   const liveScoreboardTexture = stadium.userData.scoreboardTexture as THREE.Texture | undefined;
 
   const positionMarker = new THREE.Group();
@@ -1559,10 +2269,73 @@ export function createStadiumWebglRenderer(
   projectionRoot.add(projectionCore);
   projectionRoot.scale.setScalar(0.001);
 
-  const camera = new THREE.PerspectiveCamera(54, 1, 0.18, 380);
+  const camera = new THREE.PerspectiveCamera(54, 1, 0.18, visualProfile.builderVisuals ? 720 : 380);
   let cssWidth = 1;
   let cssHeight = 1;
   let pixelRatio = 1;
+
+  // P1 night-scene bloom: FULL mode only, so FAST/LIGHT keep their budget.
+  let composer: EffectComposer | null = null;
+  if (mode === "FULL") {
+    composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    composer.addPass(new UnrealBloomPass(new THREE.Vector2(1, 1), 0.42, 0.5, 0.82));
+  }
+
+  // The bloom composer outputs an opaque frame, so the storm sky must live in
+  // the scene itself instead of the CSS layer behind a transparent canvas.
+  let serviceSkyTexture: THREE.Texture | null = null;
+  const coverFitServiceSky = () => {
+    const image = serviceSkyTexture?.image as { width?: number; height?: number } | undefined;
+    if (!serviceSkyTexture || !image?.width || !image.height) return;
+    // Cover-fit the landscape sky photo so portrait viewports crop instead of
+    // stretching the clouds into vertical smears.
+    const imageAspect = image.width / image.height;
+    const viewAspect = cssWidth / Math.max(1, cssHeight);
+    if (viewAspect < imageAspect) {
+      serviceSkyTexture.repeat.set(viewAspect / imageAspect, 1);
+      serviceSkyTexture.offset.set((1 - viewAspect / imageAspect) / 2, 0);
+    } else {
+      serviceSkyTexture.repeat.set(1, imageAspect / viewAspect);
+      serviceSkyTexture.offset.set(0, (1 - imageAspect / viewAspect) / 2);
+    }
+  };
+  if (recipe.presentationProfile === "SERVICE_HOME") {
+    new THREE.TextureLoader().load(stadiumServiceSkyUrl, (skyTexture) => {
+      skyTexture.colorSpace = THREE.SRGBColorSpace;
+      textures.add(skyTexture);
+      serviceSkyTexture = skyTexture;
+      coverFitServiceSky();
+      scene.background = skyTexture;
+
+      // P1 IBL: PMREM the storm sky so every PBR material picks up believable
+      // blue-hour ambient and reflections instead of a flat gradient env.
+      const environmentSource = skyTexture.clone();
+      environmentSource.mapping = THREE.EquirectangularReflectionMapping;
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const environmentTarget = pmrem.fromEquirectangular(environmentSource);
+      textures.add(environmentTarget.texture);
+      scene.environment = environmentTarget.texture;
+      scene.environmentIntensity = 0.55;
+      environmentSource.dispose();
+      pmrem.dispose();
+      present();
+    });
+  }
+  const present = () => {
+    if (composer) {
+      composer.render();
+    } else {
+      present();
+    }
+  };
+
+  // Aerial bowl wash: faded in with the camera rise so the pitch and stands
+  // read clearly from above without changing the approach lighting.
+  // Kept below the roof line so the roof deck never catches a flare from it.
+  const aerialWash = new THREE.PointLight(0xd8ead9, 0, 260, 1.4);
+  aerialWash.position.set(0, 30, 0);
+  scene.add(aerialWash);
 
   const resize = (width: number, height: number, dpr: number) => {
     cssWidth = Math.max(1, width);
@@ -1570,13 +2343,59 @@ export function createStadiumWebglRenderer(
     pixelRatio = Math.min(Math.max(dpr, 1), 2);
     renderer.setPixelRatio(pixelRatio);
     renderer.setSize(cssWidth, cssHeight, false);
+    composer?.setPixelRatio(pixelRatio);
+    composer?.setSize(cssWidth, cssHeight);
+    coverFitServiceSky();
     camera.aspect = cssWidth / cssHeight;
     camera.updateProjectionMatrix();
   };
 
-  const render = (orbit: number, zoom0: number) => {
+  const render = (orbit: number, zoom0: number, rise0 = 0) => {
   const portrait = cssWidth / cssHeight < 0.82;
   camera.aspect = cssWidth / cssHeight;
+
+  if (recipe.presentationProfile === "SERVICE_HOME") {
+    const pose = resolveServiceCamera(portrait ? "MOBILE" : "DESKTOP", orbit, zoom0, rise0);
+    camera.fov = pose.fov;
+    camera.zoom = 1;
+    camera.position.set(...pose.position);
+    camera.lookAt(new THREE.Vector3(...pose.target));
+    camera.updateProjectionMatrix();
+    stadium.rotation.y = 0;
+    aerialWash.intensity = THREE.MathUtils.clamp(rise0, 0, 1) * 2400;
+    present();
+    return;
+  }
+
+  if (recipe.presentationProfile === "SERVICE_BUILDER") {
+    const zoom = Math.min(1.65, Math.max(0.92, zoom0));
+    const angle = (28 + orbit * 0.22) * Math.PI / 180;
+    const radius = 270 / zoom;
+    const height = 108 / zoom;
+    camera.fov = 41;
+    camera.zoom = 1;
+    camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
+    camera.lookAt(new THREE.Vector3(0, 18, 2));
+    camera.updateProjectionMatrix();
+    stadium.rotation.y = 0;
+    present();
+    return;
+  }
+
+  if (visualProfile.builderVisuals) {
+    const zoom = Math.min(1.8, Math.max(0.92, zoom0));
+    const angle = (34 + orbit * 0.24) * Math.PI / 180;
+    const radius = (portrait ? 370 : 330) / zoom;
+    const height = (portrait ? 155 : 125) / zoom;
+    camera.fov = portrait ? 48 : 44;
+    camera.zoom = 1;
+    camera.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
+    camera.lookAt(new THREE.Vector3(0, 18, 0));
+    camera.updateProjectionMatrix();
+    stadium.rotation.y = 0;
+    present();
+    return;
+  }
 
   if (portrait) {
     // Mobile acceptance camera: inside the pitch, just ahead of the goal line,
@@ -1590,7 +2409,7 @@ export function createStadiumWebglRenderer(
     camera.lookAt(new THREE.Vector3(-2, 11.0, -8));
     camera.updateProjectionMatrix();
     stadium.rotation.y = 0;
-    renderer.render(scene, camera);
+    present();
     return;
   }
 
@@ -1604,7 +2423,7 @@ export function createStadiumWebglRenderer(
   camera.lookAt(new THREE.Vector3(0, 13.4, -5.4));
   camera.updateProjectionMatrix();
   stadium.rotation.y = -0.015;
-  renderer.render(scene, camera);
+  present();
 };
 
   const renderApproach = (progress0: number) => {
@@ -1649,7 +2468,7 @@ export function createStadiumWebglRenderer(
     camera.lookAt(lookTarget);
     camera.updateProjectionMatrix();
     stadium.rotation.y = THREE.MathUtils.lerp(-0.055, -0.015, eased);
-    renderer.render(scene, camera);
+    present();
   };
 
   const renderPitchEntry = (progress0: number) => {
@@ -1694,7 +2513,7 @@ export function createStadiumWebglRenderer(
     camera.lookAt(lookTarget);
     camera.updateProjectionMatrix();
     stadium.rotation.y = -0.015;
-    renderer.render(scene, camera);
+    present();
   };
 
   const renderPlayerPosition = (progress0: number, x0: number, z0: number) => {
@@ -1732,7 +2551,7 @@ export function createStadiumWebglRenderer(
     markerRing.rotation.z = progress * 1.2;
     markerRingOuter.rotation.z = -progress * 0.75;
     stadium.rotation.y = -0.015;
-    renderer.render(scene, camera);
+    present();
   };
 
   const renderTeamFormation = (progress0: number, ownX0: number, ownZ0: number, teammates: readonly StadiumTeamMarker[]) => {
@@ -1797,7 +2616,7 @@ export function createStadiumWebglRenderer(
     });
 
     stadium.rotation.y = -0.015;
-    renderer.render(scene, camera);
+    present();
   };
 
   const renderDigitalProjection = (progress0: number) => {
@@ -1837,7 +2656,7 @@ export function createStadiumWebglRenderer(
       : THREE.MathUtils.lerp(66, 57, eased);
     camera.updateProjectionMatrix();
     stadium.rotation.y = -0.015;
-    renderer.render(scene, camera);
+    present();
   };
 
   const updateScoreboard = (state: StadiumScoreboardState) => {
@@ -1848,11 +2667,13 @@ export function createStadiumWebglRenderer(
   const triangleCount = countTriangles(stadium);
 
   const destroy = () => {
+    disposers.forEach((dispose) => dispose());
     geometries.forEach((geometry) => geometry.dispose());
     materials.forEach((material) => material.dispose());
     textures.forEach((texture) => texture.dispose());
+    composer?.dispose();
     renderer.dispose();
-    renderer.forceContextLoss();
+    if (!visualProfile.builderVisuals) renderer.forceContextLoss();
   };
 
   return { triangleCount, resize, render, renderApproach, renderPitchEntry, renderPlayerPosition, renderTeamFormation, renderDigitalProjection, updateScoreboard, destroy };

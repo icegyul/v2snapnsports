@@ -16,6 +16,7 @@ export const BASE_STADIUM_ACCEPTANCE_RECIPE: StadiumRecipe = {
   seatColor: 0x17344f,
   accentColor: 0x159bd2,
   columnStyle: "y",
+  presentationProfile: "SERVICE_HOME",
 };
 
 export function createStadiumWebglRenderer(
@@ -32,12 +33,12 @@ export function createStadiumWebglRenderer(
       portrait = width / Math.max(1, height) < 0.82;
       base.resize(width, height, dpr);
     },
-    render(orbit: number, _zoom: number) {
+    render(orbit: number, zoom: number, rise?: number) {
       if (portrait) {
-        base.render(orbit, 1.0);
+        base.render(orbit, zoom, rise);
         return;
       }
-      base.render(orbit - 5, 1.0);
+      base.render(orbit - 5, zoom, rise);
     },
     renderApproach(progress: number) {
       base.renderApproach?.(progress);
