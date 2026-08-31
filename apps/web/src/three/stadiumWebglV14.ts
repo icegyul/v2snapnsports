@@ -4,6 +4,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { Reflector } from "three/examples/jsm/objects/Reflector.js";
 import stadiumServiceSkyUrl from "../assets/stadium-service-sky.png";
+import stadiumConcreteBoardUrl from "../assets/stadium-concrete-board.png";
 import type { CoreVisualMode } from "../api/coreProductContracts";
 import { resolveSeatPatternColor, resolveStadiumVisualProfile, type StadiumVisualProfile } from "./stadiumVisualProfile";
 import { resolveServiceCamera } from "./stadiumServicePresentation";
@@ -1380,17 +1381,29 @@ function addServiceExteriorArchitecture(
   concreteTexture.wrapS = THREE.RepeatWrapping;
   concreteTexture.wrapT = THREE.RepeatWrapping;
   concreteTexture.repeat.set(1.6, 3.2);
-  const concrete = addDisposable(
-    materials,
-    new THREE.MeshStandardMaterial({
-      color: 0x6b747d,
-      map: concreteTexture,
-      bumpMap: concreteTexture,
-      bumpScale: 0.3,
-      roughness: 0.86,
-      metalness: 0.03,
-    }),
-  );
+  const concreteStandard = new THREE.MeshStandardMaterial({
+    color: 0x6b747d,
+    map: concreteTexture,
+    bumpMap: concreteTexture,
+    bumpScale: 0.3,
+    roughness: 0.86,
+    metalness: 0.03,
+  });
+  const concrete = addDisposable(materials, concreteStandard);
+  // Progressive upgrade: swap the procedural stand-in for the photographic
+  // board-formed concrete scan once it loads (P1 texture asset).
+  new THREE.TextureLoader().load(stadiumConcreteBoardUrl, (boardTexture) => {
+    boardTexture.colorSpace = THREE.SRGBColorSpace;
+    boardTexture.wrapS = THREE.RepeatWrapping;
+    boardTexture.wrapT = THREE.RepeatWrapping;
+    boardTexture.repeat.set(1.4, 2.6);
+    textures.add(boardTexture);
+    concreteStandard.map = boardTexture;
+    concreteStandard.bumpMap = boardTexture;
+    concreteStandard.bumpScale = 0.4;
+    concreteStandard.color.set(0x707a84);
+    concreteStandard.needsUpdate = true;
+  });
   const glass = addDisposable(
     materials,
     new THREE.MeshPhysicalMaterial({
@@ -1518,10 +1531,12 @@ function addServiceExteriorArchitecture(
       geometries,
       new THREE.PlaneGeometry(architecture.plaza.width, architecture.plaza.depth),
     );
+    // Low-res render target on purpose: upsampling softens the mirror into a
+    // wet-ground blur (and costs less than a sharp full-res reflection).
     const reflector = new Reflector(reflectorGeometry, {
       clipBias: 0.003,
-      textureWidth: 1024,
-      textureHeight: 1024,
+      textureWidth: 384,
+      textureHeight: 384,
       color: 0x4b565e,
     });
     reflector.rotation.x = -Math.PI / 2;
