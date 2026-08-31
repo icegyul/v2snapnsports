@@ -1,8 +1,10 @@
 name: Deploy V2 to Cafe24
 
-# Manual-only deployment of the static V2 build to snapnsports.com/v2/.
-# Requires repository Actions secrets (Settings → Secrets and variables →
-# Actions), configured by the owner — values never live in the repo:
+# Deployment of the static V2 build to snapnsports.com/v2/.
+# Triggered by pushing to the deploy/v2 pointer branch (or manually via
+# workflow_dispatch). Requires repository Actions secrets (Settings →
+# Secrets and variables → Actions), configured by the owner — values
+# never live in the repo:
 #   CAFE24_FTP_SERVER    e.g. ftp.snapnsports.com (or the Cafe24 FTP host)
 #   CAFE24_FTP_USERNAME
 #   CAFE24_FTP_PASSWORD
@@ -11,6 +13,9 @@ name: Deploy V2 to Cafe24
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - deploy/v2
 
 concurrency:
   group: deploy-v2-cafe24
@@ -45,3 +50,9 @@ jobs:
           local-dir: dist/
           server-dir: ${{ vars.CAFE24_FTP_SERVER_DIR != '' && vars.CAFE24_FTP_SERVER_DIR || 'www/v2/' }}
           dangerous-clean-slate: false
+
+      - name: Smoke check /v2/
+        run: |
+          sleep 8
+          curl -sf https://snapnsports.com/v2/ | grep -q "SnapN Sports V2"
+          echo "live: https://snapnsports.com/v2/ serves the V2 shell"
