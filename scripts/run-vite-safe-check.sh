@@ -34,11 +34,12 @@ if [[ "$project_root" == *'#'* ]]; then
     set +e
     MSYS_NO_PATHCONV=1 robocopy \
       "$(cygpath -w "$project_root")" "$(cygpath -w "$runtime_root")" \
-      /MIR \
+      /MIR /R:2 /W:2 \
       /XD "$(cygpath -w "$project_root/.git")" "$(cygpath -w "$project_root/dist")" \
           "$(cygpath -w "$project_root/.vite")" "$(cygpath -w "$project_root/update")" \
+          "$(cygpath -w "$project_root/output")" \
           "$(cygpath -w "$runtime_root/dist")" "$(cygpath -w "$runtime_root/.vite")" \
-      /NFL /NDL /NJH /NJS /NP >/dev/null
+      /NDL /NJH /NP > "${TEMP:-/tmp}/snapn-robocopy-last.log" 2>&1
     robocopy_status=$?
     set -e
     if (( robocopy_status >= 8 )); then

@@ -11,7 +11,7 @@ await fs.mkdir(outputDir, { recursive: true });
 
 const browser = await chromium.launch({
   headless: true,
-  args: ["--use-gl=swiftshader", "--enable-webgl", "--ignore-gpu-blocklist", "--disable-dev-shm-usage"],
+  args: (process.env.STADIUM_BROWSER_GL_ARGS ?? "--use-gl=swiftshader --enable-webgl --ignore-gpu-blocklist --disable-dev-shm-usage").split(" ").filter(Boolean),
 });
 
 async function state(page) {

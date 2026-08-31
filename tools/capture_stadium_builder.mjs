@@ -32,7 +32,7 @@ const representativePresets = [
 
 const browser = await chromium.launch({
   headless: true,
-  args: ["--use-gl=swiftshader", "--enable-webgl", "--ignore-gpu-blocklist", "--disable-dev-shm-usage"],
+  args: (process.env.STADIUM_BROWSER_GL_ARGS ?? "--use-gl=swiftshader --enable-webgl --ignore-gpu-blocklist --disable-dev-shm-usage").split(" ").filter(Boolean),
 });
 
 async function builderState(page) {
@@ -146,10 +146,21 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
     await page.waitForFunction(() => {
       const heading = document.querySelector(".stadium-builder-header h1");
       const preview = document.querySelector(".stadium-builder-preview-state");
-      return heading?.textContent?.trim() === "나만의 스타디움 설계"
+      return heading?.textContent?.trim() === "스타디움 설계"
         && preview?.getAttribute("data-preview-state") === "READY"
         && Boolean(document.querySelector(".stadium-builder-preview-canvas.is-ready"));
     }, { timeout: 30000 });
+
+    // Commercial Builder opens on a first-frame poster; the interactive WebGL
+    // under verification here sits behind the explicit "3D로 둘러보기" action.
+    const enterInteractive = page.locator(".stadium-builder-preview-enter");
+    if (await enterInteractive.count()) {
+      await enterInteractive.click();
+      await page.waitForFunction(() => (
+        !document.querySelector(".stadium-builder-preview-enter")
+      ), { timeout: 10000 });
+    }
+
     await page.evaluate(() => {
       globalThis.__stadiumBuilderContextEvents = { lost: 0, restored: 0 };
       const canvas = document.querySelector(".stadium-builder-preview-canvas");
@@ -207,7 +218,7 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
         await captureCanvasFrame(page, `${name}-seat-${pattern.toLowerCase()}`, frames, "seat");
       }
 
-      await page.getByRole("button", { name: "6단계 외관과 조명" }).click();
+      await page.getByRole("button", { name: "6단계 외관·조명" }).click();
       for (const facade of ["SOLID_RIB", "GLASS_BAND", "LIGHT_FRAME"]) {
         await selectVisualControl(page, "외관 구조", facade, "data-facade-profile");
         await captureCanvasFrame(page, `${name}-facade-${facade.toLowerCase()}`, frames);
@@ -270,7 +281,7 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
     await page.waitForFunction(() => document.querySelector(".stadium-builder-validator")?.classList.contains("is-valid"), { timeout: 5000 });
     const repaired = await builderState(page);
 
-    await page.getByRole("button", { name: "설계 저장" }).click();
+    await page.getByRole("button", { name: "저장" }).click();
     await page.waitForFunction(() => document.querySelector(".stadium-builder-save-message")?.textContent?.includes("revision 1 저장 완료"), { timeout: 5000 });
     const saved = await builderState(page);
     const storedBeforeReload = await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem("snapn:v2:stadium-builder:draft") ?? "null"));

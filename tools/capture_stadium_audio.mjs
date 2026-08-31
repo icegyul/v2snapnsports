@@ -12,7 +12,7 @@ const fullEntryCues = new Set(["APPROACH", "PITCH", "PROJECTION", "POSITION", "F
 
 const browser = await chromium.launch({
   headless: true,
-  args: ["--use-gl=swiftshader", "--enable-webgl", "--ignore-gpu-blocklist", "--disable-dev-shm-usage"],
+  args: (process.env.STADIUM_BROWSER_GL_ARGS ?? "--use-gl=swiftshader --enable-webgl --ignore-gpu-blocklist --disable-dev-shm-usage").split(" ").filter(Boolean),
 });
 
 async function audioState(page) {
@@ -42,7 +42,9 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
   page.on("pageerror", (error) => consoleErrors.push(error.stack ?? error.message));
 
   try {
-    await page.goto(`${appBaseUrl}/home`, { waitUntil: "domcontentloaded" });
+    // Commercial Home hides the audio dock; the stadium audio surface now
+    // lives on the full-entry experience.
+    await page.goto(`${appBaseUrl}/home/full`, { waitUntil: "domcontentloaded" });
     await page.waitForSelector(".stadium-audio-dock[data-audio-state='LOCKED']", { timeout: 30000 });
     const initial = await audioState(page);
     await page.waitForTimeout(500);
@@ -57,13 +59,16 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
       const dock = document.querySelector(".stadium-audio-dock");
       return dock?.getAttribute("data-audio-state") === "ENABLED"
         && dock.getAttribute("data-audio-context") === "running"
-        && Number(dock.getAttribute("data-audio-cue-count") ?? "0") >= 1
-        && dock.getAttribute("data-audio-last-cue") === "HOME";
+        && Number(dock.getAttribute("data-audio-cue-count") ?? "0") >= 1;
     }, { timeout: 15000 });
     const enabledHome = await audioState(page);
 
-    await page.getByRole("button", { name: "경기장을 눌러 입장하세요" }).click();
-    await page.waitForURL(/\/v2\/home\/full$/, { timeout: 15000, waitUntil: "commit" });
+    // Stage cues fire along the cinematic journey, which starts behind its
+    // explicit action in the tactical-first entry contract.
+    await page.waitForFunction(() => (
+      document.querySelector(".full-journey-surface")?.getAttribute("data-render-state") === "READY"
+    ), { timeout: 30000 });
+    await page.getByRole("button", { name: "시네마틱 입장" }).click();
     await page.waitForFunction(() => {
       const surface = document.querySelector(".full-journey-surface");
       const dock = document.querySelector(".stadium-audio-dock");
@@ -98,7 +103,16 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
     await page.waitForFunction(() => !document.querySelector(".stadium-audio-dock"), { timeout: 10000 });
     const dockAbsentOutsideStadium = await page.locator(".stadium-audio-dock").count() === 0;
 
+    // The commercial Home stays dock-free; returning to the full entry must
+    // restore the muted state.
     await page.locator(".bottom-navigation a[href='/v2/home']").click();
+    await page.waitForFunction(() => Boolean(document.querySelector(".stadium-interaction-surface")), { timeout: 15000 });
+    const dockAbsentOnHome = await page.locator(".stadium-audio-dock").count() === 0;
+
+    // Client-side navigation back in, so the module-level audio state
+    // survives (a full reload would legitimately reset it to LOCKED).
+    await page.getByRole("button", { name: "경기장 입장" }).click();
+    await page.waitForURL(/\/v2\/home\/full$/, { timeout: 15000 });
     await page.waitForFunction(() => {
       const dock = document.querySelector(".stadium-audio-dock");
       if (!dock || dock.getAttribute("data-audio-state") !== "MUTED") return false;
@@ -124,6 +138,7 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
       navRect,
       dockClearOfNav,
       dockAbsentOutsideStadium,
+      dockAbsentOnHome,
       fullEntryUrl: page.url(),
       consoleErrors,
     };
@@ -163,8 +178,8 @@ for (const result of results) {
     && result.beforeGesture.cueCount === 0
     && result.enabledHome.state === "ENABLED"
     && result.enabledHome.context === "running"
-    && result.enabledHome.lastCue === "HOME"
-    && result.enabledHome.cueCount === 1
+    && fullEntryCues.has(result.enabledHome.lastCue)
+    && result.enabledHome.cueCount >= 1
     && result.enabledFullEntry.state === "ENABLED"
     && result.enabledFullEntry.context === "running"
     && fullEntryCues.has(result.enabledFullEntry.lastCue)
@@ -175,6 +190,7 @@ for (const result of results) {
     && result.unmuted.context === "running"
     && result.unmuted.cueCount > result.muted.cueCount
     && result.dockAbsentOutsideStadium
+    && result.dockAbsentOnHome
     && result.returnedHome.state === "MUTED"
     && result.returnedDockRect.width >= 44
     && result.returnedDockRect.height >= 40

@@ -19,10 +19,14 @@ const expectedAnchors = [
   ["VIDEO", "영상", "/v2/video"],
 ];
 
-const browser = await chromium.launch({
-  headless: true,
-  args: ["--use-gl=swiftshader", "--enable-webgl", "--ignore-gpu-blocklist", "--disable-dev-shm-usage"],
-});
+// Override on hosts where SwiftShader cannot hold the scene
+// (e.g. STADIUM_BROWSER_GL_ARGS="--use-angle=d3d11" on Windows).
+const browserGlArgs = (process.env.STADIUM_BROWSER_GL_ARGS
+  ?? "--use-gl=swiftshader --enable-webgl --ignore-gpu-blocklist --disable-dev-shm-usage")
+  .split(" ")
+  .filter(Boolean);
+
+const browser = await chromium.launch({ headless: true, args: browserGlArgs });
 
 async function journeyState(page) {
   const dom = await page.locator(".full-journey-surface").evaluate((node) => ({
@@ -75,6 +79,13 @@ async function captureJourney(name, viewport, deviceScaleFactor = 1) {
         && surface?.getAttribute("data-live-scoreboard") === "true"
         && Boolean(document.querySelector(".full-journey-canvas-ready"));
     }, { timeout: 30000 });
+
+    // New default entry lands on the tactical field; the 6-stage cinematic
+    // journey under verification here starts behind its explicit action.
+    await page.getByRole("button", { name: "시네마틱 입장" }).click();
+    await page.waitForFunction(() => (
+      document.querySelector(".full-journey-surface")?.getAttribute("data-entry-view") === "CINEMATIC"
+    ), { timeout: 10000 });
 
     const states = [];
     const shots = [];
@@ -147,13 +158,15 @@ async function captureQuickEntry() {
   page.on("pageerror", (error) => consoleErrors.push(error.stack ?? error.message));
   try {
     await page.goto(`${appBaseUrl}/home/full`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => (
+      document.querySelector(".full-journey-surface")?.getAttribute("data-render-state") === "READY"
+    ), { timeout: 30000 });
+    // Quick entry now rides the cinematic view: start it, then skip.
+    await page.getByRole("button", { name: "시네마틱 입장" }).click();
     await page.waitForFunction(() => {
-      const surface = document.querySelector(".full-journey-surface");
       const button = document.querySelector(".full-journey-skip");
-      return surface?.getAttribute("data-render-state") === "READY"
-        && Boolean(button)
-        && !button.hasAttribute("disabled");
-    }, { timeout: 30000 });
+      return Boolean(button) && !button.hasAttribute("disabled");
+    }, { timeout: 15000 });
     await page.getByRole("button", { name: "빠른 입장" }).click();
     await page.waitForFunction(() => (
       document.querySelector(".full-journey-surface")?.getAttribute("data-journey-complete") === "true"
