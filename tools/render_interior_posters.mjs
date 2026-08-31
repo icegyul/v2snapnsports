@@ -1,4 +1,4 @@
-/* global process, console */
+/* global process, console, document, window */
 // Renders the real interior scene to jpg posters used by the STATIC
 // fallback, so low-end devices see the same first impression as WebGL.
 import { chromium } from "playwright";
