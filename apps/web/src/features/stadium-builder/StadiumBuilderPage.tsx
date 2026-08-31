@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   STADIUM_BUILDER_STEPS,
   createStadiumBuilderDraft,
   loadStadiumBuilderDraft,
   saveStadiumBuilderDraft,
+  stadiumBuilderDraftToRecipe,
   validateStadiumBuilderDraft,
   type StadiumBuilderDraft,
   type StadiumBuilderStep,
 } from "./stadiumBuilderModel";
+import { saveCustomStadiumRecipe } from "../stadium/stadiumSelection";
 import { StadiumBuilderControls } from "./StadiumBuilderControls";
 import { getStadiumBuilderMotionProfile } from "./stadiumBuilderMotion";
 import { StadiumBuilderPreview } from "./StadiumBuilderPreview";
@@ -37,6 +39,7 @@ const STEP_CAPTION: Record<StadiumBuilderStep, string> = {
 };
 
 export function StadiumBuilderPage() {
+  const navigate = useNavigate();
   const [draft, setDraft] = useState<StadiumBuilderDraft>(() => {
     if (typeof window === "undefined") return createStadiumBuilderDraft();
     return loadStadiumBuilderDraft(window.localStorage) ?? createStadiumBuilderDraft();
@@ -67,6 +70,22 @@ export function StadiumBuilderPage() {
     setSaveMessage(`revision ${result.draft.revision} 저장 완료`);
   };
 
+  const applyToHome = () => {
+    if (!validation.valid) {
+      setSaveMessage("설계 충돌을 해결한 뒤 홈에 적용할 수 있습니다.");
+      return;
+    }
+    const saved = saveStadiumBuilderDraft(window.localStorage, draft, draft.revision);
+    const applied = saved.status === "SAVED" ? saved.draft : draft;
+    try {
+      saveCustomStadiumRecipe(window.localStorage, stadiumBuilderDraftToRecipe(applied));
+    } catch {
+      setSaveMessage("이 브라우저에서는 홈 적용을 저장할 수 없습니다.");
+      return;
+    }
+    navigate("/home");
+  };
+
   const restore = () => {
     const restored = loadStadiumBuilderDraft(window.localStorage);
     if (!restored) {
@@ -90,6 +109,9 @@ export function StadiumBuilderPage() {
           <button type="button" className="stadium-builder-restore" onClick={restore}>복구</button>
           <motion.button type="button" className="stadium-builder-save" onClick={save} whileTap={prefersReducedMotion ? undefined : { scale: 0.975 }}>
             저장 <span aria-hidden="true">↗</span>
+          </motion.button>
+          <motion.button type="button" className="stadium-builder-apply" onClick={applyToHome} whileTap={prefersReducedMotion ? undefined : { scale: 0.975 }}>
+            이 경기장 사용
           </motion.button>
         </div>
       </header>

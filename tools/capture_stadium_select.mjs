@@ -43,8 +43,8 @@ try {
   await page.waitForURL(/\/v2\/home\/stadium$/, { timeout: 15000 });
   const cards = page.getByRole("radio");
   await cards.first().waitFor({ timeout: 15000 });
-  await page.waitForFunction(() => document.querySelectorAll('[role="radio"]').length === 5, { timeout: 15000 });
-  record("preset card count", (await cards.count()) === 5, String(await cards.count()));
+  await page.waitForFunction(() => document.querySelectorAll('[role="radio"]').length >= 8, { timeout: 15000 });
+  record("preset card count", (await cards.count()) >= 8, String(await cards.count()));
   await page.waitForFunction(() => {
     const preview = document.querySelector(".stadium-select-preview");
     return preview?.getAttribute("data-preview-state") === "READY";

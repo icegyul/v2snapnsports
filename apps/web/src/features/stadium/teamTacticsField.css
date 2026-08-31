@@ -1,4 +1,5 @@
-/* P0-B tactical field layer — WebGL-independent, mobile-first. */
+/* P0-B tactical field layer — FC-game presentation, WebGL-independent,
+   mobile-first. Perspective pitch + standing player cards + detail panel. */
 
 .team-tactics-field {
   position: absolute;
@@ -7,7 +8,7 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  gap: 14px;
+  gap: 12px;
   padding: clamp(18px, 4dvh, 44px) clamp(16px, 4vw, 56px) calc(84px + env(safe-area-inset-bottom, 0px));
   pointer-events: none;
 }
@@ -25,7 +26,7 @@
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.24em;
-  color: #b8c9d1;
+  color: #f0c75e;
 }
 
 .team-tactics-shape {
@@ -46,17 +47,33 @@
   color: #9fb1ba;
 }
 
+.team-tactics-stage {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp(14px, 2vw, 26px);
+  width: 100%;
+  pointer-events: none;
+}
+
+/* Perspective wrapper: the pitch tilts back like the game's squad screen,
+   while each card counter-rotates to stand upright on the surface. */
 .team-tactics-pitch {
   position: relative;
-  width: min(100%, 760px);
+  flex: 0 1 720px;
+  width: min(100%, 720px);
   aspect-ratio: 105 / 68;
-  margin: 0 auto;
-  border-radius: 6px;
+  border-radius: 8px;
+  transform: perspective(1200px) rotateX(21deg);
+  transform-style: preserve-3d;
+  transform-origin: 50% 88%;
   background:
-    linear-gradient(180deg, rgba(8, 24, 16, 0.82), rgba(6, 18, 13, 0.88));
+    repeating-linear-gradient(90deg, rgba(28, 84, 48, 0.94) 0 9.5%, rgba(24, 74, 43, 0.94) 9.5% 19%),
+    linear-gradient(180deg, #1c5430, #16452a);
   box-shadow:
-    inset 0 0 0 1px rgba(214, 231, 226, 0.16),
-    0 24px 60px rgba(0, 0, 0, 0.45);
+    inset 0 0 0 1px rgba(214, 231, 226, 0.2),
+    inset 0 0 90px rgba(0, 10, 4, 0.42),
+    0 30px 60px rgba(0, 0, 0, 0.5);
   pointer-events: auto;
 }
 
@@ -69,85 +86,227 @@
 
 .team-tactics-line {
   fill: none;
-  stroke: rgba(223, 238, 232, 0.55);
+  stroke: rgba(232, 244, 238, 0.6);
   stroke-width: 0.55;
   vector-effect: non-scaling-stroke;
 }
 
 .team-tactics-fill {
-  fill: rgba(223, 238, 232, 0.65);
+  fill: rgba(232, 244, 238, 0.7);
 }
 
 .team-tactics-connection {
-  stroke: #12dff3;
+  stroke: #f0c75e;
   stroke-width: 1.4;
   stroke-dasharray: 2.6 1.6;
   vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 6px rgba(18, 223, 243, 0.55));
+  filter: drop-shadow(0 0 6px rgba(240, 199, 94, 0.55));
 }
 
+/* FC-style standing card. */
 .team-tactics-marker {
   position: absolute;
-  width: 48px;
-  height: 48px;
-  padding: 0;
-  transform: translate(-50%, -50%);
+  width: 54px;
+  min-height: 64px;
+  padding: 4px 4px 3px;
+  transform: translate(-50%, -94%) rotateX(-21deg);
+  transform-origin: 50% 100%;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0;
-  border: 1px solid rgba(214, 231, 226, 0.34);
-  border-radius: 50%;
-  background: rgba(10, 22, 17, 0.82);
+  justify-content: flex-start;
+  gap: 1px;
+  border: 1px solid rgba(88, 108, 132, 0.9);
+  border-radius: 7px;
+  background: linear-gradient(180deg, #1d2940 0%, #141c2e 100%);
   color: #eef4f2;
   font-weight: 650;
   letter-spacing: -0.01em;
   line-height: 1.1;
   cursor: pointer;
-  transition: border-color 140ms ease, background-color 140ms ease;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.45);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.team-tactics-marker::after {
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  width: 26px;
+  height: 6px;
+  content: "";
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  filter: blur(2px);
+}
+
+.team-tactics-rating {
+  font-size: 15px;
+  font-weight: 750;
+  color: #f0c75e;
+}
+
+.team-tactics-avatar {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #243349;
+  color: #9fb4cc;
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .team-tactics-num {
-  font-size: 14px;
-  font-weight: 720;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .team-tactics-tag {
-  font-size: 10px;
-  font-weight: 600;
-  color: #b8c9d1;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
+/* Position colors, FC-style. */
+.team-tactics-marker[data-role="FW"] .team-tactics-tag { color: #ff7a70; }
+.team-tactics-marker[data-role="MF"] .team-tactics-tag { color: #63d287; }
+.team-tactics-marker[data-role="DF"] .team-tactics-tag { color: #6fb1f0; }
+.team-tactics-marker[data-role="GK"] .team-tactics-tag { color: #f2cf6d; }
+
 .team-tactics-marker:focus-visible {
-  outline: 2px solid #12dff3;
+  outline: 2px solid #f0c75e;
   outline-offset: 3px;
 }
 
 .team-tactics-marker.is-selected {
-  border-color: #12dff3;
-  background: rgba(9, 32, 34, 0.9);
-  box-shadow: 0 0 0 1px rgba(18, 223, 243, 0.5), 0 0 22px rgba(18, 223, 243, 0.3);
+  border-color: #f0c75e;
+  box-shadow: 0 0 0 1px rgba(240, 199, 94, 0.6), 0 12px 26px rgba(0, 0, 0, 0.5), 0 0 22px rgba(240, 199, 94, 0.25);
 }
 
 .team-tactics-own {
   z-index: 2;
-  width: 54px;
-  height: 54px;
-  border-color: rgba(18, 223, 243, 0.8);
-  background: rgba(8, 34, 36, 0.92);
+  width: 58px;
+  border-color: rgba(240, 199, 94, 0.85);
+  background: linear-gradient(180deg, #2a3350 0%, #171f33 100%);
 }
 
-.team-tactics-own .team-tactics-num {
-  font-size: 15px;
+.team-tactics-own .team-tactics-avatar {
+  background: #f0c75e;
+  color: #1a2332;
 }
 
 .team-tactics-own .team-tactics-tag {
-  color: #a9ecf4;
+  color: #f0c75e;
 }
 
-.team-tactics-own.is-selected {
-  box-shadow: 0 0 0 2px rgba(18, 223, 243, 0.65), 0 0 28px rgba(18, 223, 243, 0.4);
+/* Detail panel — FC right-rail on desktop, below the pitch on mobile. */
+.team-tactics-panel {
+  flex: 0 0 216px;
+  padding: 14px;
+  border: 1px solid rgba(88, 108, 132, 0.55);
+  border-radius: 12px;
+  color: #e8edf5;
+  background: rgba(20, 28, 46, 0.92);
+  backdrop-filter: blur(12px);
+  pointer-events: auto;
+}
+
+.team-tactics-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.team-tactics-panel-rating {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 9px;
+  background: #243349;
+  color: #f0c75e;
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.team-tactics-panel-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.team-tactics-panel-title strong {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.team-tactics-panel-title span {
+  font-size: 12px;
+  color: #9fb1ba;
+}
+
+.team-tactics-panel-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.team-tactics-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.team-tactics-stat-row dt {
+  flex: 0 0 44px;
+  font-size: 11px;
+  color: #9fb1ba;
+}
+
+.team-tactics-stat-row dd {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+}
+
+.team-tactics-stat-bar {
+  flex: 1;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #243349;
+}
+
+.team-tactics-stat-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: #4a90d9;
+}
+
+.team-tactics-stat-bar > span[data-strong="true"] {
+  background: #f0c75e;
+}
+
+.team-tactics-stat-value {
+  flex: 0 0 26px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.team-tactics-panel-note {
+  margin: 10px 0 0;
+  font-size: 10px;
+  color: #78899b;
 }
 
 .team-tactics-selection {
@@ -157,32 +316,58 @@
   pointer-events: none;
 }
 
+@media (max-width: 900px) {
+  .team-tactics-stage {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .team-tactics-panel {
+    flex: none;
+    width: min(100%, 400px);
+  }
+}
+
 @media (max-width: 760px) {
   .team-tactics-field {
     gap: 10px;
     padding-top: max(14px, env(safe-area-inset-top, 0px));
+    overflow-y: auto;
   }
 
   .team-tactics-shape {
     font-size: 34px;
   }
 
+  .team-tactics-pitch {
+    transform: perspective(900px) rotateX(22deg);
+  }
+
   .team-tactics-marker {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    min-height: 56px;
+    transform: translate(-50%, -94%) rotateX(-22deg);
   }
 
   .team-tactics-own {
-    width: 50px;
-    height: 50px;
+    width: 54px;
+  }
+
+  .team-tactics-rating {
+    font-size: 13px;
+  }
+
+  .team-tactics-avatar {
+    width: 18px;
+    height: 18px;
   }
 
   .team-tactics-num {
-    font-size: 12px;
+    font-size: 10px;
   }
 
   .team-tactics-tag {
-    font-size: 9px;
+    font-size: 8px;
   }
 }
 

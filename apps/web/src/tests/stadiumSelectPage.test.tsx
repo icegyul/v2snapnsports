@@ -89,4 +89,16 @@ describe("StadiumSelectPage", () => {
     expect(window.localStorage.getItem(STADIUM_SELECTION_STORAGE_KEY)).toBe(DEFAULT_SERVICE_STADIUM_ID);
     await waitFor(() => expect(screen.getByText("홈으로 돌아옴")).toBeTruthy());
   });
+
+  it("offers a DIY entry into the stadium builder", () => {
+    renderPage();
+    const diy = screen.getByRole("link", { name: /직접 만들기/ });
+    expect(diy.getAttribute("href")).toBe("/home/builder");
+  });
+
+  it("marks premium presets with a tier badge", () => {
+    renderPage();
+    expect(screen.getAllByText("프리미엄 · 출시 기념 무료").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("기본 제공").length).toBeGreaterThanOrEqual(1);
+  });
 });

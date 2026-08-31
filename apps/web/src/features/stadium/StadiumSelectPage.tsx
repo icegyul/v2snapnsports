@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { LazyMotion, useReducedMotion } from "motion/react";
 import { button as MotionButton, div as MotionDiv, span as MotionSpan } from "motion/react-m";
 import { createStadiumWebglRenderer, type StadiumWebglRenderer } from "../../three/stadiumWebglV14";
 import { loadStadiumMotionFeatures } from "./stadiumMotionLoader";
 import {
+  listSelectableStadiums,
   loadSelectedStadiumId,
   saveSelectedStadiumId,
   SERVICE_STADIUM_PRESETS,
@@ -114,7 +115,14 @@ export function StadiumSelectPage() {
   const navigate = useNavigate();
   const reducedMotion = Boolean(useReducedMotion());
   const [selectedId, setSelectedId] = useState(readInitialSelection);
-  const selected = SERVICE_STADIUM_PRESETS.find((preset) => preset.id === selectedId) ?? SERVICE_STADIUM_PRESETS[0];
+  const [stadiums] = useState<readonly ServiceStadiumPreset[]>(() => {
+    try {
+      return listSelectableStadiums(window.localStorage);
+    } catch {
+      return SERVICE_STADIUM_PRESETS;
+    }
+  });
+  const selected = stadiums.find((preset) => preset.id === selectedId) ?? stadiums[0];
 
   const confirm = () => {
     try {
@@ -137,7 +145,7 @@ export function StadiumSelectPage() {
         <StadiumSelectPreview preset={selected} reducedMotion={reducedMotion} />
 
         <div className="stadium-select-cards" role="radiogroup" aria-label="경기장 프리셋">
-          {SERVICE_STADIUM_PRESETS.map((preset, index) => {
+          {stadiums.map((preset, index) => {
             const active = preset.id === selected.id;
             return (
               <MotionButton
@@ -156,7 +164,12 @@ export function StadiumSelectPage() {
               >
                 <span className="stadium-select-card-swatch" aria-hidden="true" />
                 <span className="stadium-select-card-body">
-                  <strong>{preset.label}</strong>
+                  <strong>
+                    {preset.label}
+                    <span className={`stadium-select-card-tier ${preset.tier === "PREMIUM" ? "is-premium" : ""}`}>
+                      {preset.tier === "PREMIUM" ? "프리미엄 · 출시 기념 무료" : "기본 제공"}
+                    </span>
+                  </strong>
                   <span>{preset.tagline}</span>
                 </span>
                 {active && (
@@ -185,6 +198,14 @@ export function StadiumSelectPage() {
             돌아가기
           </button>
         </MotionDiv>
+
+        <Link className="stadium-select-diy" to="/home/builder">
+          <span>
+            <strong>직접 만들기 · DIY 설계</strong>
+            <span>구조·좌석·조명까지 7단계로 나만의 경기장을 완성하세요</span>
+          </span>
+          <span aria-hidden="true">→</span>
+        </Link>
       </main>
     </LazyMotion>
   );
