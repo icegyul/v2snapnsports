@@ -91,8 +91,10 @@ jobs:
           set +e
           lftp -d -e "
             set ftp:ssl-allow yes;
+            set ftp:ssl-force yes;
             set ftp:ssl-protect-data yes;
             set ftp:ssl-protect-list yes;
+            set ssl:verify-certificate no;
             set net:max-retries 2;
             set net:timeout 20;
             set net:reconnect-interval-base 3;
