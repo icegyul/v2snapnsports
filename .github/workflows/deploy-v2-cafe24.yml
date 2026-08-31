@@ -10,8 +10,9 @@ name: Deploy V2 to Cafe24
 # take precedence when present.
 # Optional variable (Settings → Variables → Actions):
 #   CAFE24_FTP_SERVER_DIR  target directory relative to the FTP login
-#                          home, default v2/ (this account's FTP home
-#                          has no www/ wrapper - it is the doc root).
+#                          home, default www/V2/ (the site's real doc
+#                          root is www/, and a V2 folder already exists
+#                          there — confirmed via a manual FTP session).
 
 on:
   workflow_dispatch:
@@ -70,30 +71,12 @@ jobs:
           npm test -- --run
           npm run build
 
-      - name: Probe SFTP with the same credentials (diagnostic, non-blocking)
-        continue-on-error: true
-        run: |
-          set +e
-          sudo apt-get update -y
-          sudo apt-get install -y sshpass
-          encode() { awk '{printf "%s%%0A", $0}'; }
-          target="${{ vars.CAFE24_FTP_SERVER_DIR != '' && vars.CAFE24_FTP_SERVER_DIR || 'v2/' }}"
-          SSHPASS="$FTP_PASSWORD" sshpass -e sftp -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o BatchMode=no -b - "$FTP_USERNAME@$FTP_SERVER" > "$RUNNER_TEMP/sftp_probe.log" 2>&1 <<SFTPCMDS
-          mkdir $target
-          ls -la
-          bye
-          SFTPCMDS
-          sftp_status=$?
-          echo "sftp probe exit=$sftp_status"
-          echo "::notice title=SFTP probe (same login, port 22)::$(printf 'exit=%s%%0A' "$sftp_status")$(cat "$RUNNER_TEMP/sftp_probe.log" | encode)"
-          set -e
-
       - name: Deploy dist/ to /v2/ via lftp
         run: |
           sudo apt-get update -y
           sudo apt-get install -y lftp
 
-          target="${{ vars.CAFE24_FTP_SERVER_DIR != '' && vars.CAFE24_FTP_SERVER_DIR || 'v2/' }}"
+          target="${{ vars.CAFE24_FTP_SERVER_DIR != '' && vars.CAFE24_FTP_SERVER_DIR || 'www/V2/' }}"
 
           # Credentials via .netrc rather than an lftp command string, so
           # nothing in the password needs shell/lftp quoting.
