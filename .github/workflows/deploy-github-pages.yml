@@ -1,0 +1,72 @@
+name: Deploy V2 preview to GitHub Pages
+
+# Public, shareable preview of the V2 build, entirely separate from
+# Cafe24/V1 - useful while the snapnsports.com/v2/ routing exclusion is
+# pending with Cafe24 support. Triggered by the same deploy/v2 pointer
+# branch used for the Cafe24 deploy (or manually via workflow_dispatch).
+#
+# The main build's vite.config.ts base ("/v2/") targets the eventual
+# Cafe24 path and is left untouched. This job overrides the base at
+# build time to match where GitHub Pages actually serves a project
+# site from (https://<owner>.github.io/<repo>/v2/), so both targets
+# can be built from the same source without permanently changing the
+# app's real base path.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - deploy/v2
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck and test
+        run: |
+          npm run typecheck
+          npm test -- --run
+
+      - name: Build with a GitHub Pages-relative base
+        run: ./node_modules/.bin/vite build --base=/${{ github.event.repository.name }}/v2/
+
+      - name: Wrap build output under /v2/ to match the app's routes
+        run: |
+          mkdir -p pages-root/v2
+          cp -r dist/. pages-root/v2/
+          echo '<meta http-equiv="refresh" content="0; url=./v2/">' > pages-root/index.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages-root
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
