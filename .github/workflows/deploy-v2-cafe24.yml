@@ -78,6 +78,12 @@ jobs:
 
           target="${{ vars.CAFE24_FTP_SERVER_DIR != '' && vars.CAFE24_FTP_SERVER_DIR || 'www/v2/' }}"
 
+          encode() { awk '{printf "%s%%0A", $0}'; }
+          precheck="pwd=$(pwd)
+          $(ls -la dist 2>&1 | head -20)"
+          echo "$precheck"
+          echo "::notice title=dist/ before lftp::$(printf '%s' "$precheck" | encode)"
+
           # Credentials via .netrc rather than an lftp command string, so
           # nothing in the password needs shell/lftp quoting.
           umask 077
@@ -118,7 +124,8 @@ jobs:
           echo "--- lftp transcript (tail) ---"
           tail -c 2000 "$RUNNER_TEMP/lftp.log" || true
           transferred=$(grep -c "^put " "$RUNNER_TEMP/lftp.log" || true)
-          echo "::notice title=lftp mirror succeeded::files transferred (put commands seen)=${transferred}, target=${target}"
+          tail -c 3000 "$RUNNER_TEMP/lftp.log" > "$RUNNER_TEMP/lftp_success_tail.log"
+          echo "::notice title=lftp mirror succeeded (put=${transferred}, target=${target})::$(cat "$RUNNER_TEMP/lftp_success_tail.log" | encode)"
 
       - name: Smoke check /v2/
         run: |
