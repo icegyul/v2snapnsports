@@ -17,6 +17,7 @@ export const BASE_STADIUM_ACCEPTANCE_RECIPE: StadiumRecipe = {
   accentColor: 0x159bd2,
   columnStyle: "y",
   presentationProfile: "SERVICE_HOME",
+  homeView: "INTERIOR",
 };
 
 export function createStadiumWebglRenderer(

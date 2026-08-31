@@ -7,7 +7,7 @@ import stadiumServiceSkyUrl from "../assets/stadium-service-sky.png";
 import stadiumConcreteBoardUrl from "../assets/stadium-concrete-board.png";
 import type { CoreVisualMode } from "../api/coreProductContracts";
 import { resolveSeatPatternColor, resolveStadiumVisualProfile, type StadiumVisualProfile } from "./stadiumVisualProfile";
-import { resolveServiceCamera } from "./stadiumServicePresentation";
+import { resolveInteriorCamera, resolveServiceCamera } from "./stadiumServicePresentation";
 import { resolveServiceArchitecture } from "./stadiumServiceArchitecture";
 
 export interface StadiumTeamMarker {
@@ -47,6 +47,7 @@ export interface StadiumRecipe {
   accentColor: number;
   columnStyle: StadiumColumnStyle;
   presentationProfile?: "SERVICE_HOME" | "SERVICE_BUILDER";
+  homeView?: "EXTERIOR" | "INTERIOR";
   bowlProfile?: "COMPACT" | "BALANCED" | "STEEP";
   roofProfile?: "OPEN_RING" | "HALF_CANOPY" | "FULL_CANOPY";
   standProfile?: "SINGLE_BOWL" | "DOUBLE_DECK" | "TRIPLE_DECK";
@@ -103,15 +104,22 @@ function addDisposable<T extends THREE.BufferGeometry | THREE.Material | THREE.T
 
 function makePitchTexture(textures: Set<THREE.Texture>): THREE.Texture {
   const canvas = document.createElement("canvas");
-  canvas.width = 1050;
-  canvas.height = 680;
+  // 20 px/m raster (was 10): the interior stand camera sits 60-100m out and
+  // needs crisp lines/stripes under bloom. Logic below stays in the original
+  // 1050x680 metre-scaled space via ctx.scale.
+  const pitchScale = 2;
+  const logicalWidth = 1050;
+  const logicalHeight = 680;
+  canvas.width = logicalWidth * pitchScale;
+  canvas.height = logicalHeight * pitchScale;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("stadium pitch canvas unavailable");
+  ctx.scale(pitchScale, pitchScale);
 
-  const stripe = canvas.width / 20;
+  const stripe = logicalWidth / 20;
   for (let i = 0; i < 24; i += 1) {
     ctx.fillStyle = i % 2 === 0 ? "#193f29" : "#1e492e";
-    ctx.fillRect(i * stripe, 0, stripe + 1, canvas.height);
+    ctx.fillRect(i * stripe, 0, stripe + 1, logicalHeight);
   }
 
   const vignette = ctx.createRadialGradient(525, 340, 40, 525, 340, 660);
@@ -119,46 +127,48 @@ function makePitchTexture(textures: Set<THREE.Texture>): THREE.Texture {
   vignette.addColorStop(0.56, "rgba(0,0,0,0)");
   vignette.addColorStop(1, "rgba(0,12,6,0.18)");
   ctx.fillStyle = vignette;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, logicalWidth, logicalHeight);
 
   ctx.globalAlpha = 0.090;
   for (let i = 0; i < 5200; i += 1) {
-    const x = (i * 131) % canvas.width;
-    const y = (i * 71 + (i % 17) * 19) % canvas.height;
+    const x = (i * 131) % logicalWidth;
+    const y = (i * 71 + (i % 17) * 19) % logicalHeight;
     ctx.fillStyle = i % 3 === 0 ? "#8da77c" : "#0a180e";
     ctx.fillRect(x, y, 1, i % 5 === 0 ? 2 : 1);
   }
   ctx.globalAlpha = 1;
 
-  const line = 5;
-  ctx.strokeStyle = "rgba(246,248,242,0.94)";
-  ctx.fillStyle = "rgba(246,248,242,0.94)";
+  // 0.35m lines at 82% white: real-broadcast weight; full-bright 0.5m lines
+  // saturate into lightsabers under the EVENT exposure of the interior view.
+  const line = 3.5;
+  ctx.strokeStyle = "rgba(240,244,238,0.82)";
+  ctx.fillStyle = "rgba(240,244,238,0.82)";
   ctx.lineWidth = line;
-  ctx.strokeRect(line / 2, line / 2, canvas.width - line, canvas.height - line);
+  ctx.strokeRect(line / 2, line / 2, logicalWidth - line, logicalHeight - line);
   ctx.beginPath();
-  ctx.moveTo(canvas.width / 2, 0);
-  ctx.lineTo(canvas.width / 2, canvas.height);
+  ctx.moveTo(logicalWidth / 2, 0);
+  ctx.lineTo(logicalWidth / 2, logicalHeight);
   ctx.stroke();
   ctx.beginPath();
-  ctx.arc(canvas.width / 2, canvas.height / 2, 91.5, 0, TAU);
+  ctx.arc(logicalWidth / 2, logicalHeight / 2, 91.5, 0, TAU);
   ctx.stroke();
   ctx.beginPath();
-  ctx.arc(canvas.width / 2, canvas.height / 2, 4, 0, TAU);
+  ctx.arc(logicalWidth / 2, logicalHeight / 2, 4, 0, TAU);
   ctx.fill();
 
   const penaltyWidth = 403.2;
   const penaltyDepth = 165;
   const sixWidth = 183.2;
   const sixDepth = 55;
-  const py = (canvas.height - penaltyWidth) / 2;
-  const sy = (canvas.height - sixWidth) / 2;
+  const py = (logicalHeight - penaltyWidth) / 2;
+  const sy = (logicalHeight - sixWidth) / 2;
   ctx.strokeRect(0, py, penaltyDepth, penaltyWidth);
-  ctx.strokeRect(canvas.width - penaltyDepth, py, penaltyDepth, penaltyWidth);
+  ctx.strokeRect(logicalWidth - penaltyDepth, py, penaltyDepth, penaltyWidth);
   ctx.strokeRect(0, sy, sixDepth, sixWidth);
-  ctx.strokeRect(canvas.width - sixDepth, sy, sixDepth, sixWidth);
-  for (const x of [110, canvas.width - 110]) {
+  ctx.strokeRect(logicalWidth - sixDepth, sy, sixDepth, sixWidth);
+  for (const x of [110, logicalWidth - 110]) {
     ctx.beginPath();
-    ctx.arc(x, canvas.height / 2, 3.5, 0, TAU);
+    ctx.arc(x, logicalHeight / 2, 3.5, 0, TAU);
     ctx.fill();
   }
 
@@ -563,12 +573,16 @@ function addGoal(
 }
 
 function crowdShirt(seed: number, accent: THREE.Color): THREE.Color {
+  // Game-style stands: roughly a fifth of the crowd wears the home accent so
+  // the bowl reads as one supporting mass, the rest a warmer casual mix.
   const value = hash(seed, 4);
-  if (value > 0.985) return accent.clone().multiplyScalar(0.42 + hash(seed, 7) * 0.14);
-  if (value > 0.925) return new THREE.Color(0x493b3c);
-  if (value > 0.80) return new THREE.Color(0x50534d);
-  if (value > 0.55) return new THREE.Color(0x454a4e);
-  if (value > 0.30) return new THREE.Color(0x343a3f);
+  if (value > 0.80) return accent.clone().multiplyScalar(0.38 + hash(seed, 7) * 0.30);
+  if (value > 0.72) return new THREE.Color(0xb8b4ac);
+  if (value > 0.62) return new THREE.Color(0x8a4438);
+  if (value > 0.52) return new THREE.Color(0x8f7f3e);
+  if (value > 0.40) return new THREE.Color(0x50534d);
+  if (value > 0.26) return new THREE.Color(0x454a4e);
+  if (value > 0.12) return new THREE.Color(0x343a3f);
   return new THREE.Color(0x252b30);
 }
 
@@ -891,6 +905,35 @@ const floodMaterial = addDisposable(
   }
   floods.instanceMatrix.needsUpdate = true;
   group.add(floods);
+
+  // FIFA-night interior beams: under EVENT lighting the roof floods cast
+  // visible additive cones down onto the pitch, read from inside the bowl.
+  if (profile.builderVisuals && recipe.lightingProfile === "EVENT") {
+    const beamLength = 44;
+    const beamGeometry = addDisposable(geometries, new THREE.CylinderGeometry(1.1, 7.5, beamLength, 12, 1, true));
+    const beamMaterial = addDisposable(
+      materials,
+      new THREE.MeshBasicMaterial({
+        color: 0xdff3ff,
+        transparent: true,
+        opacity: 0.05,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      }),
+    );
+    const axis = new THREE.Vector3(0, 1, 0);
+    for (let i = 0; i < 10; i += 1) {
+      const angle = (i / 10) * TAU + 0.13;
+      const from = new THREE.Vector3(Math.cos(angle) * (innerX + 0.4), 36.9, Math.sin(angle) * (innerZ + 0.3));
+      const to = new THREE.Vector3(Math.cos(angle) * 24, 0.2, Math.sin(angle) * 16);
+      const direction = to.clone().sub(from).normalize();
+      const beam = new THREE.Mesh(beamGeometry, beamMaterial);
+      beam.position.copy(from.clone().add(direction.clone().multiplyScalar(beamLength / 2)));
+      beam.quaternion.setFromUnitVectors(axis, direction.clone().negate());
+      group.add(beam);
+    }
+  }
 }
 
 function addLightGlows(
@@ -1831,7 +1874,7 @@ function buildStadium(
   const servicePresentation = Boolean(recipe.presentationProfile?.startsWith("SERVICE_"));
   const concreteMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: servicePresentation ? 0x78838a : 0x5b6268, roughness: 0.90, metalness: 0.02 }),
+    new THREE.MeshStandardMaterial({ color: servicePresentation ? 0x78838a : 0x5b6268, roughness: 0.90, metalness: 0.02, side: THREE.DoubleSide }),
   );
   const darkConcreteMaterial = addDisposable(
     materials,
@@ -1860,7 +1903,7 @@ function buildStadium(
   );
   const blackMaterial = addDisposable(
     materials,
-    new THREE.MeshStandardMaterial({ color: 0x05090d, roughness: 0.78, metalness: 0.1 }),
+    new THREE.MeshStandardMaterial({ color: 0x05090d, roughness: 0.78, metalness: 0.1, side: THREE.DoubleSide }),
   );
   const whiteMaterial = addDisposable(
     materials,
@@ -2292,11 +2335,15 @@ export function createStadiumWebglRenderer(
   let pixelRatio = 1;
 
   // P1 night-scene bloom: FULL mode only, so FAST/LIGHT keep their budget.
+  // EVENT lighting raises exposure to 1.32, which pushes the white pitch
+  // lines over the default threshold and smears them — so night presets
+  // bloom only the true emissives (floods, LED rings, beams).
   let composer: EffectComposer | null = null;
   if (mode === "FULL") {
+    const eventLighting = recipe.lightingProfile === "EVENT";
     composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
-    composer.addPass(new UnrealBloomPass(new THREE.Vector2(1, 1), 0.42, 0.5, 0.82));
+    composer.addPass(new UnrealBloomPass(new THREE.Vector2(1, 1), eventLighting ? 0.36 : 0.42, 0.5, eventLighting ? 0.92 : 0.82));
   }
 
   // The bloom composer outputs an opaque frame, so the storm sky must live in
@@ -2343,7 +2390,7 @@ export function createStadiumWebglRenderer(
     if (composer) {
       composer.render();
     } else {
-      present();
+      renderer.render(scene, camera);
     }
   };
 
@@ -2370,6 +2417,21 @@ export function createStadiumWebglRenderer(
   const render = (orbit: number, zoom0: number, rise0 = 0) => {
   const portrait = cssWidth / cssHeight < 0.82;
   camera.aspect = cssWidth / cssHeight;
+
+  if (recipe.presentationProfile === "SERVICE_HOME" && recipe.homeView === "INTERIOR") {
+    const pose = resolveInteriorCamera(portrait ? "MOBILE" : "DESKTOP", orbit, zoom0, rise0);
+    camera.fov = pose.fov;
+    camera.zoom = 1;
+    camera.position.set(...pose.position);
+    camera.lookAt(new THREE.Vector3(...pose.target));
+    camera.updateProjectionMatrix();
+    stadium.rotation.y = 0;
+    // Gentle bowl wash: the interior camera sits 60-100m out, so the aerial
+    // 2400-level wash blows the white pitch lines past the bloom threshold.
+    aerialWash.intensity = 240;
+    present();
+    return;
+  }
 
   if (recipe.presentationProfile === "SERVICE_HOME") {
     const pose = resolveServiceCamera(portrait ? "MOBILE" : "DESKTOP", orbit, zoom0, rise0);
