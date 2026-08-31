@@ -27,21 +27,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Preflight secrets
+      - name: Resolve FTP credentials
         env:
           S: ${{ secrets.CAFE24_FTP_SERVER }}
           U: ${{ secrets.CAFE24_FTP_USERNAME }}
           P: ${{ secrets.CAFE24_FTP_PASSWORD }}
+          COMBINED: ${{ secrets.CAFE24 }}
         run: |
-          missing=""
-          [ -z "$S" ] && missing="$missing CAFE24_FTP_SERVER"
-          [ -z "$U" ] && missing="$missing CAFE24_FTP_USERNAME"
-          [ -z "$P" ] && missing="$missing CAFE24_FTP_PASSWORD"
-          if [ -n "$missing" ]; then
-            echo "::error::Missing repository secrets:${missing}. Register them under Settings > Secrets and variables > Actions > Repository secrets (not Variables, not Environment secrets)."
+          # Preferred: one secret named CAFE24 whose value is three lines —
+          # server / username / password. Individual secrets still win if set.
+          if [ -z "$S" ] && [ -n "$COMBINED" ]; then
+            S=$(printf '%s\n' "$COMBINED" | sed -n 1p | tr -d '\r' | xargs)
+            U=$(printf '%s\n' "$COMBINED" | sed -n 2p | tr -d '\r' | xargs)
+            P=$(printf '%s\n' "$COMBINED" | sed -n 3p | tr -d '\r')
+          fi
+          if [ -z "$S" ] || [ -z "$U" ] || [ -z "$P" ]; then
+            echo "::error::FTP credentials incomplete. Easiest fix: edit the repository secret named CAFE24 so its value is exactly three lines - line 1 FTP server, line 2 username, line 3 password."
             exit 1
           fi
-          echo "All three FTP secrets are present."
+          echo "::add-mask::$P"
+          {
+            echo "FTP_SERVER=$S"
+            echo "FTP_USERNAME=$U"
+            echo "FTP_PASSWORD=$P"
+          } >> "$GITHUB_ENV"
+          echo "FTP credentials resolved."
 
       - uses: actions/setup-node@v4
         with:
@@ -60,9 +70,9 @@ jobs:
       - name: Deploy dist/ to /v2/
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.CAFE24_FTP_SERVER }}
-          username: ${{ secrets.CAFE24_FTP_USERNAME }}
-          password: ${{ secrets.CAFE24_FTP_PASSWORD }}
+          server: ${{ env.FTP_SERVER }}
+          username: ${{ env.FTP_USERNAME }}
+          password: ${{ env.FTP_PASSWORD }}
           local-dir: dist/
           server-dir: ${{ vars.CAFE24_FTP_SERVER_DIR != '' && vars.CAFE24_FTP_SERVER_DIR || 'www/v2/' }}
           dangerous-clean-slate: false
