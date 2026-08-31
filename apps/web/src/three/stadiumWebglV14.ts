@@ -1949,7 +1949,8 @@ function buildStadium(
       emissiveIntensity: 0.78,
       roughness: 0.40,
       metalness: 0.05,
-      side: THREE.DoubleSide,
+      // FrontSide: the interior stand camera otherwise reads the near-side
+      // LED board's backface as mirrored text.
     }),
   );
   const pitchGeometry = addDisposable(geometries, new THREE.PlaneGeometry(105, 68, 20, 12));

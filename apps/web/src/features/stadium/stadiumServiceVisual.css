@@ -146,7 +146,7 @@ body:has(.stadium-service-home) .app-shell {
   will-change: transform;
   opacity: 1;
   filter: none;
-  background: url("../../assets/stadium-service-poster-desktop.jpg") center center / cover no-repeat;
+  background: url("../../assets/stadium-interior-poster-desktop.jpg") center center / cover no-repeat;
 }
 
 .shell-main.stadium-service-home .stadium-static-fallback > * {
@@ -344,7 +344,7 @@ body:has(.stadium-service-home) .bottom-navigation .stadium-nav-indicator {
   }
 
   .shell-main.stadium-service-home .stadium-static-fallback {
-    background-image: url("../../assets/stadium-service-poster-mobile.jpg") !important;
+    background-image: url("../../assets/stadium-interior-poster-mobile.jpg") !important;
     background-position: center center !important;
     background-size: cover !important;
   }
