@@ -1,0 +1,9 @@
+# SnapN Sports V2 — SPA fallback under /v2/ on Cafe24 (Apache).
+# Deep links like /v2/home/full must serve the app shell; real files
+# (assets, sw.js, manifest) are served as-is.
+RewriteEngine On
+RewriteBase /v2/
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+RewriteRule . /v2/index.html [L]
