@@ -53,6 +53,16 @@ jobs:
           } >> "$GITHUB_ENV"
           echo "FTP credentials resolved."
 
+      - name: Inspect FTP root layout (diagnostic, safe - no secret values printed)
+        run: |
+          encode() { awk '{printf "%s%%0A", $0}'; }
+          root_listing=$(curl -s --list-only -u "${FTP_USERNAME}:${FTP_PASSWORD}" "ftp://${FTP_SERVER}/" || echo "LIST_FAILED")
+          echo "::notice title=FTP root listing::$(printf '%s' "$root_listing" | encode)"
+          for d in www html public_html htdocs web v2; do
+            sub=$(curl -s --list-only -u "${FTP_USERNAME}:${FTP_PASSWORD}" "ftp://${FTP_SERVER}/$d/" 2>&1 || echo "NOT_FOUND_OR_EMPTY")
+            echo "::notice title=FTP /$d/ listing::$(printf '%s' "$sub" | encode)"
+          done
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
