@@ -27,6 +27,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Preflight secrets
+        env:
+          S: ${{ secrets.CAFE24_FTP_SERVER }}
+          U: ${{ secrets.CAFE24_FTP_USERNAME }}
+          P: ${{ secrets.CAFE24_FTP_PASSWORD }}
+        run: |
+          missing=""
+          [ -z "$S" ] && missing="$missing CAFE24_FTP_SERVER"
+          [ -z "$U" ] && missing="$missing CAFE24_FTP_USERNAME"
+          [ -z "$P" ] && missing="$missing CAFE24_FTP_PASSWORD"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:${missing}. Register them under Settings > Secrets and variables > Actions > Repository secrets (not Variables, not Environment secrets)."
+            exit 1
+          fi
+          echo "All three FTP secrets are present."
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
