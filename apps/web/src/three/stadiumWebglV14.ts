@@ -1236,7 +1236,9 @@ function addExteriorFacade(
     new THREE.MeshPhysicalMaterial({
       color: serviceBuilder ? 0x4f6975 : facade === "LIGHT_FRAME" ? 0x24485c : facade === "SOLID_RIB" ? 0x343e46 : 0x17303e,
       emissive: serviceBuilder ? 0xf1d6a7 : facade === "LIGHT_FRAME" ? recipe.accentColor : 0x07131a,
-      emissiveIntensity: serviceBuilder ? 0.24 : facade === "LIGHT_FRAME" ? 0.22 : facade === "SOLID_RIB" ? 0.02 : 0.44,
+      // LIGHT_FRAME reads as dark glass behind a luminous lattice, so its
+      // glass recedes while GLASS_BAND stays the glowing ribbon.
+      emissiveIntensity: serviceBuilder ? 0.24 : facade === "LIGHT_FRAME" ? 0.12 : facade === "SOLID_RIB" ? 0.02 : 0.44,
       roughness: serviceBuilder ? 0.26 : facade === "SOLID_RIB" ? 0.70 : 0.18,
       metalness: facade === "SOLID_RIB" ? 0.06 : facade === "LIGHT_FRAME" ? 0.28 : 0.18,
       transparent: facade !== "SOLID_RIB",
@@ -1251,7 +1253,7 @@ function addExteriorFacade(
     new THREE.MeshStandardMaterial({
       color: facade === "LIGHT_FRAME" ? recipe.accentColor : facade === "SOLID_RIB" ? 0xa3adb5 : 0x929da6,
       emissive: facade === "LIGHT_FRAME" || recipe.lightingProfile === "EVENT" ? recipe.accentColor : 0x000000,
-      emissiveIntensity: facade === "LIGHT_FRAME" ? 0.32 : recipe.lightingProfile === "EVENT" ? 0.10 : 0,
+      emissiveIntensity: facade === "LIGHT_FRAME" ? 1.25 : recipe.lightingProfile === "EVENT" ? 0.10 : 0,
       roughness: facade === "SOLID_RIB" ? 0.52 : 0.38,
       metalness: 0.70,
     }),
@@ -1317,8 +1319,8 @@ function addExteriorFacade(
   addEllipticRing(group, geometries, finMaterial, 121.6, 86.3, 17.25, 0.14);
   addEllipticRing(group, geometries, finMaterial, 121.8, 86.5, 32.9, 0.20);
 
-  const finWidth = facade === "SOLID_RIB" ? 0.82 : facade === "LIGHT_FRAME" ? 0.44 : 0.24;
-  const finDepth = facade === "SOLID_RIB" ? 3.2 : facade === "LIGHT_FRAME" ? 1.8 : 1.1;
+  const finWidth = facade === "SOLID_RIB" ? 0.82 : facade === "LIGHT_FRAME" ? 0.92 : 0.24;
+  const finDepth = facade === "SOLID_RIB" ? 3.2 : facade === "LIGHT_FRAME" ? 2.6 : 1.1;
   const finGeometry = addDisposable(geometries, new THREE.BoxGeometry(finWidth, 15.2, finDepth));
   for (let i = 0; i < profile.facadeRibCount; i += 1) {
     const angle = (i / profile.facadeRibCount) * TAU;
