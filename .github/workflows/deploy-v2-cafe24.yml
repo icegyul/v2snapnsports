@@ -71,6 +71,32 @@ jobs:
           npm test -- --run
           npm run build
 
+      - name: Read-only - inspect root .htaccess (no V1 file is modified)
+        continue-on-error: true
+        run: |
+          set +e
+          sudo apt-get update -y
+          sudo apt-get install -y lftp
+          encode() { awk '{printf "%s%%0A", $0}'; }
+          umask 077
+          cat > "$HOME/.netrc" <<NETRC
+          machine $FTP_SERVER
+          login $FTP_USERNAME
+          password $FTP_PASSWORD
+          NETRC
+          chmod 600 "$HOME/.netrc"
+          lftp -e "
+            set ftp:ssl-allow no;
+            set net:timeout 15;
+            open $FTP_SERVER;
+            cd www;
+            cat .htaccess;
+            bye
+          " > "$RUNNER_TEMP/htaccess.log" 2>&1
+          rm -f "$HOME/.netrc"
+          echo "::notice title=www/.htaccess (read-only)::$(cat "$RUNNER_TEMP/htaccess.log" | encode)"
+          set -e
+
       - name: Deploy dist/ to /v2/ via lftp
         run: |
           sudo apt-get update -y
