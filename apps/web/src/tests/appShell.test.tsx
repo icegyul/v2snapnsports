@@ -64,3 +64,29 @@ describe("design-independent player shell", () => {
     await waitFor(() => expect(window.location.pathname).toBe("/v2/home/full"));
   });
 });
+
+describe("signing up records a preference, never a permission", () => {
+  it("remembers which role the person chose", () => {
+    window.localStorage.clear();
+    render(<AppShell initialPath="/signup/role" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "매니저로 시작" }));
+
+    expect(screen.getByRole("button", { name: "매니저로 시작" }).getAttribute("aria-pressed")).toBe("true");
+    expect(window.localStorage.getItem("snapn:v2:role-preference")).toBe("MANAGER");
+  });
+
+  it("says plainly that choosing manager does not open the manager screens", () => {
+    window.localStorage.clear();
+    render(<AppShell initialPath="/signup/role" />);
+    fireEvent.click(screen.getByRole("button", { name: "매니저로 시작" }));
+    expect(screen.getByRole("status").textContent).toMatch(/소속 확인/);
+  });
+
+  it("leaves the manager screens shut even after choosing manager", () => {
+    window.localStorage.clear();
+    window.localStorage.setItem("snapn:v2:role-preference", "MANAGER");
+    render(<AppShell initialPath="/manager/coach" />);
+    expect(screen.getByLabelText("접근 거부")).toBeInTheDocument();
+  });
+});

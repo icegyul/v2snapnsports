@@ -15,6 +15,7 @@ import { Pack01MatchCenterPage, Pack01MatchPage, Pack01PlaybackPage, Pack01Tacti
 import { loadStadiumMotionFeatures } from "../features/stadium/stadiumMotionLoader";
 import { FixtureSessionAdapter, type SessionAdapter, type SessionUser } from "../adapters/sessionAdapter";
 import { resolveRouteGuard, routeDenyMessage, routeNeedsSession } from "../routes/routeGuard";
+import { readRolePreference, writeRolePreference, type RolePreference } from "../features/auth/rolePreference";
 
 const StadiumBuilderPage = lazy(() => import("../features/stadium-builder/StadiumBuilderPage")
   .then((module) => ({ default: module.StadiumBuilderPage })));
@@ -64,15 +65,52 @@ function BottomNavigation() {
 }
 
 function RoleSelect() {
+  const [preference, setPreference] = useState<RolePreference | null>(() => {
+    try {
+      return readRolePreference(window.localStorage);
+    } catch {
+      return null;
+    }
+  });
+
+  const choose = (next: RolePreference) => {
+    try {
+      writeRolePreference(window.localStorage, next);
+    } catch {
+      // The choice still stands for this visit.
+    }
+    setPreference(next);
+  };
+
   return <main className="shell-main auth-main">
     <p className="eyebrow">SNAPN SPORTS</p>
     <h1>어떻게 시작할까요?</h1>
     <p className="meta">선택은 가입 선호도이며, 매니저 권한은 별도 검증이 필요합니다.</p>
     <div className="role-grid">
-      <button className="role-card" type="button">선수로 시작</button>
-      <button className="role-card" type="button">매니저로 시작</button>
+      <button
+        className={`role-card ${preference === "PLAYER" ? "is-chosen" : ""}`}
+        type="button"
+        aria-pressed={preference === "PLAYER"}
+        onClick={() => choose("PLAYER")}
+      >
+        선수로 시작
+      </button>
+      <button
+        className={`role-card ${preference === "MANAGER" ? "is-chosen" : ""}`}
+        type="button"
+        aria-pressed={preference === "MANAGER"}
+        onClick={() => choose("MANAGER")}
+      >
+        매니저로 시작
+      </button>
     </div>
+    {preference && <p className="role-chosen" role="status">
+      {preference === "PLAYER"
+        ? "선수로 시작하도록 선택했습니다. 계정 만들기는 다음 단계입니다."
+        : "매니저로 시작하도록 선택했습니다. 지도자·운영진 화면은 소속 확인이 끝난 뒤에 열립니다."}
+    </p>}
     <p className="guardian-note">보호자는 선수 초대 링크로 시작합니다.</p>
+    <Link className="role-continue" to="/login">계정 만들기로 이동</Link>
   </main>;
 }
 
