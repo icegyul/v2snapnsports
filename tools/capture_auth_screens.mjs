@@ -1,4 +1,4 @@
-/* global process, console */
+/* global process, console, document */
 // The way in: role selection and sign-in, on an old phone, including that the
 // screens tell the truth about what is and is not connected.
 import { chromium } from "playwright";
