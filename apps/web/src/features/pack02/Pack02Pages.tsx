@@ -68,25 +68,132 @@ export function Pack02CareerPassportPage() {
 
 export function Pack02CareerSeasonPage() {
   const passport = domain.getCareerPassport(player, "athlete-a");
-  return <main className="shell-main"><p className="eyebrow">CAREER · FIXTURE LOCAL</p><h1>시즌 기록</h1><h2>fixture-2026</h2>{passport.chapters[0]?.events.map((event) => <article className="surface-card" key={event.id}><h3>{event.title}</h3><p>검증된 기록 · source version {event.source.version}</p></article>)}<Link to="/player/me/career">커리어 패스포트로 돌아가기</Link></main>;
+
+  return (
+    <main className="shell-main screen">
+      <header className="screen-head">
+        <p className="eyebrow">CAREER · SEASON</p>
+        <h1>시즌 기록</h1>
+        <p className="screen-sub">fixture-2026</p>
+      </header>
+
+      <ul className="screen-list">
+        {passport.chapters[0]?.events.map((event) => (
+          <li key={event.id}>
+            <article className="screen-row">
+              <span className="screen-row-title">{event.title}</span>
+              <span className="screen-pill" data-tone="GOOD">검증된 기록</span>
+              <span className="screen-row-meta">source version {event.source.version}</span>
+            </article>
+          </li>
+        ))}
+      </ul>
+
+      <div className="screen-actions">
+        <Link className="screen-action" data-variant="quiet" to="/player/me/career">커리어 패스포트로 돌아가기</Link>
+      </div>
+    </main>
+  );
 }
 
 export function Pack02TeamCommunicationPage() {
   const [status, setStatus] = useState("");
-  const send = () => { domain.sendTeamMessage(coach, thread.id, { body: "훈련 집합 시간이 변경되었습니다.", idempotencyKey: "fixture-schedule-change" }); setStatus("운영 메시지가 저장되었습니다"); };
-  return <main className="shell-main"><p className="eyebrow">TEAM COMMUNICATION · FIXTURE LOCAL</p><h1>팀 커뮤니케이션</h1><section className="surface-card" aria-label="운영 대화"><h2>훈련 일정 변경</h2><p>팀 운영 메시지입니다. Community 게시물과 분리되며, 알림 전송은 outbox seam으로만 남깁니다.</p><button type="button" onClick={send}>운영 메시지 보내기</button>{status && <p role="status">{status}</p>}</section><p className="meta">미성년자에 대한 외부 직접 DM은 허용되지 않습니다.</p></main>;
+  const send = () => {
+    domain.sendTeamMessage(coach, thread.id, { body: "훈련 집합 시간이 변경되었습니다.", idempotencyKey: "fixture-schedule-change" });
+    setStatus("운영 메시지가 저장되었습니다");
+  };
+
+  return (
+    <main className="shell-main screen">
+      <header className="screen-head">
+        <p className="eyebrow">TEAM COMMUNICATION</p>
+        <h1>팀 커뮤니케이션</h1>
+        <p className="screen-sub">팀 운영 메시지입니다. 커뮤니티 게시물과는 분리되어 있습니다.</p>
+      </header>
+
+      <section className="screen-panel" aria-label="운영 대화">
+        <h2>훈련 일정 변경</h2>
+        <p>팀 운영 메시지입니다. Community 게시물과 분리되며, 알림 전송은 outbox seam으로만 남깁니다.</p>
+        <div className="screen-actions">
+          <button className="screen-action" type="button" onClick={send}>운영 메시지 보내기</button>
+        </div>
+        {status && <p className="screen-status" role="status">{status}</p>}
+      </section>
+
+      <p className="screen-note">미성년자에 대한 외부 직접 DM은 허용되지 않습니다.</p>
+    </main>
+  );
 }
 
 export function Pack02OpportunityPage() {
   const [status, setStatus] = useState("");
-  const requestReview = () => { const action = domain.createOpportunityAction(agent, opportunity.id, { athleteId: "athlete-a", action: "INVITED" }); setStatus(action.route === "GUARDIAN_OR_CLUB_MEDIATED" ? "보호자 또는 구단 검토 경로" : "허용된 포트폴리오 경로"); };
-  return <main className="shell-main"><p className="eyebrow">OPPORTUNITY · FIXTURE LOCAL</p><h1>기회</h1><section className="surface-card"><h2>지역 트라이아웃</h2><p>포지션 · MF / 지역 · SEOUL / 연령 · 15–17</p><p>Earthus 일정 맥락: 연결되지 않음 — 기회 검토에는 영향을 주지 않습니다.</p><button type="button" onClick={requestReview}>기회 검토 요청</button>{status && <p role="status">{status}</p>}</section><p className="meta">능력 랭킹, 자동 평가, 직접 연락처는 제공하지 않습니다.</p></main>;
+  const requestReview = () => {
+    const action = domain.createOpportunityAction(agent, opportunity.id, { athleteId: "athlete-a", action: "INVITED" });
+    setStatus(action.route === "GUARDIAN_OR_CLUB_MEDIATED" ? "보호자 또는 구단 검토 경로" : "허용된 포트폴리오 경로");
+  };
+
+  return (
+    <main className="shell-main screen">
+      <header className="screen-head">
+        <p className="eyebrow">OPPORTUNITY</p>
+        <h1>기회</h1>
+        <p className="screen-sub">공개된 트라이아웃과 선발 기회입니다.</p>
+      </header>
+
+      <section className="screen-panel">
+        <h2>지역 트라이아웃</h2>
+        <dl className="screen-facts">
+          <div className="screen-fact"><dt>포지션</dt><dd>MF</dd></div>
+          <div className="screen-fact"><dt>지역</dt><dd>SEOUL</dd></div>
+          <div className="screen-fact"><dt>연령</dt><dd>15–17</dd></div>
+        </dl>
+        <p>Earthus 일정 맥락: 연결되지 않음 — 기회 검토에는 영향을 주지 않습니다.</p>
+        <div className="screen-actions">
+          <button className="screen-action" type="button" onClick={requestReview}>기회 검토 요청</button>
+        </div>
+        {status && <p className="screen-status" role="status">{status}</p>}
+      </section>
+
+      <p className="screen-note">능력 랭킹, 자동 평가, 직접 연락처는 제공하지 않습니다.</p>
+    </main>
+  );
 }
 
 export function Pack02PortfolioPage() {
   const [grantId, setGrantId] = useState<string | null>(null);
   const [status, setStatus] = useState("");
-  const share = () => { const grant = domain.createPortfolioShareGrant(player, { athleteId: "athlete-a", expiresAt: "2026-12-31T00:00:00Z", audience: "SCOUTING_ALLOWED", mediatedBy: "GUARDIAN" }); setGrantId(grant.id); setStatus("공유 범위가 설정되었습니다"); };
-  const revoke = () => { if (!grantId) return; domain.revokePortfolioShareGrant(player, grantId); setGrantId(null); setStatus("공유가 철회되었습니다"); };
-  return <main className="shell-main"><p className="eyebrow">PORTFOLIO · FIXTURE LOCAL</p><h1>포트폴리오 공유</h1><section className="surface-card"><h2>보호자 또는 구단 경유 범위</h2><p>미성년 선수의 scouting 공개는 보호자 또는 구단 정책 결과가 있을 때만 가능합니다.</p>{grantId ? <button type="button" onClick={revoke}>공유 철회</button> : <button type="button" onClick={share}>보호자 또는 구단 경유 공유 설정</button>}{status && <p role="status">{status}</p>}</section><p className="meta">직접 연락처, 건강 정보, 비공개 코치 메모는 포트폴리오에 포함하지 않습니다.</p></main>;
+  const share = () => {
+    const grant = domain.createPortfolioShareGrant(player, { athleteId: "athlete-a", expiresAt: "2026-12-31T00:00:00Z", audience: "SCOUTING_ALLOWED", mediatedBy: "GUARDIAN" });
+    setGrantId(grant.id);
+    setStatus("공유 범위가 설정되었습니다");
+  };
+  const revoke = () => {
+    if (!grantId) return;
+    domain.revokePortfolioShareGrant(player, grantId);
+    setGrantId(null);
+    setStatus("공유가 철회되었습니다");
+  };
+
+  return (
+    <main className="shell-main screen">
+      <header className="screen-head">
+        <p className="eyebrow">PORTFOLIO</p>
+        <h1>포트폴리오 공유</h1>
+        <p className="screen-sub">누구에게, 언제까지 보일지 직접 정하고 언제든 되돌릴 수 있습니다.</p>
+      </header>
+
+      <section className="screen-panel">
+        <h2>보호자 또는 구단 경유 범위</h2>
+        <p>미성년 선수의 scouting 공개는 보호자 또는 구단 정책 결과가 있을 때만 가능합니다.</p>
+        <div className="screen-actions">
+          {grantId
+            ? <button className="screen-action" type="button" onClick={revoke}>공유 철회</button>
+            : <button className="screen-action" type="button" onClick={share}>보호자 또는 구단 경유 공유 설정</button>}
+        </div>
+        {status && <p className="screen-status" role="status">{status}</p>}
+      </section>
+
+      <p className="screen-note">직접 연락처, 건강 정보, 비공개 코치 메모는 포트폴리오에 포함하지 않습니다.</p>
+    </main>
+  );
 }

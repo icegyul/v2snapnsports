@@ -5,7 +5,54 @@ const community = new FixtureCommunityStore();
 
 export function CommunityPage() {
   const posts = community.listFor({ accountId: "fixture-player", teamId: "demo-u17-a" });
-  return <main className="shell-main"><header className="page-header"><p className="eyebrow">COMMUNITY · FIXTURE LOCAL</p><h1>커뮤니티</h1></header><nav className="community-tabs" aria-label="커뮤니티 분류"><button type="button" aria-current="page">전체</button><button type="button">게시글</button><button type="button">뉴스</button><button type="button">영상</button><button type="button">승부예측</button></nav>{posts.map((post) => <article className="community-post" key={post.id}><p className="meta">전체 공개 · 데모 별칭</p><h2>게시물</h2><p>{post.body}</p><footer><button type="button" aria-pressed="false">좋아요</button><Link to={`/community/post/${post.id}`}>댓글</Link><Link to="/community/compose">작성</Link></footer></article>)}</main>;
+
+  return (
+    <main className="shell-main screen">
+      <header className="screen-head">
+        <p className="eyebrow">COMMUNITY</p>
+        <h1>커뮤니티</h1>
+        <p className="screen-sub">팀과 리그 소식이 모이는 곳입니다.</p>
+      </header>
+
+      <nav className="screen-tabs" aria-label="커뮤니티 분류">
+        <button type="button" aria-current="page">전체</button>
+        <button type="button">게시글</button>
+        <button type="button">뉴스</button>
+        <button type="button">영상</button>
+        <button type="button">승부예측</button>
+      </nav>
+
+      {posts.length === 0 ? (
+        <div className="screen-empty">
+          <strong>아직 게시물이 없습니다</strong>
+          <span>팀에 첫 소식을 남겨보세요.</span>
+        </div>
+      ) : (
+        <ul className="screen-list">
+          {posts.map((post) => (
+            <li key={post.id}>
+              <article className="screen-panel community-post">
+                <div className="screen-actions" aria-hidden="true">
+                  <span className="screen-pill" data-tone="MUTED">전체 공개</span>
+                  <span className="screen-pill" data-tone="MUTED">데모 별칭</span>
+                </div>
+                <p className="meta">전체 공개 · 데모 별칭</p>
+                <h2>게시물</h2>
+                <p>{post.body}</p>
+                <footer className="screen-actions">
+                  <button className="screen-action" data-variant="quiet" type="button" aria-pressed="false">좋아요</button>
+                  <Link className="screen-action" data-variant="quiet" to={`/community/post/${post.id}`}>댓글</Link>
+                  <Link className="screen-action" to="/community/compose">작성</Link>
+                </footer>
+              </article>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <p className="screen-note">미성년 선수의 이름과 사진은 기본적으로 공개하지 않습니다.</p>
+    </main>
+  );
 }
 
 export function TrainingPage() {

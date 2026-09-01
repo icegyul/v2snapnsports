@@ -115,7 +115,18 @@ function RoleSelect() {
   </main>;
 }
 
-function GenericShell({ title }: { title: string }) { return <main className="shell-main"><p className="eyebrow">FOUNDATION ROUTE</p><h1>{title}</h1><RouteStatePanel state="EMPTY" /></main>; }
+function GenericShell({ title }: { title: string }) {
+  return <main className="shell-main screen">
+    <header className="screen-head">
+      <p className="eyebrow">SNAPN SPORTS</p>
+      <h1>{title}</h1>
+    </header>
+    <RouteStatePanel state="EMPTY" />
+    <div className="screen-actions">
+      <Link className="screen-action" data-variant="quiet" to="/home">홈으로</Link>
+    </div>
+  </main>;
+}
 
 function RouteDenied({ reason }: { reason: Parameters<typeof routeDenyMessage>[0] }) {
   const message = routeDenyMessage(reason);

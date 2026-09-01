@@ -27,6 +27,14 @@ const SCREENS = [
   ["match-centre", "/matches/x", "매치 센터"],
   ["career", "/player/me/career", "커리어 패스포트"],
   ["video", "/video", "영상"],
+  ["community", "/community", "커뮤니티"],
+  ["community-post", "/community/post/post-public-1", "게시물"],
+  ["community-compose", "/community/compose", "글 작성"],
+  ["portfolio", "/player/me/portfolio", "포트폴리오 공유"],
+  ["opportunities", "/opportunities", "기회"],
+  ["communication", "/communication", "팀 커뮤니케이션"],
+  ["season", "/player/me/career/season/fixture-2026", "시즌 기록"],
+  ["more", "/more", "더보기"],
 ];
 
 const context = await browser.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 2 });

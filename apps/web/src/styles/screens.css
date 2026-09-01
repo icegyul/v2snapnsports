@@ -228,3 +228,56 @@ a.screen-row:focus-visible {
   font-size: 15px;
   font-weight: 650;
 }
+
+/* Category strip: a row of quiet chips, the current one lit. */
+.screen-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.screen-tabs button {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(88, 108, 132, 0.6);
+  border-radius: 999px;
+  color: #c2ced6;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.screen-tabs button[aria-current="page"] {
+  border-color: #f0c75e;
+  color: #f0c75e;
+  background: rgba(240, 199, 94, 0.12);
+}
+
+/* The chips already say it; the sentence stays for assistive technology. */
+.community-post .meta {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.screen-textarea {
+  width: 100%;
+  min-height: 132px;
+  padding: 12px 14px;
+  border: 1px solid rgba(88, 108, 132, 0.7);
+  border-radius: 10px;
+  color: inherit;
+  background: rgba(10, 16, 26, 0.7);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.screen-textarea:focus-visible {
+  outline: 2px solid #f0c75e;
+  outline-offset: 1px;
+}
