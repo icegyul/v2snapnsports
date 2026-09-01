@@ -121,7 +121,23 @@ jobs:
           code=$(curl -s -o probe-response.json -w "%{http_code}" "https://snapnsports.com/api/v1/snapn-capability-probe.php")
           echo "--- probe response (${code}) ---"
           cat probe-response.json || true
-          echo "::notice title=cafe24 php capability (${code})::$(head -c 2500 probe-response.json | encode)"
+          # The run summary renders without a signed-in session, unlike raw
+          # job logs, so the answer lands where it can actually be read.
+          {
+            echo "## Cafe24 PHP capability probe"
+            echo ""
+            echo "HTTP ${code}"
+            echo ""
+            echo '```json'
+            head -c 4000 probe-response.json
+            echo ""
+            echo '```'
+            echo ""
+            echo "### FTP upload transcript (tail)"
+            echo '```'
+            tail -c 900 upload.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
           # Always remove it again: a capability report is not something to
           # leave sitting on a public web root.
