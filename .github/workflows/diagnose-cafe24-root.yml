@@ -76,6 +76,8 @@ jobs:
             echo ===PUT-HOME-V2===; put probe.txt -o v2/snapn-probe.txt;
             echo ===PUT-WWW-V2===; put probe.txt -o www/v2/snapn-probe.txt;
             echo ===VERIFY-HOME-V2===; cls -la v2;
+            echo ===V2-ASSETS===; cls -la v2/assets | head -8;
+            echo ===GET-INDEX===; get v2/index.html -o fetched-index.html;
             bye
           " > layout.log 2>&1
           set -e
@@ -83,6 +85,11 @@ jobs:
           echo "--- layout ---"
           cat layout.log
           echo "::notice title=cafe24 layout ($stamp)::$(cat layout.log | encode)"
+          if [ -f fetched-index.html ]; then
+            echo "::notice title=v2 index.html head::$(head -c 400 fetched-index.html | encode)"
+          else
+            echo "::notice title=v2 index.html head::[fetch failed]"
+          fi
 
       - name: HTTP probe of both candidates
         run: |
