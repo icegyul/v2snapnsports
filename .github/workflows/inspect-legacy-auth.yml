@@ -1,0 +1,127 @@
+name: Inspect legacy auth endpoints
+
+# Answers one question: can V2 reuse V1's existing sign-in instead of building
+# its own? The V1 PHP lives only on the server, so it has to be read there.
+#
+# This repository is PUBLIC. The workflow therefore downloads the files but
+# publishes NO source, NO strings, and NO values — only structural yes/no
+# facts and table names matching sn_[a-z_]+. Nothing that could carry a
+# credential is ever echoed.
+#
+# Read-only: it downloads, inspects, and writes nothing to the server.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - probe/legacy-auth
+
+concurrency:
+  group: inspect-legacy-auth
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve FTP credentials
+        env:
+          S: ${{ secrets.CAFE24_FTP_SERVER }}
+          U: ${{ secrets.CAFE24_FTP_USERNAME }}
+          P: ${{ secrets.CAFE24_FTP_PASSWORD }}
+          COMBINED: ${{ secrets.CAFE24 }}
+        run: |
+          if [ -z "$S" ] && [ -n "$COMBINED" ]; then
+            S=$(printf '%s\n' "$COMBINED" | sed -n 1p | tr -d '\r' | xargs)
+            U=$(printf '%s\n' "$COMBINED" | sed -n 2p | tr -d '\r' | xargs)
+            P=$(printf '%s\n' "$COMBINED" | sed -n 3p | tr -d '\r')
+          fi
+          S=$(printf '%s' "$S" | sed -E 's#^ftps?://##; s#/+$##')
+          if [ -z "$S" ] || [ -z "$U" ] || [ -z "$P" ]; then
+            echo "::error::BLOCKED_CREDENTIAL_NOT_PROVIDED - FTP credentials are not configured."
+            exit 1
+          fi
+          echo "::add-mask::$P"
+          {
+            echo "FTP_SERVER=$S"
+            echo "FTP_USERNAME=$U"
+            echo "FTP_PASSWORD=$P"
+          } >> "$GITHUB_ENV"
+
+      - name: Download and describe, without echoing any source
+        run: |
+          sudo apt-get update -y >/dev/null
+          sudo apt-get install -y lftp >/dev/null
+
+          umask 077
+          cat > "$HOME/.netrc" <<NETRC
+          machine $FTP_SERVER
+          login $FTP_USERNAME
+          password $FTP_PASSWORD
+          NETRC
+          chmod 600 "$HOME/.netrc"
+
+          mkdir -p legacy
+          set +e
+          lftp -e "
+            set ftp:ssl-allow no;
+            set net:timeout 25;
+            set cmd:fail-exit no;
+            open $FTP_SERVER;
+            cd api;
+            lcd legacy;
+            get auth.php;
+            get register.php;
+            get minor_consent.php;
+            get guardian.php;
+            bye
+          " > fetch.log 2>&1
+          set -e
+          rm -f "$HOME/.netrc"
+
+          # Structural facts only. Every value printed below is either a
+          # yes/no, a count, or a table name of the form sn_something.
+          describe() {
+            local file="legacy/$1"
+            echo "### $1"
+            if [ ! -s "$file" ]; then
+              echo "- not retrieved"
+              echo ""
+              return
+            fi
+            echo "- lines: $(wc -l < "$file" | tr -d ' ')"
+            for token in password_verify password_hash md5 sha1 crypt \
+                         jwt JWT bearer Bearer session_start setcookie \
+                         random_bytes uniqid rand mt_rand \
+                         prepare bind_param query exec \
+                         CREATE_TABLE ALTER_TABLE; do
+              probe=$(printf '%s' "$token" | tr '_' ' ')
+              if grep -qi -- "$probe" "$file"; then
+                echo "- uses \`$token\`: yes"
+              fi
+            done
+            echo "- tables touched: $(grep -oiE 'sn_[a-z0-9_]+' "$file" | sort -u | tr '\n' ' ')"
+            echo "- request params read: $(grep -oE '\$_(GET|POST|REQUEST|SERVER)\[.[a-zA-Z0-9_]+.\]' "$file" | grep -oE '[a-zA-Z0-9_]+.\]$' | tr -d "'\"]" | sort -u | tr '\n' ' ')"
+            echo ""
+          }
+
+          {
+            echo "## Legacy auth endpoints — structural summary"
+            echo ""
+            echo "No source, strings, or values are reproduced. Only yes/no facts,"
+            echo "counts, table names, and request parameter names."
+            echo ""
+            describe auth.php
+            describe register.php
+            describe minor_consent.php
+            describe guardian.php
+          } > summary.md
+
+          cat summary.md >> "$GITHUB_STEP_SUMMARY"
+          encode() { awk '{printf "%s%%0A", $0}'; }
+          echo "::notice title=legacy auth structure::$(head -c 3000 summary.md | encode)"
+
+          # Leave nothing behind on the runner.
+          rm -rf legacy
