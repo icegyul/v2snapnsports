@@ -557,3 +557,120 @@ body:has(.stadium-builder-page) .bottom-navigation { display: none; }
     transition-duration: .01ms !important;
   }
 }
+
+/* Design shelf: several saved stadiums instead of a single overwritten draft. */
+.stadium-builder-library {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(88, 108, 132, 0.5);
+  border-radius: 12px;
+  background: rgba(20, 28, 46, 0.55);
+}
+
+.stadium-builder-library-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.stadium-builder-library-head span {
+  color: #f0c75e;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.stadium-builder-library-head strong {
+  font-size: 13px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.stadium-builder-library-save {
+  display: flex;
+  gap: 8px;
+}
+
+.stadium-builder-library-save input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(88, 108, 132, 0.7);
+  border-radius: 8px;
+  color: inherit;
+  background: rgba(10, 16, 26, 0.7);
+  font: inherit;
+  font-size: 13px;
+}
+
+.stadium-builder-library-save button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(240, 199, 94, 0.7);
+  border-radius: 8px;
+  color: #f0c75e;
+  background: rgba(240, 199, 94, 0.12);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.stadium-builder-library-empty {
+  margin: 0;
+  color: #9fb1ba;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.stadium-builder-library-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stadium-builder-library-list li {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(36, 51, 73, 0.5);
+}
+
+.stadium-builder-library-name {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stadium-builder-library-date {
+  color: #9fb1ba;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stadium-builder-library-list button {
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid rgba(159, 177, 186, 0.45);
+  border-radius: 8px;
+  color: #c2ced6;
+  background: transparent;
+  font-size: 12px;
+}
+
+.stadium-builder-library-list button:hover {
+  border-color: rgba(240, 199, 94, 0.6);
+  color: #f0c75e;
+}

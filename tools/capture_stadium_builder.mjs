@@ -281,7 +281,7 @@ async function capture(name, viewport, deviceScaleFactor = 1) {
     await page.waitForFunction(() => document.querySelector(".stadium-builder-validator")?.classList.contains("is-valid"), { timeout: 5000 });
     const repaired = await builderState(page);
 
-    await page.getByRole("button", { name: "저장" }).click();
+    await page.getByRole("button", { name: "저장", exact: true }).click();
     await page.waitForFunction(() => document.querySelector(".stadium-builder-save-message")?.textContent?.includes("revision 1 저장 완료"), { timeout: 5000 });
     const saved = await builderState(page);
     const storedBeforeReload = await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem("snapn:v2:stadium-builder:draft") ?? "null"));
