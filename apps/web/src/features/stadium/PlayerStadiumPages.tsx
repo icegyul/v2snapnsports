@@ -6,6 +6,7 @@ import type { CoreFormation, CoreStadiumHome } from "../../api/coreProductContra
 import { FixtureCoreProductAdapter } from "../../adapters/fixtureCoreProductAdapter";
 import { CoreStateBoundary } from "../../components/CoreStateBoundary";
 import { Stadium3DScene } from "./Stadium3DScene";
+import { StadiumBoard } from "./StadiumBoard";
 import { StadiumApproachScene } from "./StadiumApproachScene";
 import { PitchEntryScene } from "./PitchEntryScene";
 import { PlayerPosition3DScene } from "./PlayerPosition3DScene";
@@ -70,6 +71,8 @@ function StadiumExteriorContent({ home }: { home: CoreStadiumHome }) {
       </MotionHeader>
 
       <Stadium3DScene mode={home.visualMode} onEnter={() => navigate("/home/full")} />
+
+      <StadiumBoard source={{ nextMatch: home.nextMatch, nextTraining: home.nextTraining }} />
 
       <MotionDiv
         className="stadium-enter-cue"

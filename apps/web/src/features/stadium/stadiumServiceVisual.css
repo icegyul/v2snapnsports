@@ -398,3 +398,88 @@ body:has(.stadium-service-home) .bottom-navigation .stadium-nav-indicator {
     transition: opacity 120ms linear;
   }
 }
+
+/* Ribbon board: the match and training menus, sitting inside the stadium.
+   Placed clear of the header, the picker button, the enter cue and the
+   rise hint. */
+.shell-main.stadium-service-home .stadium-board {
+  position: absolute;
+  z-index: 6;
+  top: clamp(300px, 40dvh, 420px);
+  left: clamp(30px, 5.7vw, 92px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: clamp(230px, 20vw, 288px);
+}
+
+.shell-main.stadium-service-home .stadium-board-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid rgba(210, 225, 232, .22);
+  border-left: 3px solid #f0c75e;
+  border-radius: 2px;
+  color: #f2f5f6;
+  background: rgba(5, 15, 23, .62);
+  backdrop-filter: blur(14px);
+  text-decoration: none;
+}
+
+.shell-main.stadium-service-home .stadium-board-row:hover,
+.shell-main.stadium-service-home .stadium-board-row:focus-visible {
+  border-color: rgba(240, 199, 94, .6);
+  background: rgba(8, 22, 32, .78);
+}
+
+.shell-main.stadium-service-home .stadium-board-row[data-kind="TRAINING"] {
+  border-left-color: #12dff3;
+}
+
+.shell-main.stadium-service-home .stadium-board-title {
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: -.01em;
+}
+
+.shell-main.stadium-service-home .stadium-board-when {
+  color: rgba(230, 237, 240, .66);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.shell-main.stadium-service-home .stadium-board-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(240, 199, 94, .16);
+  color: #f0c75e;
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.shell-main.stadium-service-home .stadium-board-row[data-relation="PAST"] .stadium-board-badge,
+.shell-main.stadium-service-home .stadium-board-row[data-relation="UNKNOWN"] .stadium-board-badge {
+  background: rgba(159, 177, 186, .16);
+  color: #9fb1ba;
+}
+
+.shell-main.stadium-service-home .stadium-board-row[data-relation="TODAY"] .stadium-board-badge {
+  background: rgba(99, 210, 135, .18);
+  color: #63d287;
+}
+
+@media (max-width: 720px) {
+  .shell-main.stadium-service-home .stadium-board {
+    top: auto;
+    right: 20px;
+    bottom: calc(196px + env(safe-area-inset-bottom, 0px));
+    left: 20px;
+    width: auto;
+  }
+}

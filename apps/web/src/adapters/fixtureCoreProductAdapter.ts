@@ -5,8 +5,19 @@ const source = "SYNTHETIC_FIXTURE" as const;
 
 const player = { id: "demo-player-08", displayName: "데모 선수", shirtNumber: "8", primaryPosition: "중앙 미드필더", secondaryPosition: "수비형 미드필더" } as const;
 const team = { id: "demo-u17-a", displayName: "DEMO U17 A팀", formation: "4-3-3" } as const;
-const nextTraining = { kind: "TRAINING" as const, label: "다음 훈련 · 데모 일정", startsAt: "2026-08-28T18:30:00+09:00", availability: "AVAILABLE" as const };
-const nextMatch = { kind: "MATCH" as const, label: "다음 경기 · 데모 일정", startsAt: "2026-08-30T14:00:00+09:00", availability: "AVAILABLE" as const };
+// The demo schedule rolls forward with the calendar. Fixed dates went stale
+// the day after they were written, which made every demo screen read "past
+// fixture" and told the viewer nothing about how the schedule surfaces behave.
+// The label still says 데모 일정, and source stays SYNTHETIC_FIXTURE.
+function demoScheduleAt(daysAhead: number, hour: number, minute: number): string {
+  const when = new Date();
+  when.setDate(when.getDate() + daysAhead);
+  when.setHours(hour, minute, 0, 0);
+  return when.toISOString();
+}
+
+const nextTraining = { kind: "TRAINING" as const, label: "다음 훈련 · 데모 일정", startsAt: demoScheduleAt(1, 18, 30), availability: "AVAILABLE" as const };
+const nextMatch = { kind: "MATCH" as const, label: "다음 경기 · 데모 일정", startsAt: demoScheduleAt(4, 14, 0), availability: "AVAILABLE" as const };
 
 export class FixtureCoreProductAdapter {
   async getStadiumHome(): Promise<CoreStadiumHome> {
