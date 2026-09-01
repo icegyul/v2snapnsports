@@ -41,3 +41,19 @@
 - `snapnsports.com/v2/` 공개 접속은 Cafe24 리버스 프록시 예외 처리 대기(문의 접수됨). 업로드 파이프라인 자체는 정상.
 - GitHub Pages 프리뷰는 저장소 Settings→Pages 1회 활성화 대기.
 - 마켓 결제/소유권은 범위 외 — 티어 메타데이터와 UI 표기만 준비됨.
+
+## 4. 추가 사이클 — 포메이션 선택 (HEAD f9e88ab)
+
+| 항목 | 내용 | 상태 |
+|---|---|---|
+| 포메이션 4종 | 4-3-3 / 4-4-2 / 3-5-2 / 4-2-3-1 — `teamFormationShapes.ts`의 11슬롯 모델 | TEST_PASS_EXECUTED |
+| 정직한 배치 | 실제 연결된 인원만 자기 포지션에 가장 가까운 슬롯을 차지하고, 나머지는 점선 "빈 자리"로 표시. 가상의 선수는 생성하지 않음 | TEST_PASS_EXECUTED + BROWSER_PASS_EXECUTED |
+| 선택 유지 | localStorage `snapn:v2:tactics-formation` | BROWSER_PASS_EXECUTED |
+| P0-B/C 계약 유지 | 실제 마커 4개, 내 카드 기본 선택, 연결선·스탯 패널 동작 | TEST_PASS_EXECUTED |
+| 사운드 독 제거 | 정우님 지시로 전 화면에서 삭제, 앱 완전 무음 | BROWSER_PASS_EXECUTED |
+
+브라우저에서 잡은 실제 레이아웃 결함 2건(기울어진 필드의 카드가 칩을 덮음 / 모바일에서 칩이 시네마틱 버튼과 충돌하고 화면 밖에 위치)은 푸터 바 배치와 모바일 순서 조정으로 수정했다.
+
+재실행 결과: 단위 232→251, tactics+DIY 15→21/21, interior 9/9, select 10/10, default entry·journey·builder·projection 전부 PASS.
+
+주의(도구 환경): Windows 경로의 `#` 때문에 `npm run build`는 스테이징 폴더에 산출물을 쓴다. 로컬 프리뷰 검증 시 `vite preview --outDir <staging>/dist --host 127.0.0.1`로 띄워야 최신 번들을 본다. 저장소의 `dist/`만 보고 검증하면 옛 번들을 검증하게 된다.
