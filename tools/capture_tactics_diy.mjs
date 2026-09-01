@@ -19,6 +19,16 @@ const record = (name, pass, detail = "") => {
   console.log(`${pass ? "PASS" : "FAIL"} ${name}${detail ? ` — ${detail}` : ""}`);
 };
 
+// The chips sit above a 3D-transformed pitch, where Playwright's own hit
+// test disagrees with the browser's. Click the way a person does: real mouse
+// press at the control's centre.
+async function clickAt(page, locator, fromTop) {
+  const box = await locator.boundingBox();
+  if (!box) throw new Error("control has no box");
+  const y = fromTop === undefined ? box.y + box.height / 2 : box.y + fromTop;
+  await page.mouse.click(box.x + box.width / 2, y);
+}
+
 async function run(name, viewport, flow) {
   const context = await browser.newContext({ viewport, reducedMotion: "no-preference" });
   const page = await context.newPage();
@@ -53,11 +63,36 @@ for (const [label, viewport] of [["desktop", { width: 1280, height: 800 }], ["mo
 
     // Cards layer like the game (nearer card in front), so tap the visible
     // top edge of the far card the way a real user would.
-    await page.getByRole("button", { name: "동료 등번호 11, FW" }).click({ position: { x: 26, y: 12 } });
+    await clickAt(page, page.getByRole("button", { name: "동료 등번호 11, FW" }), 10);
     await page.waitForTimeout(400);
     record(`tactics-${label}: panel follows selection`,
       (await page.locator(".team-tactics-panel").getAttribute("data-panel-player")) === "11");
     await page.screenshot({ path: `${outputDir}/tactics-${label}-selected.png` });
+
+    // Formation picker: the shape relays out, real people stay four, and the
+    // rest of the eleven show as open slots rather than invented players.
+    const field = page.locator(".team-tactics-field");
+    record(`tactics-${label}: opens on 4-3-3 with 7 open slots`,
+      (await field.getAttribute("data-formation")) === "4-3-3"
+      && (await page.getByTestId("tactics-slot").count()) === 7);
+
+    const ownBefore = await page.getByRole("button", { name: /내 위치/ }).getAttribute("style");
+    await clickAt(page, page.getByRole("button", { name: "포메이션 4-2-3-1" }));
+    await page.waitForTimeout(400);
+    record(`tactics-${label}: switches shape`,
+      (await field.getAttribute("data-formation")) === "4-2-3-1"
+      && (await page.getByTestId("tactics-marker").count()) === 4
+      && (await page.getByTestId("tactics-slot").count()) === 7
+      && (await page.getByRole("button", { name: /내 위치/ }).getAttribute("style")) !== ownBefore);
+    await page.screenshot({ path: `${outputDir}/tactics-${label}-4231.png` });
+
+    await clickAt(page, page.getByRole("button", { name: "포메이션 3-5-2" }));
+    await page.waitForTimeout(400);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForSelector(".team-tactics-field", { timeout: 30000 });
+    record(`tactics-${label}: remembers the shape`,
+      (await field.getAttribute("data-formation")) === "3-5-2");
+    await page.screenshot({ path: `${outputDir}/tactics-${label}-352.png` });
   });
 }
 

@@ -103,6 +103,77 @@
   filter: drop-shadow(0 0 6px rgba(240, 199, 94, 0.55));
 }
 
+/* Footer bar: the tilted pitch throws its cards high up the screen, so the
+   shape picker lives below the pitch where nothing overlaps it. */
+.team-tactics-footer {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  pointer-events: none;
+}
+
+.team-tactics-formations {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.team-tactics-formation-chip {
+  padding: 5px 11px;
+  border: 1px solid rgba(88, 108, 132, 0.9);
+  border-radius: 999px;
+  color: #cfd8e6;
+  background: rgba(20, 28, 46, 0.78);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+
+.team-tactics-formation-chip:hover {
+  border-color: rgba(240, 199, 94, 0.6);
+}
+
+.team-tactics-formation-chip:focus-visible {
+  outline: 2px solid #f0c75e;
+  outline-offset: 2px;
+}
+
+.team-tactics-formation-chip.is-active {
+  border-color: #f0c75e;
+  color: #f0c75e;
+  background: rgba(240, 199, 94, 0.12);
+}
+
+/* Open slot: a position nobody is connected to yet. Deliberately quiet so
+   real cards stay the focus, but readable enough to show the full shape. */
+.team-tactics-slot {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  transform: translate(-50%, -50%) rotateX(-21deg);
+  transform-origin: 50% 100%;
+  border: 1px dashed rgba(150, 172, 200, 0.5);
+  border-radius: 50%;
+  color: rgba(176, 194, 214, 0.72);
+  background: rgba(14, 22, 36, 0.42);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  pointer-events: none;
+}
+
 /* FC-style standing card. */
 .team-tactics-marker {
   position: absolute;
@@ -310,7 +381,7 @@
 }
 
 .team-tactics-selection {
-  margin: 0 auto;
+  margin: 0;
   font-size: 13px;
   color: #b8c9d1;
   pointer-events: none;
@@ -339,6 +410,30 @@
     font-size: 34px;
   }
 
+  /* Phones scroll this panel, so the shape picker rides directly under the
+     header instead of sitting below the fold. */
+  .team-tactics-head {
+    order: -2;
+  }
+
+  .team-tactics-footer {
+    order: -1;
+    margin-top: 0;
+    align-items: flex-start;
+  }
+
+  /* Keep clear of the cinematic button parked at the top right, and shrink
+     the chips so the four shapes still read on a phone. */
+  .team-tactics-formations {
+    justify-content: flex-start;
+    padding-right: 116px;
+  }
+
+  .team-tactics-formation-chip {
+    padding: 4px 9px;
+    font-size: 11px;
+  }
+
   .team-tactics-pitch {
     transform: perspective(900px) rotateX(22deg);
   }
@@ -346,7 +441,16 @@
   .team-tactics-marker {
     width: 48px;
     min-height: 56px;
-    transform: translate(-50%, -94%) rotateX(-22deg);
+    /* Shorter pitch on a phone: sit the cards nearer the surface so the
+       highest one does not float off the top edge. */
+    transform: translate(-50%, -82%) rotateX(-22deg);
+  }
+
+  .team-tactics-slot {
+    width: 28px;
+    height: 28px;
+    transform: translate(-50%, -50%) rotateX(-22deg);
+    font-size: 8px;
   }
 
   .team-tactics-own {

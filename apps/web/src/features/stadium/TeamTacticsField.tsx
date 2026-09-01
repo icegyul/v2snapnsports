@@ -1,69 +1,104 @@
 import { useMemo, useState } from "react";
 import type { CoreFormation } from "../../api/coreProductContracts";
-import { fieldPercent, ownCoordinate, pitchToFieldPercent } from "./tacticalProjection";
+import { pitchToFieldPercent } from "./tacticalProjection";
+import {
+  FORMATION_SHAPES,
+  buildFormationLineup,
+  getFormationShape,
+  loadFormationId,
+  saveFormationId,
+  type FormationId,
+  type LineupEntry,
+} from "./teamFormationShapes";
 import { tacticsCardProfile, type TacticsCardProfile } from "./teamTacticsCards";
 
 interface TeamTacticsFieldProps {
   readonly formation: CoreFormation;
 }
 
-type TeammateMarker = Readonly<{
-  id: string;
-  shirtNumber: string;
-  position: string;
-  left: number;
-  top: number;
-  profile: TacticsCardProfile;
-}>;
-
 /**
  * P0-B tactical layer, FC-game presentation. Pure CSS/SVG/HTML — must stay
  * fully functional without WebGL so STATIC entry shows the same tactical
- * meaning as 3D entry. Only connected fixture teammates are rendered;
- * nobody is invented. Ratings/stats are deterministic demo values until the
- * backend supplies real ones (teamTacticsCards.ts).
+ * meaning as 3D entry. The chosen shape lays out eleven slots; only people
+ * who are actually connected fill them and the rest stay visibly open, so
+ * nobody is ever invented. Ratings/stats are deterministic demo values
+ * (teamTacticsCards.ts) until the backend supplies real ones.
  */
 export function TeamTacticsField({ formation }: TeamTacticsFieldProps) {
   const [selected, setSelected] = useState<string>("OWN");
+  const [formationId, setFormationId] = useState<FormationId>(() => {
+    try {
+      return loadFormationId(window.localStorage, formation.shapeLabel);
+    } catch {
+      return getFormationShape("4-3-3").id;
+    }
+  });
 
-  const own = useMemo(
-    () => pitchToFieldPercent(ownCoordinate(formation.player.primaryPosition)),
-    [formation.player.primaryPosition],
+  const lineup = useMemo(
+    () => buildFormationLineup(
+      getFormationShape(formationId),
+      { shirtNumber: formation.player.shirtNumber, primaryPosition: formation.player.primaryPosition },
+      formation.teammates.map((teammate) => ({
+        shirtNumber: teammate.shirtNumber,
+        position: teammate.position,
+        x: teammate.x,
+        y: teammate.y,
+      })),
+    ),
+    [formation.player.primaryPosition, formation.player.shirtNumber, formation.teammates, formationId],
   );
+
   const ownProfile = useMemo(
     () => tacticsCardProfile(formation.player.shirtNumber, formation.player.primaryPosition),
     [formation.player.primaryPosition, formation.player.shirtNumber],
   );
-  const teammates = useMemo<readonly TeammateMarker[]>(
-    () => formation.teammates.map((teammate) => ({
-      id: teammate.shirtNumber,
-      shirtNumber: teammate.shirtNumber,
-      position: teammate.position,
-      left: fieldPercent(teammate.x),
-      top: fieldPercent(teammate.y),
-      profile: tacticsCardProfile(teammate.shirtNumber, teammate.position),
-    })),
-    [formation.teammates],
-  );
-  const selectedTeammate = teammates.find((teammate) => teammate.id === selected) ?? null;
-  const panelProfile = selectedTeammate ? selectedTeammate.profile : ownProfile;
+  const profiles = useMemo(() => {
+    const map = new Map<string, TacticsCardProfile>();
+    for (const entry of lineup) {
+      if (entry.kind === "EMPTY") continue;
+      map.set(entry.shirtNumber, tacticsCardProfile(entry.shirtNumber, entry.position));
+    }
+    return map;
+  }, [lineup]);
+
+  const ownEntry = lineup.find((entry) => entry.kind === "OWN");
+  const teammateEntries = lineup.filter((entry) => entry.kind === "TEAMMATE");
+  const openSlots = lineup.filter((entry) => entry.kind === "EMPTY");
+  const selectedTeammate = teammateEntries.find((entry) => entry.shirtNumber === selected) ?? null;
+
+  const panelProfile = selectedTeammate
+    ? profiles.get(selectedTeammate.shirtNumber) ?? ownProfile
+    : ownProfile;
   const panelTitle = selectedTeammate
     ? `#${selectedTeammate.shirtNumber} 동료`
     : `#${formation.player.shirtNumber} 나`;
   const panelPosition = selectedTeammate ? selectedTeammate.position : formation.player.primaryPosition;
+
+  const chooseFormation = (id: FormationId) => {
+    setFormationId(id);
+    try {
+      saveFormationId(window.localStorage, id);
+    } catch {
+      // Shape still applies for this session even when storage is blocked.
+    }
+  };
+
+  const place = (entry: LineupEntry) => pitchToFieldPercent({ x: entry.slot.x, z: entry.slot.z });
 
   return (
     <section
       className="team-tactics-field"
       aria-label="팀 전술 필드"
       data-selected-marker={selected}
-      data-tactics-teammate-count={teammates.length}
+      data-tactics-teammate-count={teammateEntries.length}
+      data-open-slots={openSlots.length}
+      data-formation={formationId}
     >
       <header className="team-tactics-head">
         <span className="team-tactics-kicker">TEAM TACTICS</span>
-        <strong className="team-tactics-shape">{formation.shapeLabel}</strong>
+        <strong className="team-tactics-shape">{formationId}</strong>
         <span className="team-tactics-own-line">내 위치 #{formation.player.shirtNumber} {formation.player.primaryPosition}</span>
-        <span className="team-tactics-count">연결된 동료 {teammates.length}명</span>
+        <span className="team-tactics-count">연결된 동료 {teammateEntries.length}명</span>
       </header>
 
       <div className="team-tactics-stage">
@@ -79,58 +114,76 @@ export function TeamTacticsField({ formation }: TeamTacticsFieldProps) {
             <rect className="team-tactics-line" x="98.3" y="24.84" width="5.5" height="18.32" />
             <circle className="team-tactics-fill" cx="12.2" cy="34" r="0.7" />
             <circle className="team-tactics-fill" cx="92.8" cy="34" r="0.7" />
-            {selectedTeammate && (
+            {ownEntry && selectedTeammate && (
               <line
                 className="team-tactics-connection"
-                data-connection-to={selectedTeammate.id}
-                x1={(own.left / 100) * 105}
-                y1={(own.top / 100) * 68}
-                x2={(selectedTeammate.left / 100) * 105}
-                y2={(selectedTeammate.top / 100) * 68}
+                data-connection-to={selectedTeammate.shirtNumber}
+                x1={(place(ownEntry).left / 100) * 105}
+                y1={(place(ownEntry).top / 100) * 68}
+                x2={(place(selectedTeammate).left / 100) * 105}
+                y2={(place(selectedTeammate).top / 100) * 68}
               />
             )}
           </svg>
 
-          <button
-            type="button"
-            data-testid="tactics-marker"
-            data-role={ownProfile.role}
-            className={`team-tactics-marker team-tactics-own ${selected === "OWN" ? "is-selected" : ""}`}
-            style={{ left: `${own.left}%`, top: `${own.top}%` }}
-            aria-label={`내 위치, 등번호 ${formation.player.shirtNumber}, ${formation.player.primaryPosition}`}
-            aria-pressed={selected === "OWN"}
-            onClick={() => setSelected("OWN")}
-          >
-            <span className="team-tactics-rating">{ownProfile.rating}</span>
-            <span className="team-tactics-avatar" aria-hidden="true">{formation.player.shirtNumber}</span>
-            <span className="team-tactics-num">#{formation.player.shirtNumber}</span>
-            <span className="team-tactics-tag">나</span>
-          </button>
+          {openSlots.map((entry) => (
+            <span
+              key={entry.slot.id}
+              data-testid="tactics-slot"
+              className="team-tactics-slot"
+              data-role={entry.slot.role}
+              style={{ left: `${place(entry).left}%`, top: `${place(entry).top}%` }}
+              aria-hidden="true"
+            >
+              {entry.slot.label}
+            </span>
+          ))}
 
-          {teammates.map((teammate) => (
+          {ownEntry && (
             <button
-              key={teammate.id}
               type="button"
               data-testid="tactics-marker"
-              data-role={teammate.profile.role}
-              className={`team-tactics-marker team-tactics-mate ${selected === teammate.id ? "is-selected" : ""}`}
-              style={{ left: `${teammate.left}%`, top: `${teammate.top}%` }}
-              aria-label={`동료 등번호 ${teammate.shirtNumber}, ${teammate.position}`}
-              aria-pressed={selected === teammate.id}
-              onClick={() => setSelected(teammate.id)}
+              data-role={ownProfile.role}
+              className={`team-tactics-marker team-tactics-own ${selected === "OWN" ? "is-selected" : ""}`}
+              style={{ left: `${place(ownEntry).left}%`, top: `${place(ownEntry).top}%` }}
+              aria-label={`내 위치, 등번호 ${formation.player.shirtNumber}, ${formation.player.primaryPosition}`}
+              aria-pressed={selected === "OWN"}
+              onClick={() => setSelected("OWN")}
             >
-              <span className="team-tactics-rating">{teammate.profile.rating}</span>
-              <span className="team-tactics-avatar" aria-hidden="true">{teammate.shirtNumber}</span>
-              <span className="team-tactics-num">#{teammate.shirtNumber}</span>
-              <span className="team-tactics-tag">{teammate.position}</span>
+              <span className="team-tactics-rating">{ownProfile.rating}</span>
+              <span className="team-tactics-avatar" aria-hidden="true">{formation.player.shirtNumber}</span>
+              <span className="team-tactics-num">#{formation.player.shirtNumber}</span>
+              <span className="team-tactics-tag">나</span>
             </button>
-          ))}
+          )}
+
+          {teammateEntries.map((entry) => {
+            const profile = profiles.get(entry.shirtNumber) ?? ownProfile;
+            return (
+              <button
+                key={entry.shirtNumber}
+                type="button"
+                data-testid="tactics-marker"
+                data-role={profile.role}
+                className={`team-tactics-marker team-tactics-mate ${selected === entry.shirtNumber ? "is-selected" : ""}`}
+                style={{ left: `${place(entry).left}%`, top: `${place(entry).top}%` }}
+                aria-label={`동료 등번호 ${entry.shirtNumber}, ${entry.position}`}
+                aria-pressed={selected === entry.shirtNumber}
+                onClick={() => setSelected(entry.shirtNumber)}
+              >
+                <span className="team-tactics-rating">{profile.rating}</span>
+                <span className="team-tactics-avatar" aria-hidden="true">{entry.shirtNumber}</span>
+                <span className="team-tactics-num">#{entry.shirtNumber}</span>
+                <span className="team-tactics-tag">{entry.position}</span>
+              </button>
+            );
+          })}
         </div>
 
         <aside
           className="team-tactics-panel"
           aria-label="선수 상세"
-          data-panel-player={selectedTeammate ? selectedTeammate.id : "OWN"}
+          data-panel-player={selectedTeammate ? selectedTeammate.shirtNumber : "OWN"}
         >
           <header className="team-tactics-panel-head">
             <span className="team-tactics-panel-rating" data-role={panelProfile.role}>{panelProfile.rating}</span>
@@ -156,11 +209,27 @@ export function TeamTacticsField({ formation }: TeamTacticsFieldProps) {
         </aside>
       </div>
 
-      <p className="team-tactics-selection" aria-live="polite">
-        {selectedTeammate
-          ? `연결 강조 · #${selectedTeammate.shirtNumber} ${selectedTeammate.position}`
-          : "기준 · 내 위치"}
-      </p>
+      <footer className="team-tactics-footer">
+        <div className="team-tactics-formations" role="group" aria-label="포메이션 선택">
+          {FORMATION_SHAPES.map((shape) => (
+            <button
+              key={shape.id}
+              type="button"
+              className={`team-tactics-formation-chip ${shape.id === formationId ? "is-active" : ""}`}
+              aria-label={`포메이션 ${shape.id}`}
+              aria-pressed={shape.id === formationId}
+              onClick={() => chooseFormation(shape.id)}
+            >
+              {shape.id}
+            </button>
+          ))}
+        </div>
+        <p className="team-tactics-selection" aria-live="polite">
+          {selectedTeammate
+            ? `연결 강조 · #${selectedTeammate.shirtNumber} ${selectedTeammate.position}`
+            : `기준 · 내 위치 · 빈 자리 ${openSlots.length}`}
+        </p>
+      </footer>
     </section>
   );
 }
