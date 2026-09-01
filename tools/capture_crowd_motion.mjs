@@ -1,4 +1,4 @@
-/* global process, console, window, document */
+/* global process, console, window, document, performance */
 // Proves the stands actually move: samples the live canvas twice and requires
 // a real pixel difference over the stands, then requires stillness under
 // prefers-reduced-motion. Also samples the frame rate so the ambient loop
