@@ -1,0 +1,4 @@
+# Credentials live on the server, placed out of band. They must never be
+# committed and must never travel the plaintext FTP deploy pipe.
+config.php
+secrets.php
