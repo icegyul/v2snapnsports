@@ -1,5 +1,5 @@
 import type { SessionUser } from "./sessionAdapter";
-import type { SignInFailure } from "../features/auth/credentials";
+import type { SignInFailure } from "../features/auth/signInValidation";
 
 // Where a real V2 sign-in will attach. V2 owns its own accounts — no Rhymix
 // member integration — and until a V2 auth service exists the only honest

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { DisabledAuthAdapter, type AuthAdapter } from "../../adapters/authAdapter";
-import { checkEmail, checkPassword, describeSignInResult, fieldMessage } from "./credentials";
+import { checkEmail, checkPassword, describeSignInResult, fieldMessage } from "./signInValidation";
 import "./auth.css";
 
 const defaultAuthAdapter = new DisabledAuthAdapter();
