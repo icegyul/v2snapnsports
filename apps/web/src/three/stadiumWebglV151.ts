@@ -60,6 +60,9 @@ export function createStadiumWebglRenderer(
     updateScoreboard(state) {
       base.updateScoreboard?.(state);
     },
+    advanceCrowd(seconds: number, waveSpeed: number, waveLift: number, sway: number) {
+      base.advanceCrowd?.(seconds, waveSpeed, waveLift, sway);
+    },
     destroy() {
       base.destroy();
     },

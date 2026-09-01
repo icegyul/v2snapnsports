@@ -34,6 +34,11 @@ export interface StadiumWebglRenderer {
   renderTeamFormation?(progress: number, ownX: number, ownZ: number, teammates: readonly StadiumTeamMarker[]): void;
   renderDigitalProjection?(progress: number): void;
   updateScoreboard?(state: StadiumScoreboardState): void;
+  /**
+   * Redraws with the crowd advanced to `seconds`, reusing the camera pose the
+   * last render() left in place. Amplitudes of 0 hold the stands still.
+   */
+  advanceCrowd?(seconds: number, waveSpeed: number, waveLift: number, sway: number): void;
   destroy(): void;
 }
 
@@ -626,24 +631,68 @@ function crowdPlacements(spec: TierSpec, recipe: StadiumRecipe): CrowdPlacement[
   return result;
 }
 
+export interface CrowdMotionUniforms {
+  readonly time: { value: number };
+  readonly waveSpeed: { value: number };
+  readonly waveLift: { value: number };
+  readonly sway: { value: number };
+}
+
+export function createCrowdMotionUniforms(): CrowdMotionUniforms {
+  return { time: { value: 0 }, waveSpeed: { value: 0 }, waveLift: { value: 0 }, sway: { value: 0 } };
+}
+
+/**
+ * Moves the crowd on the GPU. Every fan is an instance, so animating on the
+ * CPU would mean rewriting ~40k matrices a frame; instead the vertex shader
+ * lifts each instance from its own position, and a frame costs one uniform.
+ * The cheer travels around the bowl as a narrow crest, over a small idle bob.
+ */
+function patchCrowdMaterial(material: THREE.MeshStandardMaterial, uniforms: CrowdMotionUniforms): void {
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.snapnCrowdTime = uniforms.time;
+    shader.uniforms.snapnWaveSpeed = uniforms.waveSpeed;
+    shader.uniforms.snapnWaveLift = uniforms.waveLift;
+    shader.uniforms.snapnSway = uniforms.sway;
+    shader.vertexShader = `uniform float snapnCrowdTime;
+uniform float snapnWaveSpeed;
+uniform float snapnWaveLift;
+uniform float snapnSway;
+${shader.vertexShader}`;
+    shader.vertexShader = shader.vertexShader.replace(
+      "#include <begin_vertex>",
+      `#include <begin_vertex>
+#ifdef USE_INSTANCING
+  vec3 snapnSeat = instanceMatrix[3].xyz;
+  float snapnAngle = atan(snapnSeat.z, snapnSeat.x);
+  float snapnCrest = pow(max(cos(snapnAngle - snapnCrowdTime * snapnWaveSpeed), 0.0), 9.0);
+  float snapnBob = sin(snapnCrowdTime * 1.9 + snapnSeat.x * 0.6 + snapnSeat.z * 0.45);
+  transformed.y += snapnCrest * snapnWaveLift + snapnBob * snapnSway;
+#endif`,
+    );
+  };
+  // Distinct cache key so the patched program is not shared with unpatched
+  // standard materials compiled from the same source.
+  material.customProgramCacheKey = () => "snapn-crowd-motion";
+}
+
 function addCrowd(
   group: THREE.Group,
   geometries: Set<THREE.BufferGeometry>,
   materials: Set<THREE.Material>,
   spec: TierSpec,
   recipe: StadiumRecipe,
+  crowdMotion: CrowdMotionUniforms,
 ): void {
   const placements = crowdPlacements(spec, recipe);
   const bodyGeometry = addDisposable(geometries, new THREE.CylinderGeometry(0.20, 0.16, 0.68, 6, 1));
   const headGeometry = addDisposable(geometries, new THREE.SphereGeometry(0.098, 7, 4));
-  const bodyMaterial = addDisposable(
-    materials,
-    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.90, metalness: 0.0 }),
-  );
-  const headMaterial = addDisposable(
-    materials,
-    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.94, metalness: 0.0 }),
-  );
+  const bodyStandard = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.90, metalness: 0.0 });
+  const headStandard = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.94, metalness: 0.0 });
+  patchCrowdMaterial(bodyStandard, crowdMotion);
+  patchCrowdMaterial(headStandard, crowdMotion);
+  const bodyMaterial = addDisposable(materials, bodyStandard);
+  const headMaterial = addDisposable(materials, headStandard);
   const bodies = new THREE.InstancedMesh(bodyGeometry, bodyMaterial, placements.length);
   const heads = new THREE.InstancedMesh(headGeometry, headMaterial, placements.length);
   const dummy = new THREE.Object3D();
@@ -723,6 +772,7 @@ function addTier(
   recipe: StadiumRecipe,
   seatMaterial: THREE.Material,
   concreteMaterial: THREE.Material,
+  crowdMotion: CrowdMotionUniforms,
 ): void {
   const rowDepthX = (spec.outerX - spec.innerX) / spec.rows;
   const rowDepthZ = (spec.outerZ - spec.innerZ) / spec.rows;
@@ -762,7 +812,7 @@ function addTier(
   aisles.position.y = 0.055;
   group.add(aisles);
   addSeatBacks(group, geometries, materials, spec, recipe);
-  addCrowd(group, geometries, materials, spec, recipe);
+  addCrowd(group, geometries, materials, spec, recipe, crowdMotion);
 }
 
 function addColumns(
@@ -1859,6 +1909,7 @@ function buildStadium(
   materials: Set<THREE.Material>,
   textures: Set<THREE.Texture>,
   disposers: Array<() => void>,
+  crowdMotion: CrowdMotionUniforms,
 ): THREE.Group {
   const group = new THREE.Group();
   scene.add(group);
@@ -2017,7 +2068,7 @@ function buildStadium(
     y1: tier.y1 * profile.tierRiseScale,
   }));
   for (let i = 0; i < Math.min(recipe.tierCount, tiers.length); i += 1) {
-    addTier(group, geometries, materials, tiers[i], recipe, seatMaterial, concreteMaterial);
+    addTier(group, geometries, materials, tiers[i], recipe, seatMaterial, concreteMaterial, crowdMotion);
   }
   addStadiumOpenings(group, geometries, materials);
 
@@ -2118,7 +2169,8 @@ export function createStadiumWebglRenderer(
     ? 0.92
     : lightingProfile === "DAYLIGHT" ? 0.78 : environmentProfile === "NIGHT_EVENT" ? 0.58 : environmentProfile === "COASTAL" ? 0.82 : 0.72;
   const disposers: Array<() => void> = [];
-  const stadium = buildStadium(scene, renderer, mode, recipe, visualProfile, geometries, materials, textures, disposers);
+  const crowdMotion = createCrowdMotionUniforms();
+  const stadium = buildStadium(scene, renderer, mode, recipe, visualProfile, geometries, materials, textures, disposers, crowdMotion);
   const liveScoreboardTexture = stadium.userData.scoreboardTexture as THREE.Texture | undefined;
 
   const positionMarker = new THREE.Group();
@@ -2756,5 +2808,13 @@ export function createStadiumWebglRenderer(
     if (!visualProfile.builderVisuals) renderer.forceContextLoss();
   };
 
-  return { triangleCount, resize, render, renderApproach, renderPitchEntry, renderPlayerPosition, renderTeamFormation, renderDigitalProjection, updateScoreboard, destroy };
+  const advanceCrowd = (seconds: number, waveSpeed: number, waveLift: number, sway: number) => {
+    crowdMotion.time.value = seconds;
+    crowdMotion.waveSpeed.value = waveSpeed;
+    crowdMotion.waveLift.value = waveLift;
+    crowdMotion.sway.value = sway;
+    present();
+  };
+
+  return { triangleCount, resize, render, renderApproach, renderPitchEntry, renderPlayerPosition, renderTeamFormation, renderDigitalProjection, updateScoreboard, advanceCrowd, destroy };
 }

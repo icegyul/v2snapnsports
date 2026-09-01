@@ -4,6 +4,7 @@ import type { CoreFormation, CoreSpatialHome, CoreVisualMode } from "../../api/c
 import { nextStadiumMode } from "../../three/stadiumScene";
 import { createStadiumWebglRenderer, type StadiumTeamMarker, type StadiumWebglRenderer } from "../../three/stadiumWebgl";
 import { playStadiumAudioCue, type StadiumAudioCue } from "./stadiumAudioDirector";
+import { getStadiumCrowdMotionProfile, shouldAdvanceCrowdFrame } from "./stadiumCrowdMotion";
 import { ownCoordinate, teammateCoordinate } from "./tacticalProjection";
 import { resolveSelectedStadium, SERVICE_STADIUM_PRESETS, type ServiceStadiumPreset } from "./stadiumSelection";
 import { TeamTacticsField } from "./TeamTacticsField";
@@ -288,6 +289,35 @@ export function FullStadiumJourneyScene({ mode, formation, spatial }: FullStadiu
     setProgress(1);
     setStage("SPATIAL_HOME");
   };
+
+  // Living stands behind the tactical field. Only in the resting TACTICS view:
+  // the cinematic drives its own frames and must not be double-rendered.
+  useEffect(() => {
+    if (view !== "TACTICS" || renderState !== "READY") return;
+    const renderer = rendererRef.current;
+    if (!renderer?.advanceCrowd) return;
+    const reducedMotion = typeof window.matchMedia === "function"
+      && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const profile = getStadiumCrowdMotionProfile(reducedMotion);
+    if (!profile.enabled || typeof window.requestAnimationFrame !== "function") return;
+
+    let frame = 0;
+    let lastFrameMs: number | null = null;
+    const startedAt = performance.now();
+    const tick = (now: number) => {
+      frame = window.requestAnimationFrame(tick);
+      if (!shouldAdvanceCrowdFrame(profile, lastFrameMs, now, document.hidden)) return;
+      lastFrameMs = now;
+      renderer.advanceCrowd?.(
+        (now - startedAt) / 1000,
+        profile.waveSpeed,
+        profile.waveLift,
+        profile.swayAmplitude,
+      );
+    };
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, [view, renderState]);
 
   const cinematicComplete = view === "CINEMATIC" && progress >= 0.985;
   const spatialReady = view === "TACTICS" || cinematicComplete;

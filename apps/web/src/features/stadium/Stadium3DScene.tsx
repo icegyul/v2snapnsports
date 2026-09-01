@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Keyb
 import type { CoreVisualMode } from "../../api/coreProductContracts";
 import { createStadiumScene, nextStadiumMode } from "../../three/stadiumScene";
 import { createStadiumWebglRenderer, type StadiumWebglRenderer } from "../../three/stadiumWebgl";
+import { getStadiumCrowdMotionProfile, shouldAdvanceCrowdFrame } from "./stadiumCrowdMotion";
 import { getStadiumHomeMotionProfile } from "./stadiumHomeMotion";
 import { resolveSelectedStadium, SERVICE_STADIUM_PRESETS, type ServiceStadiumPreset } from "./stadiumSelection";
 
@@ -189,6 +190,36 @@ export function Stadium3DScene({ mode, onEnter }: Stadium3DSceneProps) {
     riseRef.current = rise;
     rendererRef.current?.render(orbit, zoom, rise);
   }, [orbit, zoom, rise]);
+
+  // Living stands. The movement itself is a vertex shader on the crowd
+  // instances, so a frame is one uniform write plus the usual draw; this loop
+  // only paces it, and yields entirely when hidden or under reduced motion.
+  useEffect(() => {
+    if (renderState !== "READY") return;
+    const renderer = rendererRef.current;
+    if (!renderer?.advanceCrowd) return;
+    const reducedMotion = typeof window.matchMedia === "function"
+      && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const profile = getStadiumCrowdMotionProfile(reducedMotion);
+    if (!profile.enabled || typeof window.requestAnimationFrame !== "function") return;
+
+    let frame = 0;
+    let lastFrameMs: number | null = null;
+    const startedAt = performance.now();
+    const tick = (now: number) => {
+      frame = window.requestAnimationFrame(tick);
+      if (!shouldAdvanceCrowdFrame(profile, lastFrameMs, now, document.hidden)) return;
+      lastFrameMs = now;
+      renderer.advanceCrowd?.(
+        (now - startedAt) / 1000,
+        profile.waveSpeed,
+        profile.waveLift,
+        profile.swayAmplitude,
+      );
+    };
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, [renderState, effectiveMode]);
 
   function suppressNextClick(): void {
     suppressClickRef.current = true;
