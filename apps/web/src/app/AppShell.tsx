@@ -16,6 +16,7 @@ import { loadStadiumMotionFeatures } from "../features/stadium/stadiumMotionLoad
 import { FixtureSessionAdapter, type SessionAdapter, type SessionUser } from "../adapters/sessionAdapter";
 import { resolveRouteGuard, routeDenyMessage, routeNeedsSession } from "../routes/routeGuard";
 import { readRolePreference, writeRolePreference, type RolePreference } from "../features/auth/rolePreference";
+import { LoginPage } from "../features/auth/LoginPage";
 
 const StadiumBuilderPage = lazy(() => import("../features/stadium-builder/StadiumBuilderPage")
   .then((module) => ({ default: module.StadiumBuilderPage })));
@@ -183,7 +184,7 @@ function AppRoutes() {
     <Route path="/home/builder" element={<StadiumBuilderRoute />} />
     <Route path="/stadium" element={<Navigate replace to="/home" />} />
     <Route path="/signup/role" element={<RoleSelect />} />
-    <Route path="/login" element={<GenericShell title="로그인" />} />
+    <Route path="/login" element={<LoginPage />} />
     <Route path="/invite/guardian/:inviteId" element={<GenericShell title="보호자 초대" />} />
     <Route path="/training" element={<Pack01TrainingPage />} />
     <Route path="/training/:eventId" element={<Pack01TrainingDetailPage />} />

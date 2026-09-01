@@ -1,0 +1,81 @@
+/* Sign-in and sign-up screens. Quiet by design: these are doors, not rooms. */
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(100%, 380px);
+  margin-top: 8px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-field > label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.auth-field input {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid rgba(88, 108, 132, 0.7);
+  border-radius: 10px;
+  color: inherit;
+  background: rgba(10, 16, 26, 0.7);
+  font: inherit;
+  font-size: 15px;
+}
+
+.auth-field input:focus-visible {
+  outline: 2px solid #f0c75e;
+  outline-offset: 1px;
+}
+
+.auth-field input[aria-invalid="true"] {
+  border-color: #ff8a80;
+}
+
+.auth-field-error {
+  color: #ff9d94;
+  font-size: 12px;
+}
+
+.auth-submit {
+  min-height: 48px;
+  margin-top: 4px;
+  border: 1px solid #f0c75e;
+  border-radius: 999px;
+  color: #f0c75e;
+  background: rgba(240, 199, 94, 0.12);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.auth-submit:disabled {
+  border-color: rgba(159, 177, 186, 0.5);
+  color: #9fb1ba;
+  background: transparent;
+}
+
+.auth-message {
+  max-width: 44ch;
+  margin: 12px 0 0;
+  color: #e2ebef;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.auth-alt {
+  margin: 18px 0 0;
+  font-size: 13px;
+}
+
+.auth-note {
+  margin: 6px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
