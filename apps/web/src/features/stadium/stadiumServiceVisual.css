@@ -251,8 +251,8 @@ body:has(.stadium-service-home) .app-shell {
   right: clamp(22px, 3vw, 48px);
   bottom: 82px;
   margin: 0;
-  color: rgba(219, 229, 233, .48);
-  font-size: 10px;
+  color: rgba(226, 235, 239, .78);
+  font-size: 11px;
   letter-spacing: .035em;
   pointer-events: none;
 }
@@ -377,7 +377,7 @@ body:has(.stadium-service-home) .bottom-navigation .stadium-nav-indicator {
   .shell-main.stadium-service-home .stadium-service-data-note {
     right: 21px;
     bottom: calc(139px + env(safe-area-inset-bottom, 0px));
-    font-size: 9px;
+    font-size: 11px;
   }
 
   body:has(.stadium-service-home) .bottom-navigation {
@@ -457,7 +457,7 @@ body:has(.stadium-service-home) .bottom-navigation .stadium-nav-indicator {
   border-radius: 999px;
   background: rgba(240, 199, 94, .16);
   color: #f0c75e;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;

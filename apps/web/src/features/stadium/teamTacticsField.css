@@ -160,15 +160,15 @@
   position: absolute;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   transform: translate(-50%, -50%) rotateX(-21deg);
   transform-origin: 50% 100%;
   border: 1px dashed rgba(150, 172, 200, 0.5);
   border-radius: 50%;
   color: rgba(176, 194, 214, 0.72);
   background: rgba(14, 22, 36, 0.42);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.03em;
   pointer-events: none;
@@ -376,8 +376,8 @@
 
 .team-tactics-panel-note {
   margin: 10px 0 0;
-  font-size: 10px;
-  color: #78899b;
+  font-size: 11px;
+  color: #8b9cae;
 }
 
 .team-tactics-selection {
@@ -439,22 +439,22 @@
   }
 
   .team-tactics-marker {
-    width: 48px;
-    min-height: 56px;
+    width: 54px;
+    min-height: 66px;
     /* Shorter pitch on a phone: sit the cards nearer the surface so the
        highest one does not float off the top edge. */
     transform: translate(-50%, -82%) rotateX(-22deg);
   }
 
   .team-tactics-slot {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     transform: translate(-50%, -50%) rotateX(-22deg);
-    font-size: 8px;
+    font-size: 11px;
   }
 
   .team-tactics-own {
-    width: 54px;
+    width: 58px;
   }
 
   .team-tactics-rating {
@@ -462,16 +462,17 @@
   }
 
   .team-tactics-avatar {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
   }
 
   .team-tactics-num {
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .team-tactics-tag {
-    font-size: 8px;
+    font-size: 11px;
   }
 }
 

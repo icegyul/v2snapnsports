@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LazyMotion, useReducedMotion } from "motion/react";
 import { div as MotionDiv, h1 as MotionHeading, header as MotionHeader, p as MotionParagraph } from "motion/react-m";
-import { Link, useNavigate } from "react-router-dom";
-import type { CoreFormation, CoreStadiumHome } from "../../api/coreProductContracts";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import type { CoreFormation, CoreStadiumHome, CoreVisualMode } from "../../api/coreProductContracts";
 import { FixtureCoreProductAdapter } from "../../adapters/fixtureCoreProductAdapter";
 import { CoreStateBoundary } from "../../components/CoreStateBoundary";
+import { resolveVisualMode } from "../core/visualQuality";
 import { Stadium3DScene } from "./Stadium3DScene";
 import { StadiumBoard } from "./StadiumBoard";
 import { StadiumApproachScene } from "./StadiumApproachScene";
@@ -32,6 +33,17 @@ const loadStadiumHome = () => adapter.getStadiumHome();
 const loadFormation = () => adapter.getFormation();
 const loadSpatialHome = () => adapter.getSpatialHome();
 
+function useVisualMode(contractMode: CoreVisualMode): CoreVisualMode {
+  const { search } = useLocation();
+  return useMemo(() => {
+    try {
+      return resolveVisualMode(contractMode, search, window.localStorage);
+    } catch {
+      return contractMode;
+    }
+  }, [contractMode, search]);
+}
+
 function useFixture<T>(load: () => Promise<T>) {
   const [value, setValue] = useState<T | null>(null);
   useEffect(() => { void load().then(setValue); }, [load]);
@@ -40,6 +52,7 @@ function useFixture<T>(load: () => Promise<T>) {
 
 function StadiumExteriorContent({ home }: { home: CoreStadiumHome }) {
   const navigate = useNavigate();
+  const visualMode = useVisualMode(home.visualMode);
   const reducedMotion = Boolean(useReducedMotion());
   const homeMotion = getStadiumHomeMotionProfile(reducedMotion);
   const containerVariants = {
@@ -70,7 +83,7 @@ function StadiumExteriorContent({ home }: { home: CoreStadiumHome }) {
         <MotionParagraph className="stadium-home-player" variants={itemVariants}>선수 #{home.player.shirtNumber} · {home.player.primaryPosition}</MotionParagraph>
       </MotionHeader>
 
-      <Stadium3DScene mode={home.visualMode} onEnter={() => navigate("/home/full")} />
+      <Stadium3DScene mode={visualMode} onEnter={() => navigate("/home/full")} />
 
       <StadiumBoard source={{ nextMatch: home.nextMatch, nextTraining: home.nextTraining }} />
 
@@ -101,6 +114,7 @@ export function FullStadiumJourneyPage() {
   const home = useFixture(loadStadiumHome);
   const formation = useFixture(loadFormation);
   const spatial = useFixture(loadSpatialHome);
+  const visualMode = useVisualMode(home?.visualMode ?? "FULL");
   const ready = Boolean(home && formation && spatial);
   return <CoreStateBoundary state={ready ? "READY" : "LOADING"}>{home && formation && spatial ? <main className="shell-main full-journey-page">
     <header className="full-journey-header">
@@ -110,7 +124,7 @@ export function FullStadiumJourneyPage() {
       </div>
       <p className="full-journey-meta">{home.team.displayName} · 외부 접근부터 Spatial Home까지 하나의 3D canvas에서 이어집니다.</p>
     </header>
-    <FullStadiumJourneyScene mode={home.visualMode} formation={formation} spatial={spatial} />
+    <FullStadiumJourneyScene mode={visualMode} formation={formation} spatial={spatial} />
     <footer className="full-journey-footnote">
       <p>FULL ENTRY · 접근 → 피치 → 프로젝션 → 나 → 포메이션 → Spatial Home</p>
       {home.source === "SYNTHETIC_FIXTURE" && <p>데모 데이터 · 운영 데이터 연결 전</p>}
