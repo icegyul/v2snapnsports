@@ -57,3 +57,15 @@
 재실행 결과: 단위 232→251, tactics+DIY 15→21/21, interior 9/9, select 10/10, default entry·journey·builder·projection 전부 PASS.
 
 주의(도구 환경): Windows 경로의 `#` 때문에 `npm run build`는 스테이징 폴더에 산출물을 쓴다. 로컬 프리뷰 검증 시 `vite preview --outDir <staging>/dist --host 127.0.0.1`로 띄워야 최신 번들을 본다. 저장소의 `dist/`만 보고 검증하면 옛 번들을 검증하게 된다.
+
+## 5. 추가 사이클 — 살아있는 관중 (HEAD 3d5f056)
+
+| 항목 | 내용 | 상태 |
+|---|---|---|
+| 관중 모션 | 보울을 도는 파도 응원 + 상시 미세 흔들림. 관중 인스턴스의 버텍스 셰이더로 처리 | BROWSER_PASS_EXECUTED |
+| 성능 설계 | CPU로 하면 프레임마다 약 4만 개 인스턴스 행렬을 다시 써야 한다. 셰이더 처리로 한 프레임 비용은 uniform 1회 갱신 + 기존 드로우 | CODE_EXISTS |
+| 프레임 정책 | 30fps 상한, 탭이 숨겨지면 정지, `prefers-reduced-motion`이면 루프 자체를 시작하지 않음 | TEST_PASS_EXECUTED + BROWSER_PASS_EXECUTED |
+
+측정 증거(`tools/capture_crowd_motion.mjs`, 11/11): 같은 카메라에서 700ms 간격 두 프레임을 비교해 관중석 픽셀 변화율 — 홈 2.52%, 전술 화면 뒤 1.23%, 저감 모션 0.000%. 동시에 페이지는 60~61 rAF/s를 유지해 다른 애니메이션을 굶기지 않음을 확인했다.
+
+단위 251→258. 전체 매트릭스(기본 진입·전술+DIY 21/21·내부뷰 9/9·선택 10/10·빌더·저니·프로젝션) 이 HEAD에서 재실행 PASS.
