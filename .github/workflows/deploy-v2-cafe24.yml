@@ -10,9 +10,10 @@ name: Deploy V2 to Cafe24
 # take precedence when present.
 # Optional variable (Settings → Variables → Actions):
 #   CAFE24_FTP_SERVER_DIR  target directory relative to the FTP login
-#                          home, default www/V2/ (the site's real doc
-#                          root is www/, and a V2 folder already exists
-#                          there — confirmed via a manual FTP session).
+#                          home, default v2/. Diagnosed 2026-09-01: the
+#                          FTP login home IS the served web root (it
+#                          holds Rhymix index.php plus app/ and api/),
+#                          so /v2/ serves from home-relative v2/.
 
 on:
   workflow_dispatch:
@@ -102,7 +103,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y lftp
 
-          target="${{ vars.CAFE24_FTP_SERVER_DIR != '' && vars.CAFE24_FTP_SERVER_DIR || 'www/v2/' }}"
+          target="${{ vars.CAFE24_FTP_SERVER_DIR != '' && vars.CAFE24_FTP_SERVER_DIR || 'v2/' }}"
 
           encode() { awk '{printf "%s%%0A", $0}'; }
           precheck="pwd=$(pwd)
