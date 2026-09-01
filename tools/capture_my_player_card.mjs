@@ -1,4 +1,4 @@
-/* global process, console */
+/* global process, console, window */
 // Walks the locker-room card the way a player would: arrive from the career
 // passport, read the card, turn it over for the career record, come back.
 import { chromium } from "playwright";
@@ -56,6 +56,27 @@ async function run(label, viewport) {
   await page.getByRole("button", { name: "카드 앞면 보기" }).click();
   await page.locator(".player-card-front").waitFor({ timeout: 10000 });
   record(`${label}: turns back to the card`, (await card.getAttribute("data-card-face")) === "FRONT");
+
+  // Photo: pick a real file, confirm it lands on the card, survives a reload,
+  // and can be removed again.
+  await page.setInputFiles('input[aria-label="카드 사진 올리기"]', "tools/fixtures/test-portrait.png");
+  await page.locator(".player-card-photo").waitFor({ timeout: 10000 });
+  record(`${label}: photo lands on the card`, (await page.locator(".player-card-silhouette").count()) === 0);
+  await page.screenshot({ path: `${outputDir}/${label}-photo.png` });
+
+  const stored = await page.evaluate(() => window.localStorage.getItem("snapn:v2:player-photo"));
+  record(`${label}: photo kept on the device only`,
+    typeof stored === "string" && stored.startsWith("data:image/jpeg;base64,"),
+    `${Math.round((stored?.length ?? 0) / 1024)}KB`);
+
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.locator(".player-card-photo").waitFor({ timeout: 20000 });
+  record(`${label}: photo survives a reload`, true);
+
+  await page.getByRole("button", { name: "사진 삭제" }).click();
+  await page.locator(".player-card-silhouette").waitFor({ timeout: 10000 });
+  record(`${label}: photo can be removed`,
+    (await page.evaluate(() => window.localStorage.getItem("snapn:v2:player-photo"))) === null);
 
   const blocking = consoleErrors.filter((text) => !text.includes("favicon"));
   record(`${label}: no console errors`, blocking.length === 0, blocking.slice(0, 2).join(" | "));

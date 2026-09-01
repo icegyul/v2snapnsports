@@ -195,6 +195,58 @@
   opacity: 0.5;
 }
 
+.player-card-photo-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.player-card-photo-pick {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgba(240, 199, 94, 0.7);
+  border-radius: 999px;
+  color: #f0c75e;
+  background: rgba(240, 199, 94, 0.1);
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.player-card-photo-pick input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.player-card-photo-pick:focus-within {
+  outline: 2px solid #f0c75e;
+  outline-offset: 2px;
+}
+
+.player-card-photo-remove {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(159, 177, 186, 0.5);
+  border-radius: 999px;
+  color: #9fb1ba;
+  background: transparent;
+  font-size: 13px;
+}
+
+.player-card-photo-message {
+  margin: 8px 0 0;
+  color: #9fb1ba;
+  font-size: 12px;
+}
+
 .player-card-identity {
   display: flex;
   flex-wrap: wrap;

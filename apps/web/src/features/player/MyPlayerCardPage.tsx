@@ -5,6 +5,8 @@ import { createPack02FootballLifeDomain } from "../../../../../packages/pack02/d
 import type { CoreStadiumHome } from "../../api/coreProductContracts";
 import { FixtureCoreProductAdapter } from "../../adapters/fixtureCoreProductAdapter";
 import { PlayerCardShield } from "./PlayerCardShield";
+import { clearPlayerPhoto, loadPlayerPhoto, savePlayerPhoto } from "./playerPhotoStorage";
+import { preparePlayerPhoto } from "./preparePlayerPhoto";
 import { buildPlayerCardFace, summarizeCareer, type PlayerCardTier } from "./playerCardModel";
 import "./playerCard.css";
 
@@ -56,6 +58,14 @@ const productAdapter = new FixtureCoreProductAdapter();
 export function MyPlayerCardPage() {
   const [face, setFace] = useState<"FRONT" | "BACK">("FRONT");
   const [home, setHome] = useState<CoreStadiumHome | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(() => {
+    try {
+      return loadPlayerPhoto(window.localStorage);
+    } catch {
+      return null;
+    }
+  });
+  const [photoMessage, setPhotoMessage] = useState("");
   const reducedMotion = Boolean(useReducedMotion());
 
   useEffect(() => {
@@ -82,6 +92,41 @@ export function MyPlayerCardPage() {
     primaryPosition: home.player.primaryPosition,
     secondaryPosition: home.player.secondaryPosition,
   });
+
+  const choosePhoto = async (file: File | undefined) => {
+    if (!file) return;
+    setPhotoMessage("사진을 준비하고 있습니다.");
+    const prepared = await preparePlayerPhoto(file);
+    if (prepared.status === "UNSUPPORTED_TYPE") {
+      setPhotoMessage("사진 형식은 JPG, PNG, WEBP만 사용할 수 있습니다.");
+      return;
+    }
+    if (prepared.status === "UNREADABLE") {
+      setPhotoMessage("사진을 열 수 없습니다. 다른 사진을 선택해 주세요.");
+      return;
+    }
+    if (prepared.status === "TOO_LARGE") {
+      setPhotoMessage("사진 용량이 너무 큽니다. 더 작은 사진을 선택해 주세요.");
+      return;
+    }
+    const saved = savePlayerPhoto(window.localStorage, prepared.dataUrl);
+    if (saved.status !== "SAVED") {
+      setPhotoMessage("이 브라우저에서는 사진을 저장할 수 없습니다.");
+      return;
+    }
+    setPhotoUrl(prepared.dataUrl);
+    setPhotoMessage("카드 사진이 저장되었습니다.");
+  };
+
+  const removePhoto = () => {
+    try {
+      clearPlayerPhoto(window.localStorage);
+    } catch {
+      // Nothing stored to clear.
+    }
+    setPhotoUrl(null);
+    setPhotoMessage("카드 사진을 삭제했습니다.");
+  };
 
   const flip = face === "FRONT" ? "BACK" : "FRONT";
   const flipLabel = face === "FRONT" ? "커리어 기록 보기" : "카드 앞면 보기";
@@ -111,14 +156,35 @@ export function MyPlayerCardPage() {
               exit={reducedMotion ? { opacity: 0 } : { opacity: 0, rotateY: 12 }}
               transition={transition}
             >
-              <PlayerCardShield card={card} />
+              <PlayerCardShield card={card} photoUrl={photoUrl} />
 
               <p className="player-card-identity">
                 <span className="player-card-tier">{TIER_LABEL[card.tier]}</span>
                 <span>#{card.shirtNumber} · {card.position}</span>
                 {card.secondaryPosition && <span className="player-card-second">· {card.secondaryPosition}</span>}
               </p>
+              <div className="player-card-photo-tools">
+                <label className="player-card-photo-pick">
+                  <span>{photoUrl ? "사진 바꾸기" : "사진 넣기"}</span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    aria-label="카드 사진 올리기"
+                    onChange={(event) => {
+                      void choosePhoto(event.target.files?.[0]);
+                      event.target.value = "";
+                    }}
+                  />
+                </label>
+                {photoUrl && (
+                  <button type="button" className="player-card-photo-remove" onClick={removePhoto}>
+                    사진 삭제
+                  </button>
+                )}
+              </div>
+              {photoMessage && <p className="player-card-photo-message" role="status">{photoMessage}</p>}
               <p className="player-card-note">데모 능력치 · 훈련 기록 연동 전</p>
+              <p className="player-card-note">사진은 이 기기에만 저장되며 서버로 전송되지 않습니다.</p>
             </motion.div>
           ) : (
             <motion.div

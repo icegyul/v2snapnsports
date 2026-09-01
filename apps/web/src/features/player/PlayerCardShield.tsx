@@ -23,7 +23,7 @@ function rayPath(index: number): string {
   return `M${RAY_ORIGIN.x},${RAY_ORIGIN.y} L${point(-RAY_SPREAD)} L${point(RAY_SPREAD)} Z`;
 }
 
-export function PlayerCardShield({ card }: { readonly card: PlayerCardFace }) {
+export function PlayerCardShield({ card, photoUrl }: { readonly card: PlayerCardFace; readonly photoUrl?: string | null }) {
   return (
     <svg
       className="player-card-shield"
@@ -82,6 +82,19 @@ export function PlayerCardShield({ card }: { readonly card: PlayerCardFace }) {
         <mask id="rayMask">
           <rect x="0" y="0" width="320" height="480" fill="url(#rayFade)" />
         </mask>
+        <linearGradient id="photoFade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#fff" stopOpacity="1" />
+          <stop offset="72%" stopColor="#fff" stopOpacity="1" />
+          <stop offset="100%" stopColor="#fff" stopOpacity="0" />
+        </linearGradient>
+        <mask id="photoMask">
+          <rect x="52" y="34" width="216" height="274" rx="10" fill="url(#photoFade)" />
+        </mask>
+        <linearGradient id="ratingScrim" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" style={{ stopColor: "var(--plate-3)" }} stopOpacity="0.96" />
+          <stop offset="62%" style={{ stopColor: "var(--plate-3)" }} stopOpacity="0.72" />
+          <stop offset="100%" style={{ stopColor: "var(--plate-3)" }} stopOpacity="0" />
+        </linearGradient>
         <clipPath id="cardClip">
           <path d={SHIELD} />
         </clipPath>
@@ -102,10 +115,27 @@ export function PlayerCardShield({ card }: { readonly card: PlayerCardFace }) {
 
         <rect x="0" y="0" width="320" height="480" filter="url(#cardMarble)" className="player-card-marble" />
 
-        <g className="player-card-silhouette">
-          <circle cx="198" cy="152" r="50" />
-          <path d="M198 210 C144 210 116 252 112 304 L284 304 C280 252 252 210 198 210 Z" />
-        </g>
+        {photoUrl ? (
+          <>
+            <image
+              className="player-card-photo"
+              href={photoUrl}
+              x="52"
+              y="34"
+              width="216"
+              height="274"
+              preserveAspectRatio="xMidYMid slice"
+              mask="url(#photoMask)"
+            />
+            {/* Keeps the rating readable over any photo a player picks. */}
+            <rect x="24" y="34" width="112" height="160" fill="url(#ratingScrim)" />
+          </>
+        ) : (
+          <g className="player-card-silhouette">
+            <circle cx="198" cy="152" r="50" />
+            <path d="M198 210 C144 210 116 252 112 304 L284 304 C280 252 252 210 198 210 Z" />
+          </g>
+        )}
 
         <rect x="0" y="0" width="320" height="480" fill="url(#cardVignette)" />
         <rect x="0" y="0" width="320" height="480" filter="url(#cardGrain)" opacity="0.55" />
