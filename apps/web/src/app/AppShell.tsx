@@ -20,9 +20,18 @@ const StadiumBuilderPage = lazy(() => import("../features/stadium-builder/Stadiu
 const StadiumSelectPage = lazy(() => import("../features/stadium/StadiumSelectPage")
   .then((module) => ({ default: module.StadiumSelectPage })));
 
+const MyPlayerCardPage = lazy(() => import("../features/player/MyPlayerCardPage")
+  .then((module) => ({ default: module.MyPlayerCardPage })));
+
 function StadiumSelectRoute() {
   return <Suspense fallback={<main className="shell-main" role="status" aria-label="경기장 선택 준비"><p>경기장 선택 화면을 준비하고 있습니다.</p></main>}>
     <StadiumSelectPage />
+  </Suspense>;
+}
+
+function MyPlayerCardRoute() {
+  return <Suspense fallback={<main className="shell-main" role="status" aria-label="마이 카드 준비"><p>마이 카드를 준비하고 있습니다.</p></main>}>
+    <MyPlayerCardPage />
   </Suspense>;
 }
 
@@ -120,6 +129,7 @@ function AppRoutes() {
     <Route path="/player/me/portfolio" element={<Pack02PortfolioPage />} />
     <Route path="/player/career" element={<Navigate replace to="/player/me/career" />} />
     <Route path="/player/me" element={<Pack02CareerPassportPage />} />
+    <Route path="/player/me/card" element={<MyPlayerCardRoute />} />
     <Route path="/player/me/career" element={<Pack02CareerPassportPage />} />
     <Route path="/player/me/career/season/:seasonId" element={<Pack02CareerSeasonPage />} />
     <Route path="*" element={<GenericShell title="찾을 수 없는 화면" />} />
