@@ -1,19 +1,20 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { AppShell } from "../app/AppShell";
+import { sessionAdapterFor, managerSession } from "./support/testSessions";
 
 afterEach(cleanup);
 
 describe("PACK 03 manager workspace routes", () => {
   it("shows six verified-role workspace choices without treating preference as permission", () => {
-    render(<AppShell initialPath="/manager" />);
+    render(<AppShell initialPath="/manager" sessionAdapter={sessionAdapterFor(managerSession)} />);
     expect(screen.getByRole("heading", { name: "매니저 워크스페이스" })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /역할로 전환/ })).toHaveLength(6);
     expect(screen.getByText(/선호 역할은 권한이 아닙니다/)).toBeInTheDocument();
   });
 
   it("switches Coach to Referee and removes Coach-only action immediately", () => {
-    render(<AppShell initialPath="/manager" />);
+    render(<AppShell initialPath="/manager" sessionAdapter={sessionAdapterFor(managerSession)} />);
     fireEvent.click(screen.getByRole("button", { name: "COACH 역할로 전환" }));
     expect(screen.getByRole("heading", { name: "코치 워크스페이스" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "훈련 세션 시작" })).toBeInTheDocument();
@@ -23,7 +24,7 @@ describe("PACK 03 manager workspace routes", () => {
   });
 
   it("keeps Agent opportunity action mediated and Analyst playback static", () => {
-    render(<AppShell initialPath="/manager" />);
+    render(<AppShell initialPath="/manager" sessionAdapter={sessionAdapterFor(managerSession)} />);
     fireEvent.click(screen.getByRole("button", { name: "AGENT 역할로 전환" }));
     fireEvent.click(screen.getByRole("button", { name: "보호자 또는 구단 검토 요청" }));
     expect(screen.getByRole("status")).toHaveTextContent("보호자 또는 구단 중재 경로");

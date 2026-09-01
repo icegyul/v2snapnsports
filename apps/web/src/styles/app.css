@@ -48,3 +48,8 @@ h1 { margin: 0; font-size: clamp(28px, 8vw, 42px); line-height: 1; }
 .team-state-line { display: grid; gap: var(--space-sm); padding-left: var(--space-md); border-left: 2px solid var(--color-accent-pitch); color: var(--color-text-secondary); font-size: 14px; }
 @media (min-width: 768px) { .shell-main { padding-top: 40px; } .stadium-surface, .position-pitch { min-height: 420px; } .spatial-map { grid-template-columns: repeat(3, minmax(0, 1fr)); } .spatial-map .spatial-anchor:first-child { grid-column: 2; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }
+
+.route-denied { display: flex; flex-direction: column; gap: 10px; }
+.route-denied h1 { margin: 0; font-size: clamp(24px, 5vw, 32px); }
+.route-denied-detail { margin: 0; color: var(--color-text-secondary); font-size: 14px; line-height: 1.7; max-width: 46ch; }
+.route-denied-home { align-self: flex-start; margin-top: 8px; }

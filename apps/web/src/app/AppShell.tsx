@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { createContext, lazy, Suspense, useContext, useEffect, useState, type ReactNode } from "react";
 import { LazyMotion, useReducedMotion } from "motion/react";
 import { span as MotionSpan } from "motion/react-m";
 import { BrowserRouter, Link, MemoryRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
@@ -13,6 +13,8 @@ import { VideoDetailPage } from "../features/product/ProductDetailPages";
 import { playerNavigation } from "../routes/routePolicy";
 import { Pack01MatchCenterPage, Pack01MatchPage, Pack01PlaybackPage, Pack01TacticPage, Pack01TrainingDetailPage, Pack01TrainingPage } from "../features/pack01/Pack01Pages";
 import { loadStadiumMotionFeatures } from "../features/stadium/stadiumMotionLoader";
+import { FixtureSessionAdapter, type SessionAdapter, type SessionUser } from "../adapters/sessionAdapter";
+import { resolveRouteGuard, routeDenyMessage, routeNeedsSession } from "../routes/routeGuard";
 
 const StadiumBuilderPage = lazy(() => import("../features/stadium-builder/StadiumBuilderPage")
   .then((module) => ({ default: module.StadiumBuilderPage })));
@@ -76,11 +78,60 @@ function RoleSelect() {
 
 function GenericShell({ title }: { title: string }) { return <main className="shell-main"><p className="eyebrow">FOUNDATION ROUTE</p><h1>{title}</h1><RouteStatePanel state="EMPTY" /></main>; }
 
+function RouteDenied({ reason }: { reason: Parameters<typeof routeDenyMessage>[0] }) {
+  const message = routeDenyMessage(reason);
+  return <main className="shell-main route-denied" role="alert" aria-label="접근 거부">
+    <p className="eyebrow">ACCESS DENIED</p>
+    <h1>{message.title}</h1>
+    <p className="route-denied-detail">{message.detail}</p>
+    <Link className="route-denied-home" to="/home">홈으로 돌아가기</Link>
+  </main>;
+}
+
+const defaultSessionAdapter = new FixtureSessionAdapter();
+const SessionAdapterContext = createContext<SessionAdapter>(defaultSessionAdapter);
+
+/**
+ * Client-side deny for screens a person should not reach by typing the
+ * address. The backend remains the authority; this only stops the app from
+ * rendering a manager or admin screen to someone who holds no verified grant.
+ */
+function RouteGuard({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  const adapter = useContext(SessionAdapterContext);
+  const [user, setUser] = useState<SessionUser | null | undefined>(() => adapter.peekSession?.()?.user);
+
+  useEffect(() => {
+    let cancelled = false;
+    void adapter.getSession()
+      .then((snapshot) => {
+        if (!cancelled) setUser(snapshot.user);
+      })
+      .catch(() => {
+        if (!cancelled) setUser(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [adapter]);
+
+  if (user === undefined && routeNeedsSession(location.pathname)) {
+    return <main className="shell-main" role="status" aria-label="접근 권한 확인"><p>화면을 준비하고 있습니다.</p></main>;
+  }
+
+  const guard = resolveRouteGuard(location.pathname, {
+    accountType: user?.accountType ?? "PLAYER",
+    verifiedGrants: user?.verifiedGrants ?? [],
+  });
+  if (!guard.allowed) return <RouteDenied reason={guard.reason} />;
+  return <>{children}</>;
+}
+
 function AppRoutes() {
   const location = useLocation();
   const isPublic = location.pathname === "/login" || location.pathname === "/signup/role" || location.pathname.startsWith("/invite/guardian/");
   const isStadiumBuilder = location.pathname === "/home/builder" || location.pathname === "/home/stadium";
-  return <div className="app-shell"><Routes>
+  return <div className="app-shell"><RouteGuard><Routes>
     <Route path="/" element={<Navigate replace to="/home" />} />
     <Route path="/home" element={<StadiumExteriorPage />} />
     <Route path="/home/full" element={<FullStadiumJourneyPage />} />
@@ -133,10 +184,17 @@ function AppRoutes() {
     <Route path="/player/me/career" element={<Pack02CareerPassportPage />} />
     <Route path="/player/me/career/season/:seasonId" element={<Pack02CareerSeasonPage />} />
     <Route path="*" element={<GenericShell title="찾을 수 없는 화면" />} />
-  </Routes>{!isPublic && !isStadiumBuilder && <BottomNavigation />}</div>;
+  </Routes></RouteGuard>{!isPublic && !isStadiumBuilder && <BottomNavigation />}</div>;
 }
 
-export function AppShell({ initialPath }: { initialPath?: string }) {
-  if (initialPath) return <MemoryRouter initialEntries={[initialPath]}><AppRoutes /></MemoryRouter>;
-  return <BrowserRouter basename="/v2"><AppRoutes /></BrowserRouter>;
+export function AppShell({ initialPath, sessionAdapter }: { initialPath?: string; sessionAdapter?: SessionAdapter }) {
+  const adapter = sessionAdapter ?? defaultSessionAdapter;
+  if (initialPath) {
+    return <SessionAdapterContext.Provider value={adapter}>
+      <MemoryRouter initialEntries={[initialPath]}><AppRoutes /></MemoryRouter>
+    </SessionAdapterContext.Provider>;
+  }
+  return <SessionAdapterContext.Provider value={adapter}>
+    <BrowserRouter basename="/v2"><AppRoutes /></BrowserRouter>
+  </SessionAdapterContext.Provider>;
 }
