@@ -20,7 +20,50 @@ const thread = domain.createTeamThread(coach, { teamId: "team-a", context: "SCHE
 
 export function Pack02CareerPassportPage() {
   const passport = domain.getCareerPassport(player, "athlete-a");
-  return <main className="shell-main"><p className="eyebrow">CAREER PASSPORT · FIXTURE LOCAL</p><h1>커리어 패스포트</h1><section className="career-timeline" aria-label="커리어 타임라인"><h2>시즌 여정</h2>{passport.chapters.map((chapter) => <section key={chapter.seasonId}><h3>{chapter.seasonId}</h3>{chapter.events.map((event) => <article key={event.id} className="surface-card"><h4>{event.title}</h4><p><span aria-label="검증된 기록">검증된 기록</span> · {event.occurredAt.slice(0, 10)}</p></article>)}</section>)}</section><nav aria-label="커리어 관련 작업"><Link to="/player/me/card">마이 카드</Link><Link to="/player/me/career/season/fixture-2026">시즌 기록</Link><Link to="/player/me/portfolio">포트폴리오 공유</Link></nav><p className="meta">Legacy Wall은 이 기록의 표시용 projection입니다. 자동 평가나 프로 가능성 점수는 만들지 않습니다.</p></main>;
+  const records = passport.chapters.reduce((total, chapter) => total + chapter.events.length, 0);
+
+  return (
+    <main className="shell-main screen">
+      <header className="screen-head">
+        <p className="eyebrow">CAREER PASSPORT</p>
+        <h1>커리어 패스포트</h1>
+        <p className="screen-sub">지금까지 쌓인 기록입니다. 검증된 출처가 있는 항목만 남습니다.</p>
+      </header>
+
+      <dl className="screen-facts">
+        <div className="screen-fact"><dt>시즌</dt><dd>{passport.chapters.length}</dd></div>
+        <div className="screen-fact"><dt>기록</dt><dd>{records}</dd></div>
+      </dl>
+
+      <section className="screen-section" aria-label="커리어 타임라인">
+        <h2>시즌 여정</h2>
+        {passport.chapters.map((chapter) => (
+          <section key={chapter.seasonId} className="screen-section">
+            <h3 className="screen-row-title">{chapter.seasonId}</h3>
+            <ul className="screen-list">
+              {chapter.events.map((event) => (
+                <li key={event.id}>
+                  <article className="screen-row">
+                    <span className="screen-row-title">{event.title}</span>
+                    <span className="screen-pill" data-tone="GOOD">검증된 기록</span>
+                    <span className="screen-row-meta">{event.occurredAt.slice(0, 10)}</span>
+                  </article>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </section>
+
+      <nav className="screen-actions" aria-label="커리어 관련 작업">
+        <Link className="screen-action" to="/player/me/card">마이 카드</Link>
+        <Link className="screen-action" data-variant="quiet" to="/player/me/career/season/fixture-2026">시즌 기록</Link>
+        <Link className="screen-action" data-variant="quiet" to="/player/me/portfolio">포트폴리오 공유</Link>
+      </nav>
+
+      <p className="screen-note">Legacy Wall은 이 기록의 표시용 projection입니다. 자동 평가나 프로 가능성 점수는 만들지 않습니다.</p>
+    </main>
+  );
 }
 
 export function Pack02CareerSeasonPage() {

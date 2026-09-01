@@ -13,7 +13,22 @@ export function TrainingPage() {
 }
 
 export function VideoPage() {
-  return <main className="shell-main"><p className="eyebrow">VIDEO · FIXTURE LOCAL</p><h1>영상</h1><section className="surface-card"><h2>현재 표시할 수 있는 영상이 없습니다</h2><p>권한이 확인된 영상만 이곳에 표시합니다.</p></section></main>;
+  return (
+    <main className="shell-main screen">
+      <header className="screen-head">
+        <p className="eyebrow">VIDEO</p>
+        <h1>영상</h1>
+        <p className="screen-sub">경기와 훈련 영상이 이곳에 모입니다.</p>
+      </header>
+
+      <section className="screen-empty">
+        <strong>현재 표시할 수 있는 영상이 없습니다</strong>
+        <span>권한이 확인된 영상만 이곳에 표시합니다.</span>
+      </section>
+
+      <p className="screen-note">미성년 선수가 등장하는 영상은 보호자 또는 구단 확인을 거친 뒤에만 공개됩니다.</p>
+    </main>
+  );
 }
 
 const verifiedEvent = { title: "DEMO U17 A팀 합류", source: { type: "TEAM_MEMBERSHIP", id: "demo-membership", version: 1, verifiedState: "VERIFIED" } };
