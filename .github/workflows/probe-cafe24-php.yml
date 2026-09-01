@@ -119,6 +119,14 @@ jobs:
 
           sleep 5
           code=$(curl -s -o probe-response.json -w "%{http_code}" "https://snapnsports.com/api/v1/snapn-capability-probe.php")
+          bytes=$(wc -c < probe-response.json | tr -d ' ')
+          # An empty annotation body is silently dropped by GitHub, which is
+          # how the first run came back green and said nothing. Keep the
+          # status in the title, which always renders, and never let the body
+          # be empty.
+          body=$(head -c 2400 probe-response.json)
+          [ -n "$body" ] || body="(empty response body)"
+          echo "::notice title=probe http ${code}, ${bytes} bytes::$(printf '%s' "$body" | encode)"
           echo "--- probe response (${code}) ---"
           cat probe-response.json || true
           # The run summary renders without a signed-in session, unlike raw
