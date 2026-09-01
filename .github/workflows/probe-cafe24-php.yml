@@ -1,0 +1,145 @@
+name: Probe Cafe24 PHP capabilities
+
+# One-shot, self-cleaning probe. The repo's audit docs record the production
+# PHP version, extensions and limits as UNVERIFIED, and V2's auth backend
+# cannot be written against a guess. This uploads a single read-only PHP file
+# into a NEW directory (api/v1/, invisible to V1's deploy tooling), reads it
+# over HTTPS, prints the answer as an annotation, and deletes it again.
+#
+# It touches no V1 file, opens no database connection, and carries no secret:
+# the FTP transport here is plaintext, so nothing sensitive may travel it.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - probe/cafe24-php
+
+concurrency:
+  group: probe-cafe24-php
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve FTP credentials
+        env:
+          S: ${{ secrets.CAFE24_FTP_SERVER }}
+          U: ${{ secrets.CAFE24_FTP_USERNAME }}
+          P: ${{ secrets.CAFE24_FTP_PASSWORD }}
+          COMBINED: ${{ secrets.CAFE24 }}
+        run: |
+          if [ -z "$S" ] && [ -n "$COMBINED" ]; then
+            S=$(printf '%s\n' "$COMBINED" | sed -n 1p | tr -d '\r' | xargs)
+            U=$(printf '%s\n' "$COMBINED" | sed -n 2p | tr -d '\r' | xargs)
+            P=$(printf '%s\n' "$COMBINED" | sed -n 3p | tr -d '\r')
+          fi
+          S=$(printf '%s' "$S" | sed -E 's#^ftps?://##; s#/+$##')
+          if [ -z "$S" ] || [ -z "$U" ] || [ -z "$P" ]; then
+            echo "::error::BLOCKED_CREDENTIAL_NOT_PROVIDED - FTP credentials are not configured."
+            exit 1
+          fi
+          echo "::add-mask::$P"
+          {
+            echo "FTP_SERVER=$S"
+            echo "FTP_USERNAME=$U"
+            echo "FTP_PASSWORD=$P"
+          } >> "$GITHUB_ENV"
+
+      - name: Upload, read, and remove the probe
+        run: |
+          sudo apt-get update -y >/dev/null
+          sudo apt-get install -y lftp >/dev/null
+          encode() { awk '{printf "%s%%0A", $0}'; }
+
+          mkdir -p probe
+          cat > probe/snapn-capability-probe.php <<'PHP'
+          <?php
+          // Read-only capability probe for the V2 auth backend. Opens no
+          // database connection and reads no application data.
+          header('Content-Type: application/json; charset=utf-8');
+          $ext = function ($name) { return extension_loaded($name) ? 'yes' : 'no'; };
+          echo json_encode([
+            'php_version' => PHP_VERSION,
+            'php_major_minor' => PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION,
+            'sapi' => PHP_SAPI,
+            'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
+            'https_seen_by_php' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'yes' : 'no',
+            'forwarded_proto' => $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'none',
+            'extensions' => [
+              'mysqli' => $ext('mysqli'),
+              'pdo_mysql' => $ext('pdo_mysql'),
+              'openssl' => $ext('openssl'),
+              'mbstring' => $ext('mbstring'),
+              'json' => $ext('json'),
+              'sodium' => $ext('sodium'),
+            ],
+            'password_hashing' => [
+              'bcrypt' => defined('PASSWORD_BCRYPT') ? 'yes' : 'no',
+              'argon2id' => defined('PASSWORD_ARGON2ID') ? 'yes' : 'no',
+              'default_algo' => (string) PASSWORD_DEFAULT,
+            ],
+            'random_bytes' => function_exists('random_bytes') ? 'yes' : 'no',
+            'limits' => [
+              'memory_limit' => ini_get('memory_limit'),
+              'max_execution_time' => ini_get('max_execution_time'),
+              'post_max_size' => ini_get('post_max_size'),
+              'upload_max_filesize' => ini_get('upload_max_filesize'),
+            ],
+            'writable_tmp' => is_writable(sys_get_temp_dir()) ? 'yes' : 'no',
+          ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+          PHP
+
+          umask 077
+          cat > "$HOME/.netrc" <<NETRC
+          machine $FTP_SERVER
+          login $FTP_USERNAME
+          password $FTP_PASSWORD
+          NETRC
+          chmod 600 "$HOME/.netrc"
+
+          set +e
+          lftp -e "
+            set ftp:ssl-allow no;
+            set net:timeout 20;
+            set cmd:fail-exit no;
+            open $FTP_SERVER;
+            mkdir -p api/v1;
+            cd api/v1;
+            lcd probe;
+            put snapn-capability-probe.php;
+            bye
+          " > upload.log 2>&1
+          upload_status=$?
+          set -e
+          echo "::notice title=probe upload (exit ${upload_status})::$(tail -c 1200 upload.log | encode)"
+
+          sleep 5
+          code=$(curl -s -o probe-response.json -w "%{http_code}" "https://snapnsports.com/api/v1/snapn-capability-probe.php")
+          echo "--- probe response (${code}) ---"
+          cat probe-response.json || true
+          echo "::notice title=cafe24 php capability (${code})::$(head -c 2500 probe-response.json | encode)"
+
+          # Always remove it again: a capability report is not something to
+          # leave sitting on a public web root.
+          set +e
+          lftp -e "
+            set ftp:ssl-allow no;
+            set cmd:fail-exit no;
+            open $FTP_SERVER;
+            cd api/v1;
+            rm -f snapn-capability-probe.php;
+            bye
+          " > cleanup.log 2>&1
+          set -e
+          rm -f "$HOME/.netrc"
+
+          gone=$(curl -s -o /dev/null -w "%{http_code}" "https://snapnsports.com/api/v1/snapn-capability-probe.php")
+          echo "::notice title=probe removed (now ${gone})::$(tail -c 400 cleanup.log | encode)"
+          if [ "$gone" = "200" ]; then
+            echo "::error::Probe file is still reachable. Remove api/v1/snapn-capability-probe.php manually."
+            exit 1
+          fi
