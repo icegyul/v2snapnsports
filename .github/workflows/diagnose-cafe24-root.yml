@@ -1,0 +1,99 @@
+name: Diagnose Cafe24 web root
+
+# Read-mostly probe to answer ONE question: is the real served web root
+# the FTP login home (where app/ and api/ reportedly live) rather than
+# www/ where /v2 was deployed? Creates only a relative "v2" dir and a
+# tiny probe txt at candidate roots - no V1 file is touched.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - diag/cafe24
+
+concurrency:
+  group: diagnose-cafe24
+  cancel-in-progress: false
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve FTP credentials
+        env:
+          S: ${{ secrets.CAFE24_FTP_SERVER }}
+          U: ${{ secrets.CAFE24_FTP_USERNAME }}
+          P: ${{ secrets.CAFE24_FTP_PASSWORD }}
+          COMBINED: ${{ secrets.CAFE24 }}
+        run: |
+          if [ -z "$S" ] && [ -n "$COMBINED" ]; then
+            S=$(printf '%s\n' "$COMBINED" | sed -n 1p | tr -d '\r' | xargs)
+            U=$(printf '%s\n' "$COMBINED" | sed -n 2p | tr -d '\r' | xargs)
+            P=$(printf '%s\n' "$COMBINED" | sed -n 3p | tr -d '\r')
+          fi
+          S=$(printf '%s' "$S" | sed -E 's#^ftps?://##; s#/+$##')
+          if [ -z "$S" ] || [ -z "$U" ] || [ -z "$P" ]; then
+            echo "::error::FTP credentials incomplete."
+            exit 1
+          fi
+          echo "::add-mask::$P"
+          {
+            echo "FTP_SERVER=$S"
+            echo "FTP_USERNAME=$U"
+            echo "FTP_PASSWORD=$P"
+          } >> "$GITHUB_ENV"
+
+      - name: Probe directory layout and candidate roots
+        run: |
+          sudo apt-get update -y >/dev/null
+          sudo apt-get install -y lftp >/dev/null
+          encode() { awk '{printf "%s%%0A", $0}'; }
+          umask 077
+          cat > "$HOME/.netrc" <<NETRC
+          machine $FTP_SERVER
+          login $FTP_USERNAME
+          password $FTP_PASSWORD
+          NETRC
+          chmod 600 "$HOME/.netrc"
+
+          stamp="probe-$(date -u +%Y%m%dT%H%M%SZ)"
+          echo "snapn diagnostic $stamp" > probe.txt
+
+          set +e
+          lftp -e "
+            set ftp:ssl-allow no;
+            set net:timeout 20;
+            set cmd:fail-exit no;
+            open $FTP_SERVER;
+            echo ===PWD===; pwd;
+            echo ===HOME===; cls -la;
+            echo ===WWW===; cls -la www;
+            echo ===APP-AT-HOME===; cls -la app;
+            echo ===API-AT-HOME===; cls -la api;
+            echo ===WWW-APP===; cls -la www/app;
+            echo ===WWW-V2===; cls -la www/v2 | head -5;
+            echo ===MAKE-HOME-V2===; mkdir v2;
+            echo ===PUT-HOME-V2===; put probe.txt -o v2/snapn-probe.txt;
+            echo ===PUT-WWW-V2===; put probe.txt -o www/v2/snapn-probe.txt;
+            echo ===VERIFY-HOME-V2===; cls -la v2;
+            bye
+          " > layout.log 2>&1
+          set -e
+          rm -f "$HOME/.netrc"
+          echo "--- layout ---"
+          cat layout.log
+          echo "::notice title=cafe24 layout ($stamp)::$(cat layout.log | encode)"
+
+      - name: HTTP probe of both candidates
+        run: |
+          encode() { awk '{printf "%s%%0A", $0}'; }
+          {
+            for path in "/v2/snapn-probe.txt" "/v2/" "/v2/index.html" "/app/" ; do
+              code=$(curl -s -o body.txt -w "%{http_code}" "https://snapnsports.com$path")
+              server=$(curl -s -I "https://snapnsports.com$path" | tr -d '\r' | grep -i '^server:' | head -1)
+              first=$(head -c 120 body.txt | tr -d '\n')
+              echo "GET $path -> $code [$server] body: $first"
+            done
+          } > http.log 2>&1
+          cat http.log
+          echo "::notice title=cafe24 http probe::$(cat http.log | encode)"
