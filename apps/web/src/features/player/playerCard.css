@@ -30,8 +30,8 @@
 .player-card {
   position: relative;
   width: min(100%, 420px);
-  padding: 20px;
-  border: 1px solid rgba(88, 108, 132, 0.7);
+  padding: 18px;
+  border: 1px solid rgba(88, 108, 132, 0.55);
   border-radius: 18px;
   background: linear-gradient(180deg, #1d2940 0%, #131b2c 100%);
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
@@ -42,127 +42,110 @@
 .player-card[data-card-tier="SILVER"] { border-color: rgba(186, 199, 214, 0.6); }
 .player-card[data-card-tier="BRONZE"] { border-color: rgba(197, 143, 96, 0.55); }
 
-.player-card-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.player-card-rating {
-  font-size: 40px;
-  font-weight: 750;
-  line-height: 1;
-  color: #f0c75e;
-  font-variant-numeric: tabular-nums;
-}
-
-.player-card[data-card-tier="SILVER"] .player-card-rating { color: #dbe4ef; }
-.player-card[data-card-tier="BRONZE"] .player-card-rating { color: #e0a878; }
-
-.player-card-tier {
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: rgba(240, 199, 94, 0.14);
-  color: #f0c75e;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.player-card[data-card-tier="SILVER"] .player-card-tier { background: rgba(219, 228, 239, 0.14); color: #dbe4ef; }
-.player-card[data-card-tier="BRONZE"] .player-card-tier { background: rgba(224, 168, 120, 0.14); color: #e0a878; }
-
-.player-card-role {
-  margin-left: auto;
-  padding: 3px 10px;
-  border: 1px solid rgba(88, 108, 132, 0.8);
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.player-card-role[data-role="FW"] { color: #ff7a70; }
-.player-card-role[data-role="MF"] { color: #63d287; }
-.player-card-role[data-role="DF"] { color: #6fb1f0; }
-.player-card-role[data-role="GK"] { color: #f2cf6d; }
-
-.player-card-portrait {
-  display: grid;
-  place-items: center;
-  width: 96px;
-  height: 96px;
-  margin: 16px 0 10px;
-  border-radius: 50%;
-  background: #243349;
-  color: #9fb4cc;
-  font-size: 34px;
-  font-weight: 750;
-}
-
-.player-card-name {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.player-card-position {
-  margin: 2px 0 16px;
-  color: #9fb1ba;
-  font-size: 13px;
-}
-
-.player-card-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  margin: 0;
-  padding-top: 14px;
-  border-top: 1px solid rgba(88, 108, 132, 0.45);
-}
-
-.player-card-stat {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.player-card-stat dt {
-  flex: 0 0 52px;
-  color: #9fb1ba;
-  font-size: 12px;
-}
-
-.player-card-stat dd {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-}
-
-.player-card-bar {
-  flex: 1;
-  height: 6px;
-  overflow: hidden;
-  border-radius: 3px;
-  background: #243349;
-}
-
-.player-card-bar > span {
+.player-card-shield {
   display: block;
-  height: 100%;
-  border-radius: 3px;
-  background: #4a90d9;
+  width: 100%;
+  max-width: 340px;
+  height: auto;
+  margin: 0 auto;
+  filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.55));
 }
 
-.player-card-bar > span[data-strong="true"] { background: #f0c75e; }
+/* Tier plates. Gold / silver / bronze read as different materials, not just
+   different hues, so a card's grade is obvious at a glance. */
+.player-card[data-card-tier="GOLD"] .plate-top { stop-color: #f7e6a8; }
+.player-card[data-card-tier="GOLD"] .plate-mid { stop-color: #e6c76a; }
+.player-card[data-card-tier="GOLD"] .plate-bottom { stop-color: #b8933c; }
+.player-card[data-card-tier="GOLD"] .edge-a { stop-color: #fff3cd; }
+.player-card[data-card-tier="GOLD"] .edge-b { stop-color: #a67f2c; }
 
-.player-card-stat-value {
-  flex: 0 0 30px;
-  text-align: right;
-  font-size: 13px;
+.player-card[data-card-tier="SILVER"] .plate-top { stop-color: #f2f5f8; }
+.player-card[data-card-tier="SILVER"] .plate-mid { stop-color: #ccd6e0; }
+.player-card[data-card-tier="SILVER"] .plate-bottom { stop-color: #93a2b1; }
+.player-card[data-card-tier="SILVER"] .edge-a { stop-color: #ffffff; }
+.player-card[data-card-tier="SILVER"] .edge-b { stop-color: #8895a4; }
+
+.player-card[data-card-tier="BRONZE"] .plate-top { stop-color: #f0cfae; }
+.player-card[data-card-tier="BRONZE"] .plate-mid { stop-color: #d3a274; }
+.player-card[data-card-tier="BRONZE"] .plate-bottom { stop-color: #9c6c42; }
+.player-card[data-card-tier="BRONZE"] .edge-a { stop-color: #ffe2c6; }
+.player-card[data-card-tier="BRONZE"] .edge-b { stop-color: #8a5c33; }
+
+.player-card-silhouette {
+  fill: rgba(60, 48, 26, 0.28);
+}
+
+.player-card[data-card-tier="SILVER"] .player-card-silhouette { fill: rgba(44, 56, 68, 0.26); }
+.player-card[data-card-tier="BRONZE"] .player-card-silhouette { fill: rgba(70, 44, 24, 0.28); }
+
+.player-card-shield text {
+  fill: #2b2314;
+  font-family: inherit;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
+}
+
+.player-card[data-card-tier="SILVER"] .player-card-shield text { fill: #1f2833; }
+.player-card[data-card-tier="BRONZE"] .player-card-shield text { fill: #3a2312; }
+
+.player-card-svg-rating {
+  font-size: 46px;
+  font-weight: 750;
+}
+
+.player-card-svg-position {
+  font-size: 22px;
+  letter-spacing: 0.04em;
+}
+
+.player-card-svg-shirt {
+  font-size: 15px;
+  opacity: 0.72;
+}
+
+.player-card-svg-name {
+  font-size: 27px;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+}
+
+.player-card-svg-stat-value {
+  font-size: 20px;
+  font-weight: 750;
+}
+
+.player-card-svg-stat-key {
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  opacity: 0.78;
+}
+
+.player-card-inner-frame {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.42);
+  stroke-width: 1.4;
+}
+
+.player-card-rule {
+  stroke: rgba(60, 48, 26, 0.4);
+  stroke-width: 1.5;
+}
+
+.player-card[data-card-tier="SILVER"] .player-card-rule { stroke: rgba(40, 52, 66, 0.35); }
+.player-card[data-card-tier="BRONZE"] .player-card-rule { stroke: rgba(70, 44, 24, 0.38); }
+
+.player-card-identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 14px 0 0;
+  color: #9fb1ba;
+  font-size: 13px;
+}
+
+.player-card-second {
+  color: #78899b;
 }
 
 .player-card-note {

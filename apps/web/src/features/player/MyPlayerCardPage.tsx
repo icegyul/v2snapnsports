@@ -110,33 +110,72 @@ export function MyPlayerCardPage() {
               exit={reducedMotion ? { opacity: 0 } : { opacity: 0, rotateY: 12 }}
               transition={transition}
             >
-              <div className="player-card-top">
-                <span className="player-card-rating">{card.rating}</span>
+              {/* Shield drawn as SVG so the same artwork survives being blown
+                  up for a printed card. Ornament is our own - no club, league
+                  or player likeness is reproduced. */}
+              <svg className="player-card-shield" viewBox="0 0 320 470" role="img" aria-label={`${card.displayName} 카드, 종합 ${card.rating}, ${card.position}`}>
+                <defs>
+                  <linearGradient id="cardPlate" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" className="plate-top" />
+                    <stop offset="52%" className="plate-mid" />
+                    <stop offset="100%" className="plate-bottom" />
+                  </linearGradient>
+                  <linearGradient id="cardEdge" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" className="edge-a" />
+                    <stop offset="50%" className="edge-b" />
+                    <stop offset="100%" className="edge-a" />
+                  </linearGradient>
+                  <clipPath id="cardClip">
+                    <path d="M24 28 C24 19 31 12 40 12 L280 12 C289 12 296 19 296 28 L296 386 C296 422 258 446 160 464 C62 446 24 422 24 386 Z" />
+                  </clipPath>
+                </defs>
+
+                <path
+                  className="player-card-plate"
+                  d="M24 28 C24 19 31 12 40 12 L280 12 C289 12 296 19 296 28 L296 386 C296 422 258 446 160 464 C62 446 24 422 24 386 Z"
+                  fill="url(#cardPlate)"
+                  stroke="url(#cardEdge)"
+                  strokeWidth="6"
+                />
+
+                <g clipPath="url(#cardClip)">
+                  {/* Portrait silhouette: a real photo drops in here later. */}
+                  <circle className="player-card-silhouette" cx="206" cy="152" r="43" />
+                  <path className="player-card-silhouette" d="M206 200 C160 200 136 238 132 286 L280 286 C276 238 252 200 206 200 Z" />
+                </g>
+
+                <path className="player-card-inner-frame" d="M38 30 C38 24 42 20 48 20 L272 20 C278 20 282 24 282 30 L282 380 C282 410 250 431 160 448 C70 431 38 410 38 380 Z" />
+
+                <text className="player-card-svg-rating player-card-rating" x="66" y="92" textAnchor="middle">{card.rating}</text>
+                <text className="player-card-svg-position" x="66" y="126" textAnchor="middle">{card.positionCode}</text>
+                <text className="player-card-svg-shirt" x="66" y="152" textAnchor="middle">#{card.shirtNumber}</text>
+
+                <line className="player-card-rule" x1="66" y1="292" x2="254" y2="292" />
+                <text className="player-card-svg-name" x="160" y="322" textAnchor="middle">{card.displayName}</text>
+                <line className="player-card-rule" x1="66" y1="340" x2="254" y2="340" />
+
+                {card.stats.map((stat, index) => {
+                  const column = index % 2;
+                  const row = Math.floor(index / 2);
+                  const valueX = column === 0 ? 116 : 214;
+                  const keyX = column === 0 ? 124 : 222;
+                  const y = 372 + row * 30;
+                  return (
+                    <g key={stat.key} data-testid="player-card-stat">
+                      <text className="player-card-svg-stat-value" x={valueX} y={y} textAnchor="end">{stat.value}</text>
+                      <text className="player-card-svg-stat-key" x={keyX} y={y}>{stat.key}</text>
+                      <title>{stat.label} {stat.value}</title>
+                    </g>
+                  );
+                })}
+                <line className="player-card-rule" x1="160" y1="352" x2="160" y2="440" />
+              </svg>
+
+              <p className="player-card-identity">
                 <span className="player-card-tier">{TIER_LABEL[card.tier]}</span>
-                <span className="player-card-role" data-role={card.role}>{card.role}</span>
-              </div>
-              <div className="player-card-portrait" aria-hidden="true">{card.shirtNumber}</div>
-              <p className="player-card-name">{card.displayName}</p>
-              <p className="player-card-position">
-                #{card.shirtNumber} · {card.position}
-                {card.secondaryPosition && <span> · {card.secondaryPosition}</span>}
+                <span>#{card.shirtNumber} · {card.position}</span>
+                {card.secondaryPosition && <span className="player-card-second">· {card.secondaryPosition}</span>}
               </p>
-              <dl className="player-card-stats">
-                {card.stats.map((stat) => (
-                  <div key={stat.key} className="player-card-stat" data-testid="player-card-stat">
-                    <dt>{stat.label}</dt>
-                    <dd>
-                      <span className="player-card-bar" aria-hidden="true">
-                        <span
-                          style={{ width: `${Math.round((stat.value / 135) * 100)}%` }}
-                          data-strong={stat.value >= 110 ? "true" : "false"}
-                        />
-                      </span>
-                      <span className="player-card-stat-value">{stat.value}</span>
-                    </dd>
-                  </div>
-                ))}
-              </dl>
               <p className="player-card-note">데모 능력치 · 훈련 기록 연동 전</p>
             </motion.div>
           ) : (

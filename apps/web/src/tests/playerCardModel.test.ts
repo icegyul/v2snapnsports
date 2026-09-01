@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPlayerCardFace, cardTierForRating, summarizeCareer } from "../features/player/playerCardModel";
+import { buildPlayerCardFace, cardTierForRating, positionCode, summarizeCareer } from "../features/player/playerCardModel";
 
 const player = {
   id: "demo-player-08",
@@ -97,5 +97,31 @@ describe("summarizeCareer", () => {
   it("handles a player with no career records yet", () => {
     const summary = summarizeCareer([]);
     expect(summary).toEqual({ seasons: 0, records: 0, verified: 0, highlights: [] });
+  });
+});
+
+describe("positionCode", () => {
+  it("shows the Korean position as the code a card prints", () => {
+    expect(positionCode("골키퍼")).toBe("GK");
+    expect(positionCode("중앙 미드필더")).toBe("CM");
+    expect(positionCode("수비형 미드필더")).toBe("CDM");
+    expect(positionCode("공격형 미드필더")).toBe("CAM");
+    expect(positionCode("왼쪽 윙")).toBe("LW");
+    expect(positionCode("오른쪽 윙")).toBe("RW");
+    expect(positionCode("스트라이커")).toBe("ST");
+    expect(positionCode("센터백")).toBe("CB");
+  });
+
+  it("passes an existing code straight through", () => {
+    expect(positionCode("LW")).toBe("LW");
+    expect(positionCode("cam")).toBe("CAM");
+  });
+
+  it("falls back to the role band rather than inventing a position", () => {
+    expect(positionCode("알 수 없는 자리")).toBe("CM");
+  });
+
+  it("is on the card face", () => {
+    expect(buildPlayerCardFace(player).positionCode).toBe("CM");
   });
 });
