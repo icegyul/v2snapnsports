@@ -1,0 +1,283 @@
+/* Shared language for the screens behind the bottom navigation.
+   Same navy-and-gold world as the stadium, so tapping 커뮤니티 or 전술 does not
+   feel like a different app. Loaded once from the shell. */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+}
+
+.screen-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.screen-head .eyebrow {
+  margin: 0;
+  color: #f0c75e;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.screen-head h1 {
+  margin: 0;
+  font-size: clamp(28px, 6vw, 38px);
+  font-weight: 720;
+  letter-spacing: -0.02em;
+}
+
+.screen-sub {
+  margin: 0;
+  max-width: 46ch;
+  color: #9fb1ba;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.screen-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.screen-section > h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* A row that leads somewhere: schedule entries, matches, videos. */
+.screen-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.screen-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 6px 12px;
+  min-height: 56px;
+  padding: 12px 14px;
+  border: 1px solid rgba(88, 108, 132, 0.55);
+  border-left: 3px solid #f0c75e;
+  border-radius: 0 10px 10px 0;
+  color: inherit;
+  background: rgba(20, 28, 46, 0.72);
+  text-decoration: none;
+}
+
+a.screen-row:hover,
+a.screen-row:focus-visible {
+  border-color: rgba(240, 199, 94, 0.75);
+  background: rgba(26, 36, 58, 0.9);
+}
+
+.screen-row[data-kind="MATCH"] { border-left-color: #f0c75e; }
+.screen-row[data-kind="TRAINING"] { border-left-color: #12dff3; }
+
+.screen-row-title {
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.screen-row-meta {
+  grid-column: 1 / -1;
+  color: #9fb1ba;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* State, said in a word rather than only a colour. */
+.screen-pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(159, 177, 186, 0.16);
+  color: #c2ced6;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.screen-pill[data-tone="GOOD"] { background: rgba(99, 210, 135, 0.18); color: #63d287; }
+.screen-pill[data-tone="WARN"] { background: rgba(240, 199, 94, 0.18); color: #f0c75e; }
+.screen-pill[data-tone="MUTED"] { background: rgba(159, 177, 186, 0.14); color: #9fb1ba; }
+
+/* A panel that holds detail rather than a link. */
+.screen-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgba(88, 108, 132, 0.5);
+  border-radius: 12px;
+  background: rgba(20, 28, 46, 0.6);
+}
+
+.screen-panel h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.screen-panel p {
+  margin: 0;
+  color: #c2ced6;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.screen-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.screen-fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(36, 51, 73, 0.6);
+}
+
+.screen-fact dt {
+  color: #9fb1ba;
+  font-size: 11px;
+}
+
+.screen-fact dd {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+}
+
+.screen-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.screen-action {
+  min-height: 44px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(240, 199, 94, 0.7);
+  border-radius: 999px;
+  color: #f0c75e;
+  background: rgba(240, 199, 94, 0.1);
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.screen-action[data-variant="quiet"] {
+  border-color: rgba(159, 177, 186, 0.5);
+  color: #c2ced6;
+  background: transparent;
+}
+
+/* Nothing to show yet — an invitation, not an apology. */
+.screen-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 22px 16px;
+  border: 1px dashed rgba(159, 177, 186, 0.4);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.screen-empty strong {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.screen-empty span {
+  color: #9fb1ba;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.screen-note {
+  margin: 0;
+  color: #8b9cae;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.screen-status {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(36, 51, 73, 0.6);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+/* Category strip: a row of quiet chips, the current one lit. */
+.screen-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.screen-tabs button {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(88, 108, 132, 0.6);
+  border-radius: 999px;
+  color: #c2ced6;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.screen-tabs button[aria-current="page"] {
+  border-color: #f0c75e;
+  color: #f0c75e;
+  background: rgba(240, 199, 94, 0.12);
+}
+
+/* The chips already say it; the sentence stays for assistive technology. */
+.community-post .meta {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.screen-textarea {
+  width: 100%;
+  min-height: 132px;
+  padding: 12px 14px;
+  border: 1px solid rgba(88, 108, 132, 0.7);
+  border-radius: 10px;
+  color: inherit;
+  background: rgba(10, 16, 26, 0.7);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.screen-textarea:focus-visible {
+  outline: 2px solid #f0c75e;
+  outline-offset: 1px;
+}

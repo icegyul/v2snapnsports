@@ -1,0 +1,483 @@
+/* P0-B tactical field layer — FC-game presentation, WebGL-independent,
+   mobile-first. Perspective pitch + standing player cards + detail panel. */
+
+.team-tactics-field {
+  position: absolute;
+  z-index: 6;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: clamp(18px, 4dvh, 44px) clamp(16px, 4vw, 56px) calc(84px + env(safe-area-inset-bottom, 0px));
+  pointer-events: none;
+}
+
+.team-tactics-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 420px;
+  color: #f2f5f6;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
+}
+
+.team-tactics-kicker {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  color: #f0c75e;
+}
+
+.team-tactics-shape {
+  font-size: clamp(34px, 6vw, 52px);
+  font-weight: 720;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.team-tactics-own-line {
+  font-size: clamp(14px, 2.4vw, 17px);
+  font-weight: 600;
+  color: #dfe7ea;
+}
+
+.team-tactics-count {
+  font-size: 13px;
+  color: #9fb1ba;
+}
+
+.team-tactics-stage {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp(14px, 2vw, 26px);
+  width: 100%;
+  pointer-events: none;
+}
+
+/* Perspective wrapper: the pitch tilts back like the game's squad screen,
+   while each card counter-rotates to stand upright on the surface. */
+.team-tactics-pitch {
+  position: relative;
+  flex: 0 1 720px;
+  width: min(100%, 720px);
+  aspect-ratio: 105 / 68;
+  border-radius: 8px;
+  transform: perspective(1200px) rotateX(21deg);
+  transform-style: preserve-3d;
+  transform-origin: 50% 88%;
+  background:
+    repeating-linear-gradient(90deg, rgba(28, 84, 48, 0.94) 0 9.5%, rgba(24, 74, 43, 0.94) 9.5% 19%),
+    linear-gradient(180deg, #1c5430, #16452a);
+  box-shadow:
+    inset 0 0 0 1px rgba(214, 231, 226, 0.2),
+    inset 0 0 90px rgba(0, 10, 4, 0.42),
+    0 30px 60px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+
+.team-tactics-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.team-tactics-line {
+  fill: none;
+  stroke: rgba(232, 244, 238, 0.6);
+  stroke-width: 0.55;
+  vector-effect: non-scaling-stroke;
+}
+
+.team-tactics-fill {
+  fill: rgba(232, 244, 238, 0.7);
+}
+
+.team-tactics-connection {
+  stroke: #f0c75e;
+  stroke-width: 1.4;
+  stroke-dasharray: 2.6 1.6;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 6px rgba(240, 199, 94, 0.55));
+}
+
+/* Footer bar: the tilted pitch throws its cards high up the screen, so the
+   shape picker lives below the pitch where nothing overlaps it. */
+.team-tactics-footer {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  pointer-events: none;
+}
+
+.team-tactics-formations {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.team-tactics-formation-chip {
+  padding: 5px 11px;
+  border: 1px solid rgba(88, 108, 132, 0.9);
+  border-radius: 999px;
+  color: #cfd8e6;
+  background: rgba(20, 28, 46, 0.78);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+
+.team-tactics-formation-chip:hover {
+  border-color: rgba(240, 199, 94, 0.6);
+}
+
+.team-tactics-formation-chip:focus-visible {
+  outline: 2px solid #f0c75e;
+  outline-offset: 2px;
+}
+
+.team-tactics-formation-chip.is-active {
+  border-color: #f0c75e;
+  color: #f0c75e;
+  background: rgba(240, 199, 94, 0.12);
+}
+
+/* Open slot: a position nobody is connected to yet. Deliberately quiet so
+   real cards stay the focus, but readable enough to show the full shape. */
+.team-tactics-slot {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  transform: translate(-50%, -50%) rotateX(-21deg);
+  transform-origin: 50% 100%;
+  border: 1px dashed rgba(150, 172, 200, 0.5);
+  border-radius: 50%;
+  color: rgba(176, 194, 214, 0.72);
+  background: rgba(14, 22, 36, 0.42);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  pointer-events: none;
+}
+
+/* FC-style standing card. */
+.team-tactics-marker {
+  position: absolute;
+  width: 54px;
+  min-height: 64px;
+  padding: 4px 4px 3px;
+  transform: translate(-50%, -94%) rotateX(-21deg);
+  transform-origin: 50% 100%;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1px;
+  border: 1px solid rgba(88, 108, 132, 0.9);
+  border-radius: 7px;
+  background: linear-gradient(180deg, #1d2940 0%, #141c2e 100%);
+  color: #eef4f2;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  cursor: pointer;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.45);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.team-tactics-marker::after {
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  width: 26px;
+  height: 6px;
+  content: "";
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  filter: blur(2px);
+}
+
+.team-tactics-rating {
+  font-size: 15px;
+  font-weight: 750;
+  color: #f0c75e;
+}
+
+.team-tactics-avatar {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #243349;
+  color: #9fb4cc;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.team-tactics-num {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.team-tactics-tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* Position colors, FC-style. */
+.team-tactics-marker[data-role="FW"] .team-tactics-tag { color: #ff7a70; }
+.team-tactics-marker[data-role="MF"] .team-tactics-tag { color: #63d287; }
+.team-tactics-marker[data-role="DF"] .team-tactics-tag { color: #6fb1f0; }
+.team-tactics-marker[data-role="GK"] .team-tactics-tag { color: #f2cf6d; }
+
+.team-tactics-marker:focus-visible {
+  outline: 2px solid #f0c75e;
+  outline-offset: 3px;
+}
+
+.team-tactics-marker.is-selected {
+  border-color: #f0c75e;
+  box-shadow: 0 0 0 1px rgba(240, 199, 94, 0.6), 0 12px 26px rgba(0, 0, 0, 0.5), 0 0 22px rgba(240, 199, 94, 0.25);
+}
+
+.team-tactics-own {
+  z-index: 2;
+  width: 58px;
+  border-color: rgba(240, 199, 94, 0.85);
+  background: linear-gradient(180deg, #2a3350 0%, #171f33 100%);
+}
+
+.team-tactics-own .team-tactics-avatar {
+  background: #f0c75e;
+  color: #1a2332;
+}
+
+.team-tactics-own .team-tactics-tag {
+  color: #f0c75e;
+}
+
+/* Detail panel — FC right-rail on desktop, below the pitch on mobile. */
+.team-tactics-panel {
+  flex: 0 0 216px;
+  padding: 14px;
+  border: 1px solid rgba(88, 108, 132, 0.55);
+  border-radius: 12px;
+  color: #e8edf5;
+  background: rgba(20, 28, 46, 0.92);
+  backdrop-filter: blur(12px);
+  pointer-events: auto;
+}
+
+.team-tactics-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.team-tactics-panel-rating {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 9px;
+  background: #243349;
+  color: #f0c75e;
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.team-tactics-panel-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.team-tactics-panel-title strong {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.team-tactics-panel-title span {
+  font-size: 12px;
+  color: #9fb1ba;
+}
+
+.team-tactics-panel-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.team-tactics-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.team-tactics-stat-row dt {
+  flex: 0 0 44px;
+  font-size: 11px;
+  color: #9fb1ba;
+}
+
+.team-tactics-stat-row dd {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+}
+
+.team-tactics-stat-bar {
+  flex: 1;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #243349;
+}
+
+.team-tactics-stat-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: #4a90d9;
+}
+
+.team-tactics-stat-bar > span[data-strong="true"] {
+  background: #f0c75e;
+}
+
+.team-tactics-stat-value {
+  flex: 0 0 26px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.team-tactics-panel-note {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: #8b9cae;
+}
+
+.team-tactics-selection {
+  margin: 0;
+  font-size: 13px;
+  color: #b8c9d1;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .team-tactics-stage {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .team-tactics-panel {
+    flex: none;
+    width: min(100%, 400px);
+  }
+}
+
+@media (max-width: 760px) {
+  .team-tactics-field {
+    gap: 10px;
+    padding-top: max(14px, env(safe-area-inset-top, 0px));
+    overflow-y: auto;
+  }
+
+  .team-tactics-shape {
+    font-size: 34px;
+  }
+
+  /* Phones scroll this panel, so the shape picker rides directly under the
+     header instead of sitting below the fold. */
+  .team-tactics-head {
+    order: -2;
+  }
+
+  .team-tactics-footer {
+    order: -1;
+    margin-top: 0;
+    align-items: flex-start;
+  }
+
+  /* Keep clear of the cinematic button parked at the top right, and shrink
+     the chips so the four shapes still read on a phone. */
+  .team-tactics-formations {
+    justify-content: flex-start;
+    padding-right: 116px;
+  }
+
+  .team-tactics-formation-chip {
+    padding: 4px 9px;
+    font-size: 11px;
+  }
+
+  .team-tactics-pitch {
+    transform: perspective(900px) rotateX(22deg);
+  }
+
+  .team-tactics-marker {
+    width: 54px;
+    min-height: 66px;
+    /* Shorter pitch on a phone: sit the cards nearer the surface so the
+       highest one does not float off the top edge. */
+    transform: translate(-50%, -82%) rotateX(-22deg);
+  }
+
+  .team-tactics-slot {
+    width: 32px;
+    height: 32px;
+    transform: translate(-50%, -50%) rotateX(-22deg);
+    font-size: 11px;
+  }
+
+  .team-tactics-own {
+    width: 58px;
+  }
+
+  .team-tactics-rating {
+    font-size: 13px;
+  }
+
+  .team-tactics-avatar {
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+  }
+
+  .team-tactics-num {
+    font-size: 11px;
+  }
+
+  .team-tactics-tag {
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .team-tactics-marker {
+    transition: none;
+  }
+}

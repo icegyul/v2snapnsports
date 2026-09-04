@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "snapn-v2-stadium",
+      "runtimeExecutable": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "runtimeArgs": ["V2_831/snapn-stadium-claude-ready/scripts/run-vite-safe-check.sh", "dev", "--host"],
+      "port": 5173
+    },
+    {
+      "name": "snapn-play",
+      "runtimeExecutable": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "runtimeArgs": ["apps/play/scripts/run-vite-safe-check.sh", "dev", "--host", "--port", "5180"],
+      "port": 5180
+    }
+  ]
+}

@@ -1,0 +1,140 @@
+name: Deploy PLAY to Cafe24
+
+# Deployment of the static apps/play build to play.snapnsports.com.
+# Triggered by pushing to the deploy/play pointer branch (or manually via
+# workflow_dispatch). Reuses the same repository Actions secrets as the
+# main V2 deploy (Settings -> Secrets and variables -> Actions): a single
+# secret named CAFE24 whose value is three lines - FTP server / username /
+# password. Individual secrets CAFE24_FTP_SERVER / CAFE24_FTP_USERNAME /
+# CAFE24_FTP_PASSWORD take precedence when present.
+#
+# Optional variable (Settings -> Variables -> Actions):
+#   CAFE24_PLAY_FTP_SERVER_DIR  target directory relative to the FTP login
+#                                home, default play/. This assumes the
+#                                play.snapnsports.com subdomain's document
+#                                root has been pointed at that folder in
+#                                the Cafe24 hosting panel - that step is
+#                                not something this workflow can do; see
+#                                apps/play/README.md.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - deploy/play
+
+concurrency:
+  group: deploy-play-cafe24
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/play
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve FTP credentials
+        env:
+          S: ${{ secrets.CAFE24_FTP_SERVER }}
+          U: ${{ secrets.CAFE24_FTP_USERNAME }}
+          P: ${{ secrets.CAFE24_FTP_PASSWORD }}
+          COMBINED: ${{ secrets.CAFE24 }}
+        run: |
+          if [ -z "$S" ] && [ -n "$COMBINED" ]; then
+            S=$(printf '%s\n' "$COMBINED" | sed -n 1p | tr -d '\r' | xargs)
+            U=$(printf '%s\n' "$COMBINED" | sed -n 2p | tr -d '\r' | xargs)
+            P=$(printf '%s\n' "$COMBINED" | sed -n 3p | tr -d '\r')
+          fi
+          S=$(printf '%s' "$S" | sed -E 's#^ftps?://##; s#/+$##')
+          if [ -z "$S" ] || [ -z "$U" ] || [ -z "$P" ]; then
+            echo "::error::FTP credentials incomplete. Edit the repository secret named CAFE24 so its value is exactly three lines - line 1 FTP server, line 2 username, line 3 password."
+            exit 1
+          fi
+          echo "::add-mask::$P"
+          {
+            echo "FTP_SERVER=$S"
+            echo "FTP_USERNAME=$U"
+            echo "FTP_PASSWORD=$P"
+          } >> "$GITHUB_ENV"
+          echo "FTP credentials resolved (server: $S)."
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/play/package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Typecheck, test, build
+        run: |
+          npm run typecheck
+          npm test
+          npm run build
+
+      - name: Deploy dist/ to target directory via lftp
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y lftp
+
+          target="${{ vars.CAFE24_PLAY_FTP_SERVER_DIR != '' && vars.CAFE24_PLAY_FTP_SERVER_DIR || 'play/' }}"
+
+          encode() { awk '{printf "%s%%0A", $0}'; }
+          precheck="pwd=$(pwd)
+          $(ls -la dist 2>&1 | head -20)"
+          echo "$precheck"
+          echo "::notice title=dist/ before lftp::$(printf '%s' "$precheck" | encode)"
+
+          umask 077
+          cat > "$HOME/.netrc" <<NETRC
+          machine $FTP_SERVER
+          login $FTP_USERNAME
+          password $FTP_PASSWORD
+          NETRC
+          chmod 600 "$HOME/.netrc"
+
+          set +e
+          lftp -d -e "
+            set ftp:ssl-allow no;
+            set net:max-retries 2;
+            set net:timeout 20;
+            set net:reconnect-interval-base 3;
+            set mirror:parallel-transfer-count 1;
+            debug 3;
+            open $FTP_SERVER;
+            set cmd:fail-exit no;
+            mkdir -p $target;
+            set cmd:fail-exit yes;
+            cd $target;
+            lcd dist;
+            mirror -R --verbose=3 --parallel=1 . .;
+            bye
+          " > "$RUNNER_TEMP/lftp.log" 2>&1
+          status=$?
+          set -e
+          rm -f "$HOME/.netrc"
+          encode() { awk '{printf "%s%%0A", $0}'; }
+          if [ "$status" -ne 0 ]; then
+            tail -c 4000 "$RUNNER_TEMP/lftp.log" > "$RUNNER_TEMP/lftp_tail.log"
+            echo "::error title=lftp exit $status::$(cat "$RUNNER_TEMP/lftp_tail.log" | encode)"
+            exit "$status"
+          fi
+          echo "lftp mirror completed."
+          transferred=$(grep -c "^put " "$RUNNER_TEMP/lftp.log" || true)
+          tail -c 3000 "$RUNNER_TEMP/lftp.log" > "$RUNNER_TEMP/lftp_success_tail.log"
+          echo "::notice title=lftp mirror succeeded (put=${transferred}, target=${target})::$(cat "$RUNNER_TEMP/lftp_success_tail.log" | encode)"
+
+      - name: Smoke check https://play.snapnsports.com/
+        # Non-fatal: this only succeeds once the play subdomain + DNS have
+        # been pointed at the deployed folder (see apps/play/README.md).
+        # Files are already deployed regardless of this step's outcome.
+        continue-on-error: true
+        run: |
+          sleep 8
+          curl -sf https://play.snapnsports.com/ | grep -q "SnapN Sports PLAY" \
+            && echo "live: https://play.snapnsports.com/ serves the PLAY shell" \
+            || echo "::warning::play.snapnsports.com is not serving the new build yet - check the Cafe24 subdomain/DNS setup described in apps/play/README.md"
